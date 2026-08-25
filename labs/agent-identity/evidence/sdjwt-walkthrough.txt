@@ -14,9 +14,9 @@ Issued: 7 disclosable claims, plus decoy digests to blur that count
 
 --- presented to the ledger, which only needs to know who runs this agent ---
 verifier sees:  ['capabilities', 'cnf', 'iss', 'operator', 'sub']
-verifier cannot open: 10 digests
+verifier cannot open: 7 digests
 
 --- presented to the incident responder, who needs to reach a human ---
 verifier sees:  ['cnf', 'deployment_env', 'iss', 'operator', 'operator_contact', 'sub']
-verifier cannot open: 9 digests
+verifier cannot open: 6 digests
 

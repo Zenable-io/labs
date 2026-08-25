@@ -13,7 +13,7 @@ DPoP -- attacker has exfiltrated the access token
   [   HELD] stolen token + attacker's own proof key
             HTTP 401 DPoP proof rejected: proof key thumbprint does not match token cnf.jkt
   [   HELD] captured token + proof, replayed verbatim
-            first 200, replay HTTP 401 DPoP proof rejected: replayed jti 787066a5-bd19-4ea2-8ba8-9d51d0c81122
+            first 200, replay HTTP 401 DPoP proof rejected: replayed jti ce0033cd-8bd1-4067-a2f1-b0035fc3a13a
   [   HELD] proof minted for a different URL (htu)
             HTTP 401 DPoP proof rejected: htu 'http://localhost:8081/invoices' != 'http://localhost:8081/invoices/strict'
   [   HELD] proof minted for a different method (htm)
@@ -22,6 +22,12 @@ DPoP -- attacker has exfiltrated the access token
             HTTP 401 DPoP proof rejected: iat is 3600s away from now
   [   HELD] right key, proof minted over a different token (ath)
             HTTP 401 DPoP proof rejected: ath does not match the presented access token
+  [   HELD] proof signed with symmetric HS256 (alg confusion)
+            HTTP 401 DPoP proof rejected: alg 'HS256' is not in the allowlist ['ES256']
+  [   HELD] proof signed with symmetric HS384 (alg confusion)
+            HTTP 401 DPoP proof rejected: alg 'HS384' is not in the allowlist ['ES256']
+  [   HELD] proof signed with symmetric HS512 (alg confusion)
+            HTTP 401 DPoP proof rejected: alg 'HS512' is not in the allowlist ['ES256']
   [   HELD] unbound token on the strict endpoint (downgrade)
             HTTP 401 token has no cnf.jkt -- it is not sender-constrained
 
@@ -33,7 +39,7 @@ SD-JWT -- what a verifier learns, and what it can replay
   [   HELD] verifier sees only the disclosed claims
             disclosed ['capabilities', 'cnf', 'iss', 'operator', 'sub']; withheld ['cost_center', 'deployment_env', 'model', 'operator_contact', 'owner_employee_id']
   [   HELD] count of withheld claims is blurred by decoys
-            7 unopenable digests hide 5 real claims
+            9 unopenable digests hide 5 real claims
   [   HELD] verifier replays the presentation elsewhere (aud)
             rejected: Invalid audience in KB-JWT
   [   HELD] presentation replayed in a later session (nonce)
@@ -45,4 +51,4 @@ SD-JWT -- what a verifier learns, and what it can replay
   [   HELD] key-binding JWT stripped
             rejected: Invalid JWS Object [Invalid format]
 
-19/19 cases behaved as documented
+22/22 cases behaved as documented

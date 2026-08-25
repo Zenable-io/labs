@@ -15,7 +15,7 @@ import jwt
 from jwcrypto.jwk import JWK
 
 import sdjwt_verify as V
-from dpop import access_token_hash, make_proof, new_key
+from dpop import access_token_hash, make_proof, new_key, public_jwk
 from sdjwt_issue import issue, present
 from tokens import fetch_token
 
@@ -117,6 +117,29 @@ def dpop_cases() -> None:
     response = call(STRICT, bound, proof=mismatched)
     record("right key, proof minted over a different token (ath)",
            response.status_code != 200, reason(response))
+
+    # The alg-confusion attack the allowlist exists for. The attacker reuses the
+    # victim's public JWK in the header but names a symmetric alg and signs with
+    # a secret they chose. A denylist that blocks HS256 and forgets HS384 accepts
+    # this; an allowlist rejects it before the key is ever consulted.
+    for forged_alg in ("HS256", "HS384", "HS512"):
+        forged = jwt.encode(
+            {
+                "jti": str(uuid.uuid4()),
+                "htm": "POST",
+                "htu": STRICT,
+                "iat": int(time.time()),
+                "ath": access_token_hash(bound),
+            },
+            # 64 bytes: long enough for HS512, so the rejection below is the
+            # allowlist doing its job and not PyJWT balking at a weak key.
+            secrets.token_hex(32),
+            algorithm=forged_alg,
+            headers={"typ": "dpop+jwt", "alg": forged_alg, "jwk": public_jwk(agent_key)},
+        )
+        response = call(STRICT, bound, proof=forged)
+        record(f"proof signed with symmetric {forged_alg} (alg confusion)",
+               response.status_code != 200, reason(response))
 
     # Downgrade: present an unbound token on the endpoint that demands binding.
     response = call(STRICT, plain, proof=make_proof(new_key(), "POST", STRICT, access_token=plain))

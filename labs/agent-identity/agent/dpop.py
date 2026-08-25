@@ -20,6 +20,13 @@ from cryptography.hazmat.primitives.asymmetric import ec
 # inside the window -- the window alone bounds it, it does not prevent it.
 MAX_PROOF_AGE_SECONDS = 60
 
+# An ALLOWLIST, never a denylist. RFC 9449 s4.3 requires an asymmetric alg, and
+# a denylist has to anticipate every symmetric one -- the single entry it
+# forgets (HS384, say) is an alg the attacker signs with a key they chose, and
+# the proof then verifies against data they control. Widening this set means
+# widening `new_key`/`public_jwk` too: an ES384 header needs a P-384 key.
+PROOF_ALGS = frozenset({"ES256"})
+
 
 def b64u(raw: bytes) -> str:
     return base64.urlsafe_b64encode(raw).decode().rstrip("=")
@@ -145,10 +152,9 @@ def verify_proof(
     header = jwt.get_unverified_header(proof)
     if header.get("typ") != "dpop+jwt":
         raise ProofRejected(f"typ is {header.get('typ')!r}, not 'dpop+jwt'")
-    if header.get("alg") in (None, "none", "HS256"):
-        # Symmetric or absent alg would let the proof be verified with data the
-        # attacker also controls. RFC 9449 requires an asymmetric alg.
-        raise ProofRejected(f"alg {header.get('alg')!r} is not an asymmetric alg")
+    alg = header.get("alg")
+    if alg not in PROOF_ALGS:
+        raise ProofRejected(f"alg {alg!r} is not in the allowlist {sorted(PROOF_ALGS)}")
     jwk = header.get("jwk")
     if not jwk:
         raise ProofRejected("no jwk in proof header")
@@ -160,8 +166,8 @@ def verify_proof(
     # comparing the thumbprint to cnf.jkt below, which is the whole point.
     claims = jwt.decode(
         proof,
-        jwt.PyJWK.from_dict({**jwk, "alg": "ES256"}).key,
-        algorithms=["ES256"],
+        jwt.PyJWK.from_dict({**jwk, "alg": alg}).key,
+        algorithms=sorted(PROOF_ALGS),
         options={"verify_aud": False},
     )
 
