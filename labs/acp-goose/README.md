@@ -19,46 +19,7 @@ Speak the Agent Client Protocol to a real agent by hand, then watch the agent re
 
 ---
 
-## First: which ACP is this?
-
-_~8 min · Lecture_
-
-Three different live protocols are called ACP. Before you read another word, make sure you are reading about the right one, because the other two will not help you and one of them will actively mislead you.
-
-**This lab is about the Agent Client Protocol** — published by Zed Industries in August 2025, JSON-RPC over stdio, connecting a **code editor** to a **coding agent**. Its own tagline is "the LSP for AI coding agents," and that analogy is the fastest way in: before LSP, every editor wrote a custom integration for every language. Before ACP, every editor wrote a custom integration for every agent.
-
-> [!TIP]
-> **Pro tip — the three ACPs.** If someone hands you "an ACP spec," check which one before you build anything:
-
-| Name | Who | Connects | Where it stands |
-|---|---|---|---|
-| **Agent Client Protocol** | Zed Industries, Aug 2025 | editor ↔ coding agent, JSON-RPC over stdio | Live and growing. **This lab.** |
-| **Agent Communication Protocol** | IBM Research, Mar 2025, powered BeeAI | agent ↔ agent, REST over HTTP | Donated to the Linux Foundation, then **merged into A2A** in Aug 2025. BeeAI itself now runs on A2A. |
-| **Agentic Commerce Protocol** | OpenAI + Stripe | buyer's agent ↔ merchant | Beta, date-versioned. Nothing to do with editors. |
-
-The trap is the middle row. If you came here from anything A2A-flavored, "ACP" in that world means the *Communication* protocol — the one that folded into A2A. It is not this. The two share an acronym and nothing else: different authors, different transport, different problem. Our [A2A lab](https://www.zenable.app/learn?lab=a2a-agent-interop&utm_source=github&utm_medium=labs_repo&utm_campaign=acp-agent-client_readme) covers that lineage.
-
-We have watched experienced engineers lose an afternoon to this. It is the single most common way to arrive at ACP confused.
-
-## What the protocol is for
-
-_~12 min · Lecture_
-
-You have an editor. You have an agent. Historically, connecting them meant one of two bad options: the editor ships a bespoke plugin per agent, or the agent ships a bespoke plugin per editor. Both are O(editors × agents), and both mean switching agents costs you your editor.
-
-ACP inverts it the way LSP did. The **client** is the editor — it owns the workspace, the files, the terminal, and the human. The **agent** is a subprocess the client launches, speaking JSON-RPC 2.0 over stdin and stdout. One newline-delimited JSON object per frame.
-
-That subprocess detail matters more than it looks. The agent is not a service you call over a network with an identity and a scope. It is a **child process on your machine**, and everything it is allowed to do flows from that.
-
-### Where MCP fits
-
-These get conflated constantly, and they compose rather than compete:
-
-- **MCP** connects an agent to **tools and data** — the agent is the client, the tool server answers.
-- **ACP** connects an **editor to the agent** — the editor is the client, the agent answers.
-- **A2A** connects an **agent to another agent** as peers.
-
-The clean way to hold it: ACP is how the agent gets *driven*; MCP is how the agent gets *capabilities*. And they meet in one place you will see shortly — `session/new` takes an `mcpServers` argument, so the editor hands the agent its MCP servers when the session opens. The editor decides what tools the agent has.
+_This README is only the hands-on lab. The concept walk-through (First: which ACP is this? · What the protocol is for · The direction nobody expects · Where this rig stops) lives on the [Learning Hub](https://www.zenable.app/learn?lab=acp-agent-client&utm_source=github&utm_medium=labs_repo&utm_campaign=acp-agent-client_readme)._
 
 ## Speak the handshake yourself
 
@@ -174,28 +135,6 @@ session/new      -> error: Failed to resolve provider: Configuration value not f
 
 > [!TIP]
 > **Pro tip — if you get a sqlite panic instead.** On a machine with an older goose install you may see `panicked at sqlx-sqlite … index out of bounds` rather than a clean error. That is stale local session state, not the protocol. Run against a clean profile to confirm: `HOME=$(mktemp -d) goose acp`. We hit exactly this while building the lab, and spent a while blaming our client for it.
-
-## The direction nobody expects
-
-_~12 min · Lecture_
-
-Every ACP diagram you will see draws the editor calling the agent. That is half the protocol, and it is the harmless half.
-
-After the handshake, the traffic reverses. The agent calls **back into the client**:
-
-| Method | Direction | What it means |
-|---|---|---|
-| `fs/read_text_file` | agent → client | "Show me this file." |
-| `fs/write_text_file` | agent → client | "Change this file." |
-| `terminal/create` | agent → client | "Run this command." |
-| `session/request_permission` | agent → client | "May I run this tool?" |
-| `session/update` | agent → client | Progress, tool calls, plans (a notification) |
-
-Read that list as a security model rather than a feature list. The agent is a subprocess with no identity, no scope, and no credential — and the way it changes your machine is by **asking the client to do it**. Every consequential action is an inbound JSON-RPC request.
-
-Which means the client is the policy decision point. Not a firewall, not a sandbox, not the agent's own good judgement. The editor. Whatever sits on that wire decides what reaches the machine.
-
-This is the part of ACP worth your attention, and it is why "which agent do you trust" is the wrong question. The right question is what your client grants and what it refuses.
 
 ## Prove it: an agent that only asks
 
@@ -317,22 +256,6 @@ Every attempt is recorded whether or not it succeeded. A denied action you canno
 
 > [!TIP]
 > **Diving deeper — why this works at all.** The proxy is possible because ACP is symmetric line-delimited JSON-RPC with no transport-level authentication and no message integrity. That is a deliberate design choice for a protocol between a parent process and its own child — on a single machine, the process boundary *is* the trust boundary, and adding crypto between them would be theatre. The consequence is that a local proxy is trivial to build, which cuts both ways: it is also trivial for anything that can start your editor's agent subprocess to sit in that position. Whoever controls the agent command line controls the conversation. That is the thing to protect.
-
-## Where this rig stops
-
-_~8 min · Lecture_
-
-Be clear about what you just built, because it is easy to over-read.
-
-You built a **teaching rig**, not a policy engine. Specifically:
-
-- **The proxy matches on method name only.** It never inspects a path, a command, or an argument. `--deny fs/write_text_file` is all-or-nothing, which is not a policy anybody can actually run with — real rules are "not outside the workspace" and "not `curl | sh`".
-- **There is no identity anywhere.** Nothing authenticates the agent. ACP's `authMethods` were negotiated during `initialize` and then never used. You cannot attribute a denied action to anyone.
-- **The audit log has no integrity protection.** It is a plain file the audited party could edit.
-
-What a real deployment adds on top: per-path and per-command rules rather than per-method, an identity the request can be attributed to, and a log the agent cannot reach. The mechanism you now understand — the client is the decision point, and every consequential action is an inbound request — is what those layers hang off.
-
-The protocol is not the security boundary. The client is. ACP just makes the boundary legible, which is the most any protocol can do for you.
 
 ## Drive the real thing
 

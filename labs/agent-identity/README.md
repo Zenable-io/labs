@@ -19,90 +19,7 @@ Bind an agent's access tokens to a key it holds (DPoP, RFC 9449) and give it a c
 
 ---
 
-## Why Agent Identity Is Different
-
-_~12 min · Lecture_
-
-An access token is a bearer token. That word is not a description, it is a warning: whoever bears it, uses it. The token does not know who is holding it, and neither does the server it is presented to.
-
-Humans have survived this for two decades because a human session is short, tied to one browser, and watched by anomaly detection that notices when someone in Ohio logs in from Ukraine ninety seconds later. Agents have none of those properties. An agent's token sits in an environment variable, gets printed into a debug log, rides along inside a HAR file attached to a support ticket, and is passed to a subprocess that a prompt-injected tool call chose. The blast radius of "the token leaked" is much bigger, and the signals that catch it for humans are absent.
-
-Two specifications address two halves of this, and they are genuinely independent — you can adopt either without the other.
-
-**DPoP** (Demonstrating Proof of Possession, RFC 9449, September 2023) makes a token useless without a private key the agent holds. Steal the token, you get nothing.
-
-**SD-JWT** (Selective Disclosure for JWTs, RFC 9901, November 2025) lets an agent carry one signed credential describing itself and reveal only the parts a given verifier needs. The billing service learns the cost center; the ledger never does.
-
-### The question each one answers
-
-A useful way to keep them apart:
-
-| | DPoP | SD-JWT |
-|---|---|---|
-| Question | May this caller do X? | What *is* this caller? |
-| Artifact | Access token, minutes long | Credential, stable for a deployment |
-| Attacker model | Has the token, not the key | Is a legitimate verifier, curious |
-| Failure without it | Stolen token is replayable | Every verifier learns everything |
-
-Notice that the second row is why this is two mechanisms and not one. Putting provenance claims in an access token means re-minting them every five minutes and shipping them to every resource server that receives one. Putting authorization in a credential means a five-minute revocation window becomes a deployment-long one.
-
-> The rest of this lab is adversarial. We stand the rig up, we get it working,
-> and then we spend most of our time attacking it — because auth code that has
-> only ever been tested with a good token is untested.
-
-### What the attacker actually gets
-
-The whole argument for DPoP rests on one asymmetry, so it is worth stating plainly before we build anything.
-
-Tokens leak by being **copied**. They land in logs, crash dumps, HAR files, error trackers, browser storage, CI job output, and any proxy in the path. Every one of those is a copy of bytes.
-
-Private keys, when they live in a TPM, an HSM, a KMS, or a Secure Enclave, do not leak by being copied, because they cannot be exported at all — you can ask the hardware to sign, you cannot ask it for the key. An attacker who reads every log you have still cannot sign a proof.
-
-That asymmetry is the entire mitigation. It also tells you exactly when DPoP buys you nothing: if the key sits in the same `.env` file as the token, an attacker who gets one gets both, and you have added latency and a moving part in exchange for nothing. **DPoP is a hardware-key story wearing an HTTP costume.** Adopt it when you have somewhere real to put the key.
-
----
-
-## Attacks This Would Have Changed
-
-_~14 min · Lecture_
-
-Abstract threat models are easy to nod along to and hard to act on. These are public, documented incidents where the mechanism of the breach was *a copied credential replayed by someone who was not its holder* — the exact case DPoP addresses.
-
-### Okta support system, September–October 2023
-
-An attacker accessed Okta's customer support case management system and read support cases. Some of those cases had HAR files attached — browser session recordings that customers upload when debugging, which contain session tokens verbatim. Okta reported that the threat actor used those tokens to hijack the legitimate sessions of five customers; BeyondTrust, Cloudflare, and 1Password each published their own accounts of detecting it.
-
-Nothing was forged. The tokens were valid, and they were replayed by a party that had never authenticated. A sender-constrained token in that HAR file would have been an inert string, because the HAR file contains the request, not the signing key.
-
-https://sec.okta.com/articles/2023/11/unauthorized-access-oktas-support-case-management-system-root-cause/
-
-### GitHub, Heroku and Travis CI OAuth tokens, April 2022
-
-An attacker obtained OAuth user tokens that GitHub had issued to two third-party integrators, and authenticated to the GitHub API with them to enumerate organizations and download private repository contents from dozens of organizations, npm among them. GitHub's own writeup notes the tokens were not stolen from GitHub — they were stolen from the integrators, then presented to GitHub, which had no way to tell the difference.
-
-That is the shape of the problem exactly: a resource server cannot distinguish the legitimate holder of a bearer token from anyone else holding the same bytes. That is not an implementation flaw, it is the definition of "bearer".
-
-https://github.blog/news-insights/company-news/security-alert-stolen-oauth-user-tokens/
-
-### And one it would NOT have changed
-
-In 2023, the actor Microsoft tracks as Storm-0558 obtained a Microsoft signing key that had leaked into a crash dump, and used it to **forge** authentication tokens.
-
-DPoP does nothing here. An attacker who can mint tokens can mint one whose `cnf.jkt` names their own key, then produce matching proofs all day. Sender constraining protects a token from being *replayed by a non-holder*; it does not protect an issuer from having its signing key stolen.
-
-https://www.microsoft.com/en-us/security/blog/2023/07/14/analysis-of-storm-0558-techniques-for-unauthorized-email-access/
-
-This distinction is the honest version of the pitch, and it is the one to bring to your architecture review. DPoP narrows the set of people who can use a leaked token to those who also compromised your key storage. If your key storage is a file next to the token, that set has not narrowed.
-
-### On the SD-JWT half
-
-We are not going to claim a named public breach for selective disclosure, because we do not have one to cite. The harm SD-JWT addresses is over-collection — every verifier learning every claim — and over-collection produces incidents that get attributed to whatever *later* leaked the collected data, not to the protocol that handed it over. So we will argue it on benefits and tradeoffs in the hands-on section instead, and let you decide.
-
-What the specification itself documents is worth reading directly: RFC 9901 section 9 walks through the attacks against naive implementations, including verifiers that read disclosed values without checking their digests, and the "Alice-to-Bob" case where key binding is defeated by simply handing someone the device.
-
-https://www.rfc-editor.org/rfc/rfc9901.html
-
----
+_This README is only the hands-on lab. The concept walk-through (Why Agent Identity Is Different · Attacks This Would Have Changed) lives on the [Learning Hub](https://www.zenable.app/learn?lab=agent-identity-dpop-sdjwt&utm_source=github&utm_medium=labs_repo&utm_campaign=agent-identity-dpop-sdjwt_readme)._
 
 ## Hands-on: A Token That Knows Whose It Is
 
@@ -338,12 +255,6 @@ An attacker with a *different* key trips the thumbprint check before `ath` is ev
 ### Break it yourself
 
 Best fifteen minutes in the lab — comment out one check in `verify_proof()` at a time, rerun, and watch exactly one case flip to `BROKEN`. Then try to find a check whose removal breaks nothing, and work out whether you have found redundancy or a test gap.
-
----
-
-## Break
-
-_~10 min · Break_
 
 ---
 
