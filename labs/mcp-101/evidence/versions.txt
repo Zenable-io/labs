@@ -1,0 +1,9 @@
+FastMCP version:                                                          2.14.7
+MCP version:                                                              1.29.1
+Python version:                                                          3.13.12
+Platform:                                    macOS-26.5.2-arm64-arm-64bit-Mach-O
+FastMCP root path: /Users/jonzeolla/src/zenable/labs-mcp-101/labs/mcp-101/.venv…
+
+🎉 FastMCP update available: 3.4.7
+Run: pip install --upgrade fastmcp
+Docker version 29.7.2, build a7dcaa6
