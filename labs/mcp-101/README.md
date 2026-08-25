@@ -5,7 +5,7 @@
 
 Learn what an MCP host, client, and server actually are, then prove it — write an MVP server with FastMCP, test it with a scripted client, move it into a container, and connect goose to it without changing a line of server code.
 
-**[▶ Take this lab on the Zenable Learning Hub](https://www.zenable.app/learn?lab=mcp-101&utm_source=github&utm_medium=labs_repo&utm_campaign=mcp-101_readme)** — same content, with per-section timing, progress tracking, and copy buttons on every command.
+**[▶ Take this lab on the Zenable Learning Hub](https://www.zenable.app/learn?lab=mcp-101&utm_source=github&utm_medium=labs_repo&utm_campaign=mcp-101_readme)** — fully hosted sandbox environment, progress tracking, and a full-featured lab workspace.
 
 **Duration** 90 minutes · **Difficulty** Beginner
 

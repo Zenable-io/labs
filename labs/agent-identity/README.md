@@ -5,7 +5,7 @@
 
 Bind an agent's access tokens to a key it holds (DPoP, RFC 9449) and give it a credential that reveals only what each verifier needs (SD-JWT, RFC 9901). Steal the tokens yourself and watch both hold.
 
-**[▶ Take this lab on the Zenable Learning Hub](https://www.zenable.app/learn?lab=agent-identity-dpop-sdjwt&utm_source=github&utm_medium=labs_repo&utm_campaign=agent-identity-dpop-sdjwt_readme)** — same content, with per-section timing, progress tracking, and copy buttons on every command.
+**[▶ Take this lab on the Zenable Learning Hub](https://www.zenable.app/learn?lab=agent-identity-dpop-sdjwt&utm_source=github&utm_medium=labs_repo&utm_campaign=agent-identity-dpop-sdjwt_readme)** — fully hosted sandbox environment, progress tracking, and a full-featured lab workspace.
 
 **Duration** 2 hours · **Difficulty** Advanced
 

@@ -5,7 +5,7 @@
 
 Get hands-on with Enterprise-Managed Authorization (EMA) and the ID-JAG grant. Stand up a real MCP client, an enterprise IdP, and a vendor authorization server locally, watch an agent get authorized with no consent screen, then try to break the security properties that make it safe.
 
-**[▶ Take this lab on the Zenable Learning Hub](https://www.zenable.app/learn?lab=mcp-authorization-101&utm_source=github&utm_medium=labs_repo&utm_campaign=mcp-authorization-101_readme)** — same content, with per-section timing, progress tracking, and copy buttons on every command.
+**[▶ Take this lab on the Zenable Learning Hub](https://www.zenable.app/learn?lab=mcp-authorization-101&utm_source=github&utm_medium=labs_repo&utm_campaign=mcp-authorization-101_readme)** — fully hosted sandbox environment, progress tracking, and a full-featured lab workspace.
 
 **Duration** 3.5 hours · **Difficulty** Intermediate
 

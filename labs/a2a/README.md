@@ -5,7 +5,7 @@
 
 Build two agents that discover and call each other over the A2A protocol, with Keycloak issuing every credential. Deep dives on agent cards and agent identity.
 
-**[▶ Take this lab on the Zenable Learning Hub](https://www.zenable.app/learn?lab=a2a-agent-interop&utm_source=github&utm_medium=labs_repo&utm_campaign=a2a-agent-interop_readme)** — same content, with per-section timing, progress tracking, and copy buttons on every command.
+**[▶ Take this lab on the Zenable Learning Hub](https://www.zenable.app/learn?lab=a2a-agent-interop&utm_source=github&utm_medium=labs_repo&utm_campaign=a2a-agent-interop_readme)** — fully hosted sandbox environment, progress tracking, and a full-featured lab workspace.
 
 **Duration** 2 hours · **Difficulty** Intermediate
 
