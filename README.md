@@ -10,11 +10,11 @@ We think information should be free. Companies are complex, and everyone's AI ad
 
 ## Getting started
 
-The labs are written to be followed from the Learning Hub, which supplies the walkthrough, the expected output, and the explanation around each step:
+The Learning Hub runs each lab with per-section timing, progress tracking, and copy buttons on every command:
 
 **[zenable.app/learn](https://www.zenable.app/learn?utm_source=github&utm_medium=labs_repo&utm_campaign=labs_getting_started)**
 
-You can also clone this repository and run any lab directly. Each one has its own README with prerequisites and a single command to bring the environment up.
+You can also clone this repository and follow a lab from here. Every lab directory carries the whole walkthrough in its README — the same content the Hub serves, generated from it.
 
 ```bash
 git clone https://github.com/Zenable-io/labs.git ~/zenable-labs
@@ -25,6 +25,7 @@ cd ~/zenable-labs/labs/<lab>
 
 | Lab | What you'll do |
 |---|---|
+| [`mcp-101`](labs/mcp-101) | Write an MCP server with FastMCP, drive it with a scripted client, move it into a container on Streamable HTTP, then point goose at it without changing a line of server code. |
 | [`ema-mcp`](labs/ema-mcp) | Stand up an enterprise IdP, a vendor authorization server, and a protected MCP server, then watch an AI agent get authorized with no consent screen — and try to break the security properties that make it safe. |
 | [`a2a`](labs/a2a) | Build two agents that discover and call each other over the A2A protocol, with Keycloak issuing every credential — then send a rogue agent at them and watch each check reject it. |
 | [`acp-goose`](labs/acp-goose) | Speak the Agent Client Protocol to a real agent by hand, then watch the agent reach back for your filesystem and your shell — and put a policy on the wire that refuses it. |
