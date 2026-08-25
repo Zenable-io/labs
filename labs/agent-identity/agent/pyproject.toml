@@ -1,0 +1,17 @@
+[project]
+name = "agent-identity-workshop"
+version = "0"
+description = "DPoP-bound tokens and SD-JWT agent credentials against a local Keycloak"
+requires-python = ">=3.11"
+dependencies = [
+    "pyjwt[crypto]>=2.10.1",
+    "cryptography>=44.0.0",
+    "httpx>=0.28.1",
+    "uvicorn>=0.34.0",
+    "starlette>=0.46.0",
+    "sd-jwt>=0.10.4",
+    "jwcrypto>=1.5.8",
+]
+
+[tool.uv]
+package = false

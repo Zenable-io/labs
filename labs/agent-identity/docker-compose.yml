@@ -1,0 +1,28 @@
+---
+# Keycloak in dev mode: in-memory H2, HTTP only, no TLS. Correct for a
+# workshop, wrong for anything else -- dev mode disables the hostname and
+# TLS checks that make a production Keycloak safe to expose.
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.7.1
+    container_name: agent-identity-keycloak
+    # DPoP is a preview feature, so it must be named explicitly; without it
+    # the client attribute below is accepted and silently does nothing, and
+    # every token comes back unbound.
+    command: ["start-dev", "--http-port=8080", "--features=dpop"]
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      KC_HEALTH_ENABLED: "true"
+    ports:
+      - "8080:8080"
+    healthcheck:
+      # The management port (9000) serves health; the container has no curl,
+      # so probe over bash's /dev/tcp. The request lines MUST end in CRLF --
+      # Keycloak's Quarkus listener drops a request terminated with bare LF,
+      # so the probe fails every time and `up --wait` never returns.
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000 && printf 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && cat <&3 | grep -q '\"status\": \"UP\"'"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 10s

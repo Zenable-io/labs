@@ -1,0 +1,22 @@
+What the issuer signed:
+  iss                  always disclosed
+  sub                  always disclosed
+  cnf                  always disclosed
+  operator             selectively disclosable
+  operator_contact     selectively disclosable
+  model                selectively disclosable
+  deployment_env       selectively disclosable
+  cost_center          selectively disclosable
+  owner_employee_id    selectively disclosable
+  capabilities         selectively disclosable
+
+Issued: 7 disclosable claims, plus decoy digests to blur that count
+
+--- presented to the ledger, which only needs to know who runs this agent ---
+verifier sees:  ['capabilities', 'cnf', 'iss', 'operator', 'sub']
+verifier cannot open: 10 digests
+
+--- presented to the incident responder, who needs to reach a human ---
+verifier sees:  ['cnf', 'deployment_env', 'iss', 'operator', 'operator_contact', 'sub']
+verifier cannot open: 9 digests
+

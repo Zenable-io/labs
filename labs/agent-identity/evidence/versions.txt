@@ -1,0 +1,8 @@
+Keycloak 26.7.1
+docker: 29.7.2
+pyjwt: 2.13.0
+sd-jwt: 0.10.4
+jwcrypto: 1.5.8
+cryptography: 50.0.0
+httpx: 0.28.1
+python: 3.13.12

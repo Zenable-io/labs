@@ -1,0 +1,3 @@
+agent/.venv/
+agent/issuer-public-key.json
+__pycache__/

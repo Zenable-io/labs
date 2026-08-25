@@ -1,0 +1,48 @@
+
+DPoP -- attacker has exfiltrated the access token
+  [   HELD] legitimate agent with its key
+            HTTP 200 {"paid":true,"by":"agent-bound","endpoint":"strict"}
+
+  -- the same stolen token, against each endpoint --
+  [ATTACKS] stolen BEARER token replayed (lax endpoint)
+            HTTP 200 {"paid":true,"by":"agent-bearer","endpoint":"lax"}  <- the attacker is paid. This is what a bearer token is.
+  [   HELD] stolen bound token, no proof, Bearer scheme
+            HTTP 401 Authorization scheme is 'Bearer', expected 'DPoP'
+  [   HELD] stolen bound token, DPoP scheme, no proof
+            HTTP 401 bound token presented with no DPoP proof
+  [   HELD] stolen token + attacker's own proof key
+            HTTP 401 DPoP proof rejected: proof key thumbprint does not match token cnf.jkt
+  [   HELD] captured token + proof, replayed verbatim
+            first 200, replay HTTP 401 DPoP proof rejected: replayed jti 787066a5-bd19-4ea2-8ba8-9d51d0c81122
+  [   HELD] proof minted for a different URL (htu)
+            HTTP 401 DPoP proof rejected: htu 'http://localhost:8081/invoices' != 'http://localhost:8081/invoices/strict'
+  [   HELD] proof minted for a different method (htm)
+            HTTP 401 DPoP proof rejected: htm 'GET' != 'POST'
+  [   HELD] proof harvested an hour ago (iat window)
+            HTTP 401 DPoP proof rejected: iat is 3600s away from now
+  [   HELD] right key, proof minted over a different token (ath)
+            HTTP 401 DPoP proof rejected: ath does not match the presented access token
+  [   HELD] unbound token on the strict endpoint (downgrade)
+            HTTP 401 token has no cnf.jkt -- it is not sender-constrained
+
+  -- and the honest comparison --
+  [ATTACKS] bound token, no proof, against the LAX endpoint
+            HTTP 200 {"paid":true,"by":"agent-bound","endpoint":"lax"}  <- binding does nothing if the RS never checks it
+
+SD-JWT -- what a verifier learns, and what it can replay
+  [   HELD] verifier sees only the disclosed claims
+            disclosed ['capabilities', 'cnf', 'iss', 'operator', 'sub']; withheld ['cost_center', 'deployment_env', 'model', 'operator_contact', 'owner_employee_id']
+  [   HELD] count of withheld claims is blurred by decoys
+            7 unopenable digests hide 5 real claims
+  [   HELD] verifier replays the presentation elsewhere (aud)
+            rejected: Invalid audience in KB-JWT
+  [   HELD] presentation replayed in a later session (nonce)
+            rejected: Invalid nonce in KB-JWT
+  [   HELD] holder edits a disclosed value (digest)
+            rejected: Invalid digest in KB-JWT
+  [   HELD] holder invents a claim the issuer never signed
+            rejected: Invalid digest in KB-JWT
+  [   HELD] key-binding JWT stripped
+            rejected: Invalid JWS Object [Invalid format]
+
+19/19 cases behaved as documented
