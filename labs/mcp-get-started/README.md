@@ -15,7 +15,7 @@ Learn what an MCP host, client, and server actually are. Write an MVP server wit
 
 - Python 3.11+ and uv
 - Docker
-- Nothing else. The final section runs a small model locally with [Ollama](https://ollama.com/), so no API key and no account are needed at any point
+- Nothing else. The final section drives a small model that already runs in your sandbox, so no API key and no account are needed at any point
 
 ---
 
@@ -25,7 +25,7 @@ _This README is only the hands-on lab. The concept walk-through (What we're buil
 
 _~5 min · Hands-on_
 
-Clone the lab rig and install the one dependency:
+Clone the lab's code samples and install the one dependency:
 
 ```bash
 git clone https://github.com/Zenable-io/labs.git ~/zenable-labs 2>/dev/null \
@@ -151,7 +151,7 @@ The `FastMCP("mcp-get-started")` constructor call at the top of `server.py`. The
 
 _~10 min · Hands-on_
 
-A model is a terrible first test harness: it's nondeterministic and it hides the wire. FastMCP ships a client, and the rig's `client.py` scripts the exact calls a host would make:
+A model is a terrible first test harness: it's nondeterministic and it hides the wire. FastMCP ships a client, and the lab's `client.py` scripts the exact calls a host would make:
 
 ```python
 import asyncio
@@ -213,7 +213,7 @@ FastMCP validates every call against the schema it generated from your type hint
 
 _~12 min · Hands-on_
 
-Same `server.py`, no edits. The rig's `Dockerfile` just launches it differently, with the FastMCP CLI choosing Streamable HTTP at the door:
+Same `server.py`, no edits. The lab's `Dockerfile` just launches it differently, with the FastMCP CLI choosing Streamable HTTP at the door:
 
 ```dockerfile
 FROM python:3.13-slim
@@ -297,9 +297,6 @@ Your script gave you a correct server. Now let's point a real host at it and see
 Install goose (pinned so your output matches the lab):
 
 ```bash
-if ! command -v bzip2 >/dev/null 2>&1; then
-  sudo apt-get update -qq && sudo apt-get install -y -qq bzip2
-fi
 curl -fsSL https://github.com/aaif-goose/goose/releases/download/stable/download_cli.sh | CONFIGURE=false GOOSE_VERSION=v1.46.0 bash
 export PATH="$HOME/.local/bin:$PATH"
 goose --version
@@ -309,41 +306,7 @@ goose --version
 goose 1.46.0
 ```
 
-This is where a model finally enters the story: goose is a full host, so it needs a model to drive tool calls. We'll run one locally with [Ollama](https://ollama.com/), so there's no key, no account, and no token cost for the rest of the lab.
-
-```bash
-command -v ollama >/dev/null 2>&1 || curl -fsSL https://ollama.com/install.sh | sh
-ollama pull qwen3:1.7b
-ollama list | grep qwen3
-```
-
-```console
-...
-verifying sha256 digest
-writing manifest
-success
-qwen3:1.7b    8f68893c685c    1.4 GB    Less than a second ago
-```
-
-`qwen3:1.7b` is deliberately tiny. It ships Q4_K_M quantized at 1.4 GB, which fits a 4 GB VM with room for your container, and it can call tools, which is the only capability this section needs:
-
-```bash
-ollama show qwen3:1.7b
-```
-
-```console
-  Model
-    architecture        qwen3
-    parameters          2.0B
-    context length      40960
-    embedding length    2048
-    quantization        Q4_K_M
-
-  Capabilities
-    completion
-    tools
-    thinking
-```
+This is where a model finally enters the story: goose is a full host, so it needs a model to drive tool calls. Your sandbox already runs [Ollama](https://ollama.com/) with `qwen3:1.7b`, a 2B model quantized to 1.4 GB that fits alongside your container and can call tools, which is the only capability this section needs. So there's no key, no account, and no token cost for the rest of the lab.
 
 Point goose at it. goose reads its provider from the environment, and these four variables replace anything `goose configure` would have written:
 
@@ -358,14 +321,11 @@ export OLLAMA_CONTEXT_LENGTH=8192
 > `OLLAMA_CONTEXT_LENGTH` is not optional here. Ollama defaults to a 4096-token context, a tool-calling agent spends that on tool definitions alone, and goose then looks like it's ignoring its own instructions when really the context was silently truncated.
 
 <details>
-<summary>Prefer a hosted model, or one you already pay for?</summary>
+<summary>Not on a Zenable sandbox, or want a different model?</summary>
 
-`goose configure` walks you through any [provider goose supports](https://goose-docs.ai/docs/getting-started/providers/), and the rest of this section works the same on any of them:
+On your own machine, `curl -fsSL https://ollama.com/install.sh | sh` then `ollama pull qwen3:1.7b` gets you to the same place.
 
-- **Hosted and free**: an [OpenRouter](https://openrouter.ai/) account with one of its free-tier models.
-- **Bring your own key**: any paid provider you already use.
-
-A bigger model calls the tools more reliably, so if `qwen3:1.7b` gets confused, this is the knob to turn. Our [ACP workshop](https://www.zenable.app/learn?lab=acp-agent-client&utm_source=github&utm_medium=labs_repo&utm_campaign=mcp-get-started_readme) walks the local-model setup in more depth.
+For anything else, `goose configure` walks you through any [provider goose supports](https://goose-docs.ai/docs/getting-started/providers/), and the rest of this section works the same on all of them: an [OpenRouter](https://openrouter.ai/) free-tier model, or a paid provider you already use. A bigger model calls the tools more reliably, so if `qwen3:1.7b` gets confused, this is the knob to turn. Our [ACP workshop](https://www.zenable.app/learn?lab=acp-agent-client&utm_source=github&utm_medium=labs_repo&utm_campaign=mcp-get-started_readme) walks the local-model setup in more depth.
 
 </details>
 
@@ -399,22 +359,14 @@ sleep 2
 docker rmi mcp-get-started
 ```
 
+You should expect to see the image get tagged and deleted like this:
+
 ```console
 Untagged: mcp-get-started:latest
 Deleted: sha256:733f50fd995332258ecdb2b8bc788c8fd1da439f84a6fdef4e8cd2e3b5fa6bcf
 ```
 
-The model is the other big thing we added, at 1.4 GB, so reclaim that too if you're done with it:
-
-```bash
-ollama rm qwen3:1.7b
-```
-
-```console
-deleted 'qwen3:1.7b'
-```
-
-If you want the rig gone too, `rm -rf ~/zenable-labs` finishes the job. Thanks for building with us!
+If you want to delete the lab code samples and instructions as well, run `rm -rf ~/zenable-labs`. Thanks for building with us!
 
 ---
 
