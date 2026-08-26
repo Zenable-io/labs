@@ -30,7 +30,7 @@ Clone the lab rig and install the one dependency:
 ```bash
 git clone https://github.com/Zenable-io/labs.git ~/zenable-labs 2>/dev/null \
   || git -C ~/zenable-labs pull --ff-only
-cd ~/zenable-labs/labs/mcp-101
+cd ~/zenable-labs/labs/mcp-get-started
 uv sync
 ```
 
@@ -73,7 +73,7 @@ Open `server.py`. This is the whole server (yes, all of it):
 ```python
 from fastmcp import FastMCP
 
-mcp = FastMCP("mcp-101")
+mcp = FastMCP("mcp-get-started")
 
 
 @mcp.tool
@@ -103,17 +103,17 @@ printf '%s\n' \
 ```
 
 ```console
-{"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2025-06-18","capabilities":{"experimental":{},"prompts":{"listChanged":false},"resources":{"subscribe":false,"listChanged":false},"tools":{"listChanged":true},"tasks":{"list":{},"cancel":{},"requests":{"tools":{"call":{}},"prompts":{"get":{}},"resources":{"read":{}}}}},"serverInfo":{"name":"mcp-101","version":"2.14.7"}}}
+{"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2025-06-18","capabilities":{"experimental":{},"prompts":{"listChanged":false},"resources":{"subscribe":false,"listChanged":false},"tools":{"listChanged":true},"tasks":{"list":{},"cancel":{},"requests":{"tools":{"call":{}},"prompts":{"get":{}},"resources":{"read":{}}}}},"serverInfo":{"name":"mcp-get-started","version":"2.14.7"}}}
 ```
 
 One request in, one response out. Success!
 
-Question: near the end of that response you'll see `"serverInfo":{"name":"mcp-101",...}`. Where did that name come from?
+Question: near the end of that response you'll see `"serverInfo":{"name":"mcp-get-started",...}`. Where did that name come from?
 
 <details>
 <summary>Answer</summary>
 
-The `FastMCP("mcp-101")` constructor call at the top of `server.py`. The string you pass there is the identity the server reports to every client during the handshake, so pick something meaningful; it's how a host with several servers tells them apart.
+The `FastMCP("mcp-get-started")` constructor call at the top of `server.py`. The string you pass there is the identity the server reports to every client during the handshake, so pick something meaningful; it's how a host with several servers tells them apart.
 
 </details>
 
@@ -200,10 +200,10 @@ CMD ["fastmcp", "run", "server.py", "--transport", "http", "--host", "0.0.0.0", 
 Build and run it:
 
 ```bash
-docker build -t mcp-101 .
-docker run -d --rm --name mcp-101 -p 8000:8000 mcp-101
+docker build -t mcp-get-started .
+docker run -d --rm --name mcp-get-started -p 8000:8000 mcp-get-started
 sleep 2
-docker logs mcp-101
+docker logs mcp-get-started
 ```
 
 ```console
@@ -211,12 +211,12 @@ docker logs mcp-101
 │                         ▄▀▀ ▄▀█ █▀▀ ▀█▀ █▀▄▀█ █▀▀ █▀█                        │
 │                         █▀  █▀█ ▄▄█  █  █ ▀ █ █▄▄ █▀▀                        │
 │                                FastMCP 2.14.7                                │
-│                    🖥  Server:      mcp-101                                   │
+│                    🖥  Server:      mcp-get-started                           │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ...
-[08/26/26 01:26:50] INFO     Starting MCP server 'mcp-101' with   server.py:2580
-                             transport 'http' on
-                             http://0.0.0.0:8000/mcp
+[08/26/26 17:48:41] INFO     Starting MCP server                  server.py:2580
+                             'mcp-get-started' with transport
+                             'http' on http://0.0.0.0:8000/mcp
 INFO:     Started server process [1]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
@@ -304,14 +304,14 @@ _~5 min · Hands-on_
 Stop the container (it removes itself, thanks to `--rm`) and delete the image. The `--rm` removal happens asynchronously after the stop, so we give Docker a couple of seconds before deleting the image out from under it:
 
 ```bash
-docker stop mcp-101
+docker stop mcp-get-started
 sleep 2
-docker rmi mcp-101
+docker rmi mcp-get-started
 ```
 
 ```console
-Untagged: mcp-101:latest
-Deleted: sha256:202a7f9ff7bcb6114fde29076839d10e4292d3ed79d6b14c7d715589f4709f5d
+Untagged: mcp-get-started:latest
+Deleted: sha256:9e40a25966735f8ca5d727619db6c558e8ff2d4b0cfb606b5f3aa7129b8e2fc2
 ```
 
 If you want the rig gone too, `rm -rf ~/zenable-labs` finishes the job. Thanks for building with us!

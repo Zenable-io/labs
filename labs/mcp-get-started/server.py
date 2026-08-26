@@ -2,7 +2,7 @@
 
 from fastmcp import FastMCP
 
-mcp = FastMCP("mcp-101")
+mcp = FastMCP("mcp-get-started")
 
 
 @mcp.tool

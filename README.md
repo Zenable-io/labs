@@ -25,7 +25,7 @@ cd ~/zenable-labs/labs/<lab>
 
 | Lab | What you'll do |
 |---|---|
-| [`mcp-101`](labs/mcp-101) | Write an MCP server with FastMCP, drive it with a scripted client, move it into a container on Streamable HTTP, then point goose at it without changing a line of server code. |
+| [`mcp-get-started`](labs/mcp-get-started) | Write an MCP server with FastMCP, drive it with a scripted client, move it into a container on Streamable HTTP, then point goose at it without changing a line of server code. |
 | [`ema-mcp`](labs/ema-mcp) | Stand up an enterprise IdP, a vendor authorization server, and a protected MCP server, then watch an AI agent get authorized with no consent screen — and try to break the security properties that make it safe. |
 | [`a2a`](labs/a2a) | Build two agents that discover and call each other over the A2A protocol, with Keycloak issuing every credential — then send a rogue agent at them and watch each check reject it. |
 | [`acp-goose`](labs/acp-goose) | Speak the Agent Client Protocol to a real agent by hand, then watch the agent reach back for your filesystem and your shell — and put a policy on the wire that refuses it. |

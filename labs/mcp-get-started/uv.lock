@@ -719,7 +719,7 @@ wheels = [
 ]
 
 [[package]]
-name = "mcp-101"
+name = "mcp-get-started"
 version = "0"
 source = { virtual = "." }
 dependencies = [
