@@ -15,7 +15,7 @@ Build two agents that discover and call each other over the A2A protocol, with K
 
 - Python 3.11+ and enough async to read an `await`
 - Docker and Docker Compose
-- A rough idea of what OAuth2 is — we re-teach the parts that matter
+- A rough idea of what OAuth2 is (we re-teach the parts that matter)
 
 ---
 
@@ -27,14 +27,14 @@ _~15 min · Hands-on_
 
 Two agents that need each other:
 
-- **Agent A — Forecast Agent** on `:9001`, skill `forecast.lookup`, requires scope `forecast:read`
-- **Agent B — Trip Planner** on `:9002`, skills `trip.plan` and `trip.replan`, requires scope `trip:plan`
+- **Agent A (Forecast Agent)** on `:9001`, skill `forecast.lookup`, requires scope `forecast:read`
+- **Agent B (Trip Planner)** on `:9002`, skills `trip.plan` and `trip.replan`, requires scope `trip:plan`
 
-Agent B calls Agent A for weather. When Agent A produces a *severe* forecast it calls Agent B back. Traffic runs both ways between two peers that share no process, no database and no framework — only a card and an issuer.
+Agent B calls Agent A for weather. When Agent A produces a *severe* forecast it calls Agent B back. Traffic runs both ways between two peers that share no process, no database and no framework: only a card and an issuer.
 
 ### How the card is built
 
-Open `agents/forecast_agent.py`. `build_agent_card()` is the whole public face of the agent; the part worth reading twice is the per-skill requirement, because it is the field almost nobody sets:
+Open `agents/forecast_agent.py`. `build_agent_card()` is the whole public face of the agent; the part worth reading twice is the per-skill requirement, because it's the field almost nobody sets:
 
 ```python
 AgentSkill(
@@ -49,9 +49,9 @@ AgentSkill(
 ```
 
 > [!NOTE]
-> **Diving deeper: those types are protobuf, not Pydantic.** In `a2a-sdk` 0.x the types were Pydantic models. In 1.x they are generated from the protocol's protobuf definitions, which is why map fields take plain dicts, repeated fields take lists, and a scope list has to be wrapped in `StringList(list=[...])`. You write snake_case and the wire gets camelCase, because protobuf JSON mapping does that conversion for you. It also means `hasattr`-style duck typing and `.model_fields` do not work the way you may expect — reach for `card.DESCRIPTOR.fields` if you want to introspect a card in a REPL.
+> **Diving deeper: those types are protobuf, not Pydantic.** In `a2a-sdk` 0.x the types were Pydantic models. In 1.x they are generated from the protocol's protobuf definitions, which is why map fields take plain dicts, repeated fields take lists, and a scope list has to be wrapped in `StringList(list=[...])`. You write snake_case and the wire gets camelCase, because protobuf JSON mapping does that conversion for you. It also means `hasattr`-style duck typing and `.model_fields` don't work the way you may expect. Reach for `card.DESCRIPTOR.fields` if you want to introspect a card in a REPL.
 
-The rest of the file is the executor — a dict lookup — and `build_app()`, which mounts two route groups and one piece of middleware. Read `build_app()` now; the next two sections are entirely about what those four lines do.
+The rest of the file is the executor (a dict lookup) and `build_app()`, which mounts two route groups and one piece of middleware. Read `build_app()` now; the next two sections are entirely about what those four lines do.
 
 ### Read the card back
 
@@ -96,7 +96,7 @@ Now ask the two questions that matter about any card you are handed:
 - **What does this promise a stranger?** A name, a description, one skill, and an issuer to go get a token from. That is a complete integration guide for someone who has never met you.
 - **What does it not say?** Nothing about who may call it, nothing about what happens to the data you send, and nothing that proves the scope it names is actually checked.
 
-That last gap is the important one. You just read this card without a credential, and you should have been able to — a card that requires authentication to read is a deadlock. But *reading* the claim and *trusting* it are different acts, and nothing you have seen so far distinguishes an agent that enforces `forecast:read` from one that merely says so. The rest of this lab is spent on that distinction.
+That last gap is the important one. You just read this card without a credential, and you should have been able to: a card that requires authentication to read is a deadlock. But *reading* the claim and *trusting* it are different acts, and nothing you have seen so far distinguishes an agent that enforces `forecast:read` from one that merely says so. The rest of this lab is spent on that distinction.
 
 ### Checklist
 
@@ -111,7 +111,7 @@ _~22 min · Hands-on_
 
 ### The objects that matter, by hand
 
-`keycloak/bootstrap-realm.sh` already built the realm. Before trusting it, make two of its objects yourself so they are real to you — both creates are idempotent, so this changes nothing:
+`keycloak/bootstrap-realm.sh` already built the realm. Before trusting it, make two of its objects yourself so they are real to you (both creates are idempotent, so this changes nothing):
 
 ```console
 $ kc() { docker exec a2a-keycloak /opt/keycloak/bin/kcadm.sh "$@"; }
@@ -123,7 +123,7 @@ $ kc create client-scopes -r a2a-workshop -s name='forecast:read' \
 Client scope 'forecast:read' already exists
 ```
 
-The object worth understanding is the audience mapper, which is the easiest to forget and the most expensive to omit. In the script it is four lines:
+The object worth understanding is the audience mapper, which is the easiest to forget and the most expensive to omit. In the script it's four lines:
 
 ```bash
 kc create "client-scopes/$(scope_id "${scope}")/protocol-mappers/models" \
@@ -133,9 +133,9 @@ kc create "client-scopes/$(scope_id "${scope}")/protocol-mappers/models" \
 ```
 
 > [!WARNING]
-> Without that mapper, Keycloak still issues you a perfectly good token — its audience is just `account`. Every check you write will pass, every agent will accept every token, and nothing will look broken. This is the single most consequential four lines in the lab, and its absence is silent.
+> Without that mapper, Keycloak still issues you a perfectly good token; its audience is just `account`. Every check you write will pass, every agent will accept every token, and nothing will look broken. This is the single most consequential four lines in the lab, and its absence is silent.
 
-Read the whole of `keycloak/bootstrap-realm.sh` now. It is deliberately a script rather than a realm-export JSON: every object that matters is one readable line, where a 600-line export would hide all of it.
+Read the whole of `keycloak/bootstrap-realm.sh` now. It's deliberately a script rather than a realm-export JSON: every object that matters is one readable line, where a 600-line export would hide all of it.
 
 Five identities, and each one earns its place:
 
@@ -143,12 +143,12 @@ Five identities, and each one earns its place:
 |---|---|
 | `agent-a-forecast` | Agent A's identity when it calls B |
 | `agent-b-planner` | Agent B's identity when it calls A |
-| `workshop-cli` | **you**, at the terminal — a participant with your own identity, not a borrowed agent credential |
-| `agent-c-stranger` | right audience, wrong permission — isolates the 403 case |
-| `agent-d-expiring` | one-second tokens — isolates expiry without a five-minute wait |
+| `workshop-cli` | **you**, at the terminal: a participant with your own identity, not a borrowed agent credential |
+| `agent-c-stranger` | right audience, wrong permission; isolates the 403 case |
+| `agent-d-expiring` | one-second tokens; isolates expiry without a five-minute wait |
 
 > [!TIP]
-> **Pro tip: give yourself your own client.** It is tempting to test with an agent's credentials because they are already there. Do not. The moment you do, every request in your logs looks like it came from the agent, and you have hand-built the exact identity confusion described in the last section. `workshop-cli` costs one block of config and keeps your traffic distinguishable forever.
+> **Pro tip: give yourself your own client.** It's tempting to test with an agent's credentials because they are already there. Don't. The moment you do, every request in your logs looks like it came from the agent, and you have hand-built the exact identity confusion described in the last section. `workshop-cli` costs one block of config and keeps your traffic distinguishable forever.
 
 ### Look at a token before any code consumes it
 
@@ -157,7 +157,7 @@ cd ~/zenable-labs/labs/a2a
 ./scripts/get-token.sh agent-b-planner agent-b-secret | ./scripts/decode-jwt.py
 ```
 
-Trimmed to the claims that carry the lesson — the real output also has `iat`, `jti`, `sub`, and Keycloak's role blocks:
+Trimmed to the claims that carry the lesson; the real output also has `iat`, `jti`, `sub`, and Keycloak's role blocks:
 
 ```console
 {
@@ -173,7 +173,7 @@ Trimmed to the claims that carry the lesson — the real output also has `iat`, 
 }
 ```
 
-Read that carefully. `azp` is **who is calling** (Agent B). `aud` is **who it is for** (Agent A). `scope` is **what they may do**. And note what just happened: `decode-jwt.py` is thirty lines of stdlib with no key at all. A bearer token is not confidential to whoever receives it, which is why nothing secret ever belongs in a claim — and why the rest of this lab cares so much about where your tokens get sent.
+Read that carefully. `azp` is **who is calling** (Agent B). `aud` is **who it's for** (Agent A). `scope` is **what they may do**. And note what just happened: `decode-jwt.py` is thirty lines of stdlib with no key at all. A bearer token isn't confidential to whoever receives it, which is why nothing secret ever belongs in a claim, and why the rest of this lab cares so much about where your tokens get sent.
 
 ### Enforce what the card claims
 
@@ -195,7 +195,7 @@ Read the rest of the file. Four decisions in it are worth defending out loud:
 - **`public_paths` exempts the card**, and this is load-bearing rather than convenient. The card is the document that tells a caller *how to authenticate*; requiring authentication to read it is a deadlock nobody can break into.
 
 > [!TIP]
-> **Pro tip: cache the JWKS, but key it by `kid`.** `PyJWKClient(..., cache_keys=True)` fetches the key set once and refetches when it sees a `kid` it does not recognize. That is what lets your issuer rotate signing keys without an agent restart and without you writing a refresh loop. Hardcoding a public key in your agent works right up until the first rotation, which will happen at an inconvenient hour.
+> **Pro tip: cache the JWKS, but key it by `kid`.** `PyJWKClient(..., cache_keys=True)` fetches the key set once and refetches when it sees a `kid` it doesn't recognize. That is what lets your issuer rotate signing keys without an agent restart and without you writing a refresh loop. Hardcoding a public key in your agent works right up until the first rotation, which will happen at an inconvenient hour.
 
 ### The client half
 
@@ -209,11 +209,11 @@ async def get_credentials(
     return self._token
 ```
 
-It is handed **the security-scheme name out of the peer's card**. Nothing in that file hardcodes how to authenticate. The SDK resolves the card, finds the scheme, asks you for a credential for *that* scheme, and attaches it however the scheme requires. Point the same function at an agent declaring `apiKey` instead and the header changes without you editing a line.
+It's handed **the security-scheme name out of the peer's card**. Nothing in that file hardcodes how to authenticate. The SDK resolves the card, finds the scheme, asks you for a credential for *that* scheme, and attaches it however the scheme requires. Point the same function at an agent declaring `apiKey` instead and the header changes without you editing a line.
 
 ### The first real conversation
 
-Agent B has Agent A's shape plus one thing — before answering, it calls Agent A. From `agents/planner_agent.py`:
+Agent B has Agent A's shape plus one thing: before answering, it calls Agent A. From `agents/planner_agent.py`:
 
 ```python
 # Agent B presents its OWN token here. It does not forward the token it
@@ -258,7 +258,7 @@ Plan for Reykjavik
 
 Three authenticated hops just happened on the Lisbon request: you to Agent B with your token, Agent B to Keycloak for its own token, Agent B to Agent A with that one. Every hop had a distinct identity and no credential crossed a trust boundary it was not minted for.
 
-Reykjavik runs the traffic the other way as well — a severe forecast makes Agent A turn around and call Agent B's `trip.replan` with its own `agent-a-forecast` credential, which is the line in the forecast log. Neither agent is "the client" or "the server". Both are both, which is why each one needed a credential of its own.
+Reykjavik runs the traffic the other way as well: a severe forecast makes Agent A turn around and call Agent B's `trip.replan` with its own `agent-a-forecast` credential, which is the line in the forecast log. Neither agent is "the client" or "the server". Both are both, which is why each one needed a credential of its own.
 
 ### The extended card
 
@@ -268,7 +268,7 @@ Agent A serves two cards. The public card advertises `forecast.lookup`; the exte
 
 - [ ] Keycloak issues tokens with the right `aud` and `scope`
 - [ ] Agent A rejects unauthenticated requests but still serves its card
-- [ ] Agent B holds its own identity and does not forward your token
+- [ ] Agent B holds its own identity and doesn't forward your token
 - [ ] A plan came back with a real forecast in it, in both directions
 
 ## Hands-on: Six Ways to Be Refused
@@ -313,15 +313,15 @@ aud+scope correct                  HTTP 200  {"result":{"message":{"messageId":"
 
 Three things to take away:
 
-- **The last line is not decoration.** Without a passing control, six refusals prove only that everything is broken. Every negative test suite needs one request that must succeed, or it will keep passing long after you have accidentally disabled the endpoint.
-- **Exactly one case is a 403.** `scope=forecast:write` is the only request that authenticated successfully and was denied anyway. Every other failure means "I do not believe you"; that one means "I believe you, and no". If your API returns 403 for all of them, every client you have is now retrying failures that will never succeed.
-- **`iss=rogue-realm` is the interesting one.** That token is entirely real — correctly signed, unexpired, well-formed, issued by the same Keycloak process on the same port. It comes from a different realm, and a realm is a trust domain. *Valid* and *trusted* are different words.
+- **The last line isn't decoration.** Without a passing control, six refusals prove only that everything is broken. Every negative test suite needs one request that must succeed, or it will keep passing long after you have accidentally disabled the endpoint.
+- **Exactly one case is a 403.** `scope=forecast:write` is the only request that authenticated successfully and was denied anyway. Every other failure means "I don't believe you"; that one means "I believe you, and no". If your API returns 403 for all of them, every client you have is now retrying failures that will never succeed.
+- **`iss=rogue-realm` is the interesting one.** That token is entirely real: correctly signed, unexpired, well-formed, issued by the same Keycloak process on the same port. It comes from a different realm, and a realm is a trust domain. *Valid* and *trusted* are different words.
 
 > [!WARNING]
-> Two things bite raw HTTP callers here, and both cost more time than they should. A2A 1.0 uses PascalCase JSON-RPC method names — `SendMessage`, not the 0.x `message/send` that most tutorials still show. And without an `A2A-Version: 1.0` header the server assumes 0.3 and refuses with a version error that looks nothing like an auth problem. The SDK client sets both for you, which is exactly why they surprise you the first time you reach for `curl`. Both are visible in the `call()` helper at the top of the script.
+> Two things bite raw HTTP callers here, and both cost more time than they should. A2A 1.0 uses PascalCase JSON-RPC method names: `SendMessage`, not the 0.x `message/send` that most tutorials still show. And without an `A2A-Version: 1.0` header the server assumes 0.3 and refuses with a version error that looks nothing like an auth problem. The SDK client sets both for you, which is exactly why they surprise you the first time you reach for `curl`. Both are visible in the `call()` helper at the top of the script.
 
 > [!NOTE]
-> **Diving deeper: why `expired` is not its own error code here.** Our middleware collapses signature, issuer, audience and expiry into one `invalid_token`, and that is a deliberate trade. Distinguishing them is friendlier to a legitimate client debugging a misconfiguration, and it is also a free oracle for an attacker probing which of their forged claims is closest to correct. The usual compromise is what we do: one generic response on the wire, full detail in a log the caller cannot read. If you decide your callers need more, `invalid_token` with an `error_description` of `"The access token expired"` is the RFC 6750 sanctioned middle ground — expiry is the one failure that leaks nothing useful, since the token was valid by definition.
+> **Diving deeper: why `expired` isn't its own error code here.** Our middleware collapses signature, issuer, audience and expiry into one `invalid_token`, and that is a deliberate trade. Distinguishing them is friendlier to a legitimate client debugging a misconfiguration, and it's also a free oracle for an attacker probing which of their forged claims is closest to correct. The usual compromise is what we do: one generic response on the wire, full detail in a log the caller can't read. If you decide your callers need more, `invalid_token` with an `error_description` of `"The access token expired"` is the RFC 6750 sanctioned middle ground: expiry is the one failure that leaks nothing useful, since the token was valid by definition.
 
 ## Hands-on: The Card Is a Trust Decision
 
@@ -331,7 +331,7 @@ Your agents are properly authenticated. Let us steal a token anyway.
 
 ### The impersonator
 
-`agents/rogue_agent.py` serves a card claiming to be the Forecast Agent — same name, same description, same skill id — pointing at itself, and prints whatever arrives. The attack is one field:
+`agents/rogue_agent.py` serves a card claiming to be the Forecast Agent (same name, same description, same skill id) pointing at itself, and prints whatever arrives. The attack is one field:
 
 ```python
 # Copied verbatim from the real card -- and this IS the attack.
@@ -382,12 +382,12 @@ verify=True  ROGUE -> REFUSED: NoSignatureError: AgentCard has no signatures to 
 1
 ```
 
-With verification off the client got a plausible forecast and noticed nothing at all. A live bearer token is now in a stranger's log, valid until it expires, and every audience check and scope check on Agent A worked perfectly the entire time — because none of them were ever consulted. You handed the credential to the attacker yourself.
+With verification off the client got a plausible forecast and noticed nothing at all. A live bearer token is now in a stranger's log, valid until it expires, and every audience check and scope check on Agent A worked perfectly the entire time, because none of them were ever consulted. You handed the credential to the attacker yourself.
 
 With verification on, the client refused before a single byte of credential left the process. The rogue's counter says `1`, not `2`.
 
 > [!NOTE]
-> **Diving deeper: try deleting the rogue card's `securitySchemes`.** Edit `rogue_agent.py`, restart it, and run the attack again: the rogue logs `no credentials presented`. The SDK's `AuthInterceptor` walks the *card's* `securityRequirements`, and when there are none it returns before asking your `CredentialService` for anything. So a lazy impostor gets nothing, and an impostor who faithfully copies the security block gets everything. This is worth sitting with: the card is not a passive description of a peer, it is a set of instructions your client obeys — including the instruction "send your credential here".
+> **Diving deeper: try deleting the rogue card's `securitySchemes`.** Edit `rogue_agent.py`, restart it, and run the attack again: the rogue logs `no credentials presented`. The SDK's `AuthInterceptor` walks the *card's* `securityRequirements`, and when there are none it returns before asking your `CredentialService` for anything. So a lazy impostor gets nothing, and an impostor who faithfully copies the security block gets everything. This is worth sitting with: far from a passive description of a peer, the card is a set of instructions your client obeys, including the instruction "send your credential here".
 
 ### The defense, and the key it trusts
 
@@ -405,7 +405,7 @@ def key_provider(kid: str | None, jku: str | None):
 That `if` is the entire trust decision. Everything else in the file is key management.
 
 > [!WARNING]
-> **A live footgun worth remembering.** `create_client` applies `signature_verifier` **only on the code path where it resolves the card itself** — that is, when you pass it a URL. Hand it an `AgentCard` object you fetched earlier and verification is silently skipped: the argument is still accepted, no warning is raised, and your code reads exactly as though it is verifying. `a2a_client_util.send_text` passes the URL for exactly this reason, and says so in a comment. If you fetch a card to inspect it, either fetch it again through `create_client` or run the verifier against it yourself. This is the kind of defect that passes review, passes tests, and fails only when someone attacks you.
+> **A live footgun worth remembering.** `create_client` applies `signature_verifier` **only on the code path where it resolves the card itself**: that is, when you pass it a URL. Hand it an `AgentCard` object you fetched earlier and verification is silently skipped: the argument is still accepted, no warning is raised, and your code reads exactly as though it's verifying. `a2a_client_util.send_text` passes the URL for exactly this reason, and says so in a comment. If you fetch a card to inspect it, either fetch it again through `create_client` or run the verifier against it yourself. This is the kind of defect that passes review, passes tests, and fails only when someone attacks you.
 
 ### Checklist
 
@@ -418,22 +418,22 @@ That `if` is the entire trust decision. Everything else in the file is key manag
 
 _~7 min · Discussion_
 
-You ran two agents that discover each other by card, authenticate through a shared issuer, and call each other in both directions — then you broke it seven ways and watched the one defense that mattered most.
+You ran two agents that discover each other by card, authenticate through a shared issuer, and call each other in both directions. Then you broke it seven ways and watched the one defense that mattered most.
 
-**The card is a governance artifact.** It is a declarative, diffable, reviewable statement of what an agent exposes and who may call it — quite possibly the only place your agent's public surface is written down in a form a machine can check. Treat it like one: commit it, diff it in review, and fail the build when a skill appears without a scope, or a scope appears that no server enforces.
+**The card is a governance artifact.** It's a declarative, diffable, reviewable statement of what an agent exposes and who may call it, quite possibly the only place your agent's public surface is written down in a form a machine can check. Treat it like one: commit it, diff it in review, and fail the build when a skill appears without a scope, or a scope appears that no server enforces.
 
 Three questions worth asking about any agent heading for production:
 
-1. **Whose identity is on this call?** If the answer is "the agent's" for work done on behalf of a person, your audit log cannot answer "who asked for this?" — and logging added later cannot reconstruct it. Token exchange is the fix, and it is much cheaper to adopt before you have a year of ambiguous logs than after.
-2. **What happens with a valid token from the wrong place?** Right issuer, wrong audience. Right audience, wrong scope. If you have not tried both against your own service, you do not know what it does.
-3. **Where did this card come from, and who signed it?** An unsigned card fetched over a path you do not control is an instruction from a stranger that your client will follow.
+1. **Whose identity is on this call?** If the answer is "the agent's" for work done on behalf of a person, your audit log can't answer "who asked for this?", and logging added later can't reconstruct it. Token exchange is the fix, and it's much cheaper to adopt before you have a year of ambiguous logs than after.
+2. **What happens with a valid token from the wrong place?** Right issuer, wrong audience. Right audience, wrong scope. If you have not tried both against your own service, you don't know what it does.
+3. **Where did this card come from, and who signed it?** An unsigned card fetched over a path you don't control is an instruction from a stranger that your client will follow.
 
-Scope-per-skill, audience checks, and signed cards are the three that pay for themselves fastest. Not one of them is specified by A2A, all of them are your responsibility, and no conformance test will ever mention them.
+Scope-per-skill, audience checks, and signed cards are the three that pay for themselves fastest. None of them is specified by A2A, all of them are your responsibility, and no conformance test will ever mention them.
 
-That pattern — the standard defines the interface and leaves the enforcement to you — is not unique to A2A. It is the same reason Zenable exists for the code your agents write: requirements stated once, enforced automatically wherever the work happens, rather than hoped for in review. See [how it works](https://www.zenable.app/docs/how-it-works?utm_source=github&utm_medium=labs_repo&utm_campaign=a2a-agent-interop_readme).
+That pattern (the standard defines the interface and leaves the enforcement to you) isn't unique to A2A. It's the same reason Zenable exists for the code your agents write: requirements stated once, enforced automatically wherever the work happens, rather than hoped for in review. See [how it works](https://www.zenable.app/docs/how-it-works?utm_source=github&utm_medium=labs_repo&utm_campaign=a2a-agent-interop_readme).
 
 > [!TIP]
-> **Pro Tip: take the rig with you** — the tree you cloned is yours. `evidence/` holds captured output from a known-good run, so `diff` tells you whether a change you made is the reason something stopped working. `scripts/capture-evidence.sh` regenerates all of it against your own stack.
+> **Pro Tip: take the rig with you.** The tree you cloned is yours. `evidence/` holds captured output from a known-good run, so `diff` tells you whether a change you made is the reason something stopped working. `scripts/capture-evidence.sh` regenerates all of it against your own stack.
 
 ### Tear it down
 

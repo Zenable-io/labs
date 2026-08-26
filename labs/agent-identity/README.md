@@ -86,11 +86,11 @@ cnf: null
 
 Read the two things that changed.
 
-`token_type` is `DPoP`, not `Bearer`. That is not cosmetic — RFC 9449 §7.1 defines a separate `Authorization: DPoP` scheme, and a bound token sent under `Bearer` must be rejected. The scheme is what stops a proxy or cache that only understands bearer semantics from happily forwarding a token whose rules it does not know.
+`token_type` is `DPoP`, not `Bearer`. That difference is functional: RFC 9449 §7.1 defines a separate `Authorization: DPoP` scheme, and a bound token sent under `Bearer` must be rejected. The scheme is what stops a proxy or cache that only understands bearer semantics from happily forwarding a token whose rules it doesn't know.
 
 `cnf.jkt` is the SHA-256 thumbprint of the agent's public key (RFC 9449 §6.1, thumbprint computed per RFC 7638). Our script computed that thumbprint independently from our own key and printed it on the first line. They match. The authorization server has stamped *which key this token belongs to* into the token itself.
 
-Note where that happened: at the **token endpoint**. Binding is an issuance-time decision. Nothing a resource server does later can bind a token that was issued unbound — which is why the "downgrade" test later matters.
+Note where that happened: at the **token endpoint**. Binding is an issuance-time decision. Nothing a resource server does later can bind a token that was issued unbound, which is why the "downgrade" test later matters.
 
 ### The thumbprint is fussy on purpose
 
@@ -105,7 +105,7 @@ canonical = json.dumps(
 return b64u(hashlib.sha256(canonical.encode()).digest())
 ```
 
-Lexical member order, no whitespace, and **only the required members for the key type**. Add `alg` or `use` — both perfectly legal JWK members — and the thumbprint changes, so the same key stops matching its own `cnf.jkt`. This is the most common DPoP integration bug and it presents as "our tokens randomly stop working", which sends people looking at clocks and caches for a day.
+Lexical member order, no whitespace, and **only the required members for the key type**. Add `alg` or `use` (both perfectly legal JWK members) and the thumbprint changes, so the same key stops matching its own `cnf.jkt`. This is the most common DPoP integration bug and it presents as "our tokens randomly stop working", which sends people looking at clocks and caches for a day.
 
 ### The proof
 
@@ -122,14 +122,14 @@ if access_token is not None:
     claims["ath"] = access_token_hash(access_token)
 ```
 
-Four required claims (RFC 9449 §4.2), and each one exists to close a specific attack — which is exactly what we are about to demonstrate:
+Four required claims (RFC 9449 §4.2), and each one exists to close a specific attack, which is exactly what we are about to demonstrate:
 
-- `htm` / `htu` — method and URL. A proof captured for `POST /invoices` is
+- `htm` / `htu`: method and URL. A proof captured for `POST /invoices` is
 useless against `POST /invoices/strict`. Note `htu` drops query and fragment; including them is another silent-mismatch bug.
-- `iat` — creation time, checked against a window. Bounds how long a captured
+- `iat`: creation time, checked against a window. Bounds how long a captured
 proof stays interesting.
-- `jti` — unique id, recorded by the server. Turns "bounded" into "once".
-- `ath` — hash of the access token it accompanies (§4.2). Without it a proof is
+- `jti`: unique id, recorded by the server. Turns "bounded" into "once".
+- `ath`: hash of the access token it accompanies (§4.2). Without it a proof is
 bound to an endpoint but not to a token, so a captured proof pairs with any other stolen token for the same endpoint.
 
 ### The resource server, and its control group
@@ -140,7 +140,7 @@ Start it:
 uv run python ledger_api.py
 ```
 
-`agent/ledger_api.py` serves two endpoints that differ only in rigor. `/invoices` validates signature, issuer, audience, expiry, and scope — and stops. That is what most services do today, and it is a fair representation of production, not a strawman.
+`agent/ledger_api.py` serves two endpoints that differ only in rigor. `/invoices` validates signature, issuer, audience, expiry, and scope, and stops there. That is what most services do today, and it's a fair representation of production, not a strawman.
 
 `/invoices/strict` additionally requires the `DPoP` scheme, a `cnf.jkt`, and a proof that survives every check in RFC 9449 §4.3.
 
@@ -156,7 +156,7 @@ _~20 min · Hands-on_
 uv run python negative_tests.py
 ```
 
-Twenty-two cases. `HELD` means the defence worked. `ATTACKS` means the attacker won — and those are not bugs, they are the control group.
+Twenty-two cases. `HELD` means the defence worked. `ATTACKS` means the attacker won. Those are not bugs, they are the control group.
 
 ```
   [   HELD] legitimate agent with its key
@@ -199,25 +199,25 @@ Twenty-two cases. `HELD` means the defence worked. `ATTACKS` means the attacker 
 
 The first `ATTACKS` line is today. An attacker who reads one log line is paid.
 
-The last `ATTACKS` line is the trap everyone walks into: that is a **bound** token, with a `cnf.jkt`, presented with no proof at all — and it works, because the endpoint never looked. Turning on DPoP at the authorization server changes nothing by itself. The resource server has to refuse. If you take one operational lesson from this lab, take that one: **rollout is the resource server, not the IdP.**
+The last `ATTACKS` line is the trap everyone walks into: that is a **bound** token, with a `cnf.jkt`, presented with no proof at all, and it works, because the endpoint never looked. Turning on DPoP at the authorization server changes nothing by itself. The resource server has to refuse. If you take one operational lesson from this lab, take that one: **rollout is the resource server, not the IdP.**
 
 ### The case that carries the argument
 
-`stolen token + attacker's own proof key` is the incident from the previous section, reproduced. The attacker has the complete token. They have working DPoP code. They mint a perfectly valid proof — over the right URL, the right method, a fresh `iat`, a unique `jti`, the correct `ath`. Every check passes except one:
+`stolen token + attacker's own proof key` is the incident from the previous section, reproduced. The attacker has the complete token. They have working DPoP code. They mint a perfectly valid proof: over the right URL, the right method, a fresh `iat`, a unique `jti`, the correct `ath`. Every check passes except one:
 
 ```
 proof key thumbprint does not match token cnf.jkt
 ```
 
-They do not have the key. That is the whole mitigation, and it is why the key storage question from the first section is not a footnote.
+They don't have the key. That is the whole mitigation, and it's why the key storage question from the first section isn't a footnote.
 
 ### The three that are one bug in disguise
 
 The `alg confusion` cases all fail with the same message, and the reason they are worth their own heading is what an earlier version of this lab got wrong.
 
-That version checked the algorithm with a **denylist** — reject `none`, reject `HS256`, accept anything else. It passed every test written against it, because the tests only sent `HS256`. An attacker sends `HS384`, which nobody thought to block, signs the proof with a secret they chose, and the verifier happily checks that signature against data the attacker also controls. The key in the header stops being a claim of possession and becomes a decoration.
+That version checked the algorithm with a **denylist**: reject `none`, reject `HS256`, accept anything else. It passed every test written against it, because the tests only sent `HS256`. An attacker sends `HS384`, which nobody thought to block, signs the proof with a secret they chose, and the verifier happily checks that signature against data the attacker also controls. The key in the header stops being a claim of possession and becomes a decoration.
 
-The fix is one line, and it is the rule for every JWT verifier you will ever write:
+The fix is one line, and it's the rule for every JWT verifier you will ever write:
 
 ```python
 PROOF_ALGS = frozenset({"ES256"})
@@ -225,13 +225,13 @@ if alg not in PROOF_ALGS:
     raise ProofRejected(...)
 ```
 
-An allowlist fails closed on the algorithm nobody anticipated; a denylist fails open on it. Note also that the same set feeds `jwt.decode(..., algorithms=sorted(PROOF_ALGS))` — one source, so the check and the decode cannot drift into disagreeing about what is acceptable.
+An allowlist fails closed on the algorithm nobody anticipated; a denylist fails open on it. Note also that the same set feeds `jwt.decode(..., algorithms=sorted(PROOF_ALGS))`: one source, so the check and the decode can't drift into disagreeing about what is acceptable.
 
 ### Two cases that are subtler than they look
 
-**Replay.** Watch the ordering: `first 200, replay 401`. The attacker captured a complete, valid request — token and proof together, which is what a compromised proxy or a mirrored TLS session gives you. The first use works because it was the legitimate request. The replay dies on `jti`.
+**Replay.** Watch the ordering: `first 200, replay 401`. The attacker captured a complete, valid request: token and proof together, which is what a compromised proxy or a mirrored TLS session gives you. The first use works because it was the legitimate request. The replay dies on `jti`.
 
-Now read the honesty in `agent/dpop.py`:
+Now read the admission in `agent/dpop.py`:
 
 ```python
 class ReplayCache:
@@ -254,7 +254,7 @@ An attacker with a *different* key trips the thumbprint check before `ath` is ev
 
 ### Break it yourself
 
-Best fifteen minutes in the lab — comment out one check in `verify_proof()` at a time, rerun, and watch exactly one case flip to `BROKEN`. Then try to find a check whose removal breaks nothing, and work out whether you have found redundancy or a test gap.
+Best fifteen minutes in the lab: comment out one check in `verify_proof()` at a time, rerun, and watch exactly one case flip to `BROKEN`. Then try to find a check whose removal breaks nothing, and work out whether you have found redundancy or a test gap.
 
 ---
 
@@ -262,7 +262,7 @@ Best fifteen minutes in the lab — comment out one check in `verify_proof()` at
 
 _~25 min · Hands-on_
 
-Different question now. The ledger knows the agent may pay invoices. It does not know what the agent *is* — who operates it, what model it runs, who to call at 3am when it starts paying the wrong invoices.
+Different question now. The ledger knows the agent may pay invoices. It doesn't know what the agent *is*: who operates it, what model it runs, who to call at 3am when it starts paying the wrong invoices.
 
 The reflex is to stuff those claims into the access token. Resist it. The access token goes to every resource server the agent talks to, so every one of them learns the cost center and the owner's employee id. It also lives five minutes, so provenance that is stable for months gets re-minted constantly.
 
@@ -300,19 +300,19 @@ One credential, signed once by the issuer. Two presentations. Neither verifier c
 
 ### What is deliberately not hidden
 
-`iss`, `sub`, and `cnf` are always disclosed, and that is a design decision, not an oversight. A verifier that cannot see who issued a credential has no trust anchor to check it against, and one that cannot see `cnf` cannot verify key binding. Hiding those makes the credential unverifiable, not private.
+`iss`, `sub`, and `cnf` are always disclosed, and that is a design decision, not an oversight. A verifier that can't see who issued a credential has no trust anchor to check it against, and one that can't see `cnf` can't verify key binding. Hiding those makes the credential unverifiable, not private.
 
 ### Decoys, and what selective disclosure does not hide
 
-Look at the digest counts: 10 and 9 unopenable digests for a credential with 7 disclosable claims. The arithmetic does not work, and that is the feature.
+Look at the digest counts: 10 and 9 unopenable digests for a credential with 7 disclosable claims. The arithmetic doesn't work, and that is the feature.
 
-Selective disclosure hides claim *content*. It does not, by itself, hide that further claims exist — the digest array is right there in the payload, and its length leaks the count. A verifier receiving 2 of 7 learns there are 5 more. Often that count alone fingerprints which credential template you hold.
+Selective disclosure hides claim *content*. It doesn't, by itself, hide that further claims exist: the digest array is right there in the payload, and its length leaks the count. A verifier receiving 2 of 7 learns there are 5 more. Often that count alone fingerprints which credential template you hold.
 
-Decoy digests (RFC 9901 §4.2.5) are random hashes that correspond to no claim, added so the array length stops meaning anything. It is real but partial: it blurs a count, it does not make the array empty.
+Decoy digests (RFC 9901 §4.2.5) are random hashes that correspond to no claim, added so the array length stops meaning anything. It's real but partial: it blurs a count, it doesn't make the array empty.
 
 ### Key binding is what makes it non-transferable
 
-The presentation ends with a **Key Binding JWT** (RFC 9901 §4.3): a small JWT the holder signs over *this* verifier's audience and nonce. Strip it and you have a bearer credential with fewer claims in it — anyone who receives it can present it onward.
+The presentation ends with a **Key Binding JWT** (RFC 9901 §4.3): a small JWT the holder signs over *this* verifier's audience and nonce. Strip it and you have a bearer credential with fewer claims in it: anyone who receives it can present it onward.
 
 The second half of `negative_tests.py` attacks exactly that:
 
@@ -335,19 +335,19 @@ The second half of `negative_tests.py` attacks exactly that:
             rejected: Invalid JWS Object [Invalid format]
 ```
 
-The third case is the one to sit with. The attacker is **a legitimate verifier** — you handed it a valid presentation in the normal course of business. It now holds a complete, correctly signed artifact and tries to present it to a second verifier. The audience binding refuses. Without KB-JWT, every verifier you present to becomes able to impersonate you to every other verifier, forever.
+The third case is the one to sit with. The attacker is **a legitimate verifier**: you handed it a valid presentation in the normal course of business. It now holds a complete, correctly signed artifact and tries to present it to a second verifier. The audience binding refuses. Without KB-JWT, every verifier you present to becomes able to impersonate you to every other verifier, forever.
 
-Cases four and five are the naive-verifier attack from RFC 9901 §9: the holder edits a disclosed value, then invents a claim outright. A verifier that reads disclosed values without recomputing their digests accepts both. This is not hypothetical sloppiness — it is the specific implementation shortcut the RFC calls out, because reading the values is the obvious thing to do and checking the hashes is the extra step.
+Cases four and five are the naive-verifier attack from RFC 9901 §9: the holder edits a disclosed value, then invents a claim outright. A verifier that reads disclosed values without recomputing their digests accepts both. The RFC calls out this exact implementation shortcut, because reading the values is the obvious thing to do and checking the hashes is the extra step.
 
 ### The honest tradeoffs
 
 No named breach to cite here, so judge it on these:
 
-**In favor.** Each verifier's compromise exposes only what that verifier was given. Claims stay individually verifiable — the ledger can prove the operator name came from your issuer, not from the agent's own assertion. And it decouples lifetimes: the credential outlives any single token.
+**In favor.** Each verifier's compromise exposes only what that verifier was given. Claims stay individually verifiable: the ledger can prove the operator name came from your issuer, not from the agent's own assertion. And it decouples lifetimes: the credential outlives any single token.
 
-**Against.** You now run an issuer, and an issuer is a signing key with an availability requirement. Revocation is genuinely unsolved-ish — status lists and short lifetimes both work, both cost something, and neither is as simple as deleting a session. Verifier implementations are the weak link, as cases four and five show. And the privacy win is partial: unless the credential is re-issued, the same digests appear in every presentation, so colluding verifiers can correlate you even without opening a thing.
+**Against.** You now run an issuer, and an issuer is a signing key with an availability requirement. Revocation is genuinely unsolved-ish: status lists and short lifetimes both work, both cost something, and neither is as simple as deleting a session. Verifier implementations are the weak link, as cases four and five show. And the privacy win is partial: unless the credential is re-issued, the same digests appear in every presentation, so colluding verifiers can correlate you even without opening a thing.
 
-That last one is worth saying out loud, because "selective disclosure" sounds like it solves linkability and it does not. Unlinkability needs batch issuance or something with more math in it.
+That last one is worth saying out loud, because "selective disclosure" sounds like it solves linkability and it doesn't. Unlinkability needs batch issuance or something with more math in it.
 
 ---
 
@@ -361,7 +361,7 @@ _~14 min · Discussion_
 error tracker captures request headers. Look at what your support process asks customers to attach. You will find something, and it will tell you whether any of this is worth doing.
 2. **Answer the key storage question before anything else.** No enclave, no KMS,
 no non-exportable key? Then DPoP moves your risk from one file to the same file. Fix storage first; the protocol is the easy part.
-3. **Make one resource server strict.** Not the IdP — the resource server. Issue
+3. **Make one resource server strict.** Strict means the resource server, not the IdP. Issue
 bound tokens broadly if you like, but the acceptance check is the control, and the `ATTACKS` line in this lab exists to prove it.
 4. **Only then look at credentials.** SD-JWT solves over-collection, which is a
 real problem but rarely the one on fire.
@@ -380,9 +380,9 @@ that they have no business reading? That list is your SD-JWT case, written by yo
 
 They are unusually readable, and both have a section that is worth the price of admission on its own.
 
-- RFC 9449 (DPoP) — §4.3 is a twelve-point checklist. Diff it against your
+- RFC 9449 (DPoP): §4.3 is a twelve-point checklist. Diff it against your
 implementation. https://www.rfc-editor.org/rfc/rfc9449.html
-- RFC 9901 (SD-JWT) — §9 is the security considerations, including the naive
+- RFC 9901 (SD-JWT): §9 is the security considerations, including the naive
 verifier and Alice-to-Bob. https://www.rfc-editor.org/rfc/rfc9901.html
 - Keycloak's DPoP guide, for the preview-feature caveats.
 https://www.keycloak.org/securing-apps/dpop

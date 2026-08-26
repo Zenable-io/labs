@@ -3,7 +3,7 @@
 
 # MCP 101: Build a Server, Swap the Clients
 
-Learn what an MCP host, client, and server actually are, then prove it — write an MVP server with FastMCP, test it with a scripted client, move it into a container, and connect goose to it without changing a line of server code.
+Learn what an MCP host, client, and server actually are, then prove it. Write an MVP server with FastMCP, test it with a scripted client, move it into a container, and connect goose to it without changing a line of server code.
 
 **[▶ Take this lab on the Zenable Learning Hub](https://www.zenable.app/learn?lab=mcp-101&utm_source=github&utm_medium=labs_repo&utm_campaign=mcp-101_readme)** — fully hosted sandbox environment, progress tracking, and a full-featured lab workspace.
 
@@ -15,7 +15,7 @@ Learn what an MCP host, client, and server actually are, then prove it — write
 
 - Python 3.11+ and uv
 - Docker
-- An LLM provider API key (any goose-supported provider) for the final section only — everything before it needs none
+- An LLM provider API key (any goose-supported provider) for the final section only (everything before it needs none)
 
 ---
 
@@ -25,7 +25,7 @@ _This README is only the hands-on lab. The concept walk-through (Host, client, s
 
 _~15 min · Hands-on_
 
-[FastMCP](https://github.com/jlowin/fastmcp) is the Pythonic way to write a server: a decorator turns a typed function into an MCP tool, and the type hints become the tool's JSON schema — the thing the model reads to know how to call you.
+[FastMCP](https://github.com/jlowin/fastmcp) is the Pythonic way to write a server: a decorator turns a typed function into an MCP tool, and the type hints become the tool's JSON schema: the thing the model reads to know how to call you.
 
 Clone the lab rig and install the one dependency:
 
@@ -37,7 +37,7 @@ uv sync
 uv run fastmcp version
 ```
 
-Open `server.py`. This is the whole server — yes, all of it:
+Open `server.py`. This is the whole server (yes, all of it):
 
 ```python
 from fastmcp import FastMCP
@@ -61,7 +61,7 @@ if __name__ == "__main__":
     mcp.run()
 ```
 
-`mcp.run()` with no arguments speaks **stdio** — it sits there waiting for a host to feed it JSON-RPC on stdin. Prove that it is a protocol speaker, not a normal script, by playing host yourself for one message:
+`mcp.run()` with no arguments speaks **stdio**: it sits there waiting for a host to feed it JSON-RPC on stdin. Prove that it's a protocol speaker, not a normal script, by playing host yourself for one message:
 
 ```bash
 printf '%s\n' \
@@ -72,13 +72,13 @@ printf '%s\n' \
 You just performed the MCP handshake by hand: one `initialize` request in, one JSON-RPC response out, carrying the server's name and capabilities. Every host you will ever configure does exactly this first.
 
 > [!TIP]
-> **Pro tip — the docstrings and type hints are not decoration.** FastMCP compiles them into the tool schema the model sees. A tool named `add` with parameters `a` and `b` and no description forces the model to guess; a one-line docstring is the difference between a tool that gets called correctly and one that gets called with `{"text": "2+3"}`. Treat tool signatures as API design, because that is literally what they are.
+> **Pro tip: the docstrings and type hints are not decoration.** FastMCP compiles them into the tool schema the model sees. A tool named `add` with parameters `a` and `b` and no description forces the model to guess; a one-line docstring is the difference between a tool that gets called correctly and one that gets called with `{"text": "2+3"}`. Treat tool signatures as API design, because that is literally what they are.
 
 ## Test it with a FastMCP client
 
 _~12 min · Hands-on_
 
-A model is a terrible first test harness — it is nondeterministic and it hides the wire. FastMCP ships a client, and the rig's `client.py` scripts the exact calls a host would make:
+A model is a terrible first test harness: it's nondeterministic and it hides the wire. FastMCP ships a client, and the rig's `client.py` scripts the exact calls a host would make:
 
 ```python
 import asyncio
@@ -118,13 +118,13 @@ add(2, 3) = 5
 shout = MCP WORKS!
 ```
 
-Two things worth noticing. First, `Client("server.py")` **inferred the transport from the target**: a Python file path means "spawn it as a subprocess and speak stdio" — your test just launched and killed a real server process. Second, that `sys.argv[1]` is deliberate: the same script will retest the containerized server in the next section by passing a URL instead of a path. One client, both transports.
+Two things worth noticing. First, `Client("server.py")` **inferred the transport from the target**: a Python file path means "spawn it as a subprocess and speak stdio". Your test just launched and killed a real server process. Second, that `sys.argv[1]` is deliberate: the same script will retest the containerized server in the next section by passing a URL instead of a path. One client, both transports.
 
 ## Move the server into a container, retest
 
 _~18 min · Hands-on_
 
-Same `server.py`, no edits — the rig's `Dockerfile` just launches it differently, with the FastMCP CLI choosing Streamable HTTP at the door:
+Same `server.py`, no edits: the rig's `Dockerfile` just launches it differently, with the FastMCP CLI choosing Streamable HTTP at the door:
 
 ```dockerfile
 FROM python:3.13-slim
@@ -144,7 +144,7 @@ sleep 2
 docker logs mcp-101
 ```
 
-The logs should show uvicorn listening on `0.0.0.0:8000`. Now the retest — the same client script, with the file path swapped for a URL:
+The logs should show uvicorn listening on `0.0.0.0:8000`. Now the retest: the same client script, with the file path swapped for a URL:
 
 ```bash
 uv run python client.py http://127.0.0.1:8000/mcp/
@@ -153,7 +153,7 @@ uv run python client.py http://127.0.0.1:8000/mcp/
 Same three lines of output. Sit with what just happened: the server code did not change, the client code did not change, and yet the deployment went from "subprocess with two pipes" to "network service in a container." The transport really was a launch flag.
 
 > [!TIP]
-> **Pro tip — `/mcp/` is convention, not magic.** FastMCP serves Streamable HTTP at `/mcp/` by default, and most clients expect a full URL including the path. When some host "can't connect" to a server that is demonstrably up, the missing `/mcp/` suffix is the first thing to check — it is the MCP equivalent of forgetting `:443` isn't the problem but `https://` is.
+> **Pro tip: `/mcp/` is convention, not magic.** FastMCP serves Streamable HTTP at `/mcp/` by default, and most clients expect a full URL including the path. When some host "can't connect" to a server that is demonstrably up, the missing `/mcp/` suffix is the first thing to check. It's the MCP equivalent of forgetting `:443` isn't the problem but `https://` is.
 
 If you are curious what refused-by-default looks like, probe the endpoint with plain curl and no MCP handshake:
 
@@ -167,7 +167,7 @@ The non-200 you get back is the server telling you it speaks MCP, not a browser 
 
 _~15 min · Hands-on_
 
-Your script proved the server is correct. Now prove it is *interoperable* by pointing a real host at it — [goose](https://github.com/block/goose), Block's open-source agent. goose has never heard of your server; all they share is the protocol.
+Your script proved the server is correct. Now prove it's *interoperable* by pointing a real host at it: [goose](https://github.com/block/goose), Block's open-source agent. goose has never heard of your server; all they share is the protocol.
 
 Install goose (pinned so your output matches the lab):
 
@@ -193,10 +193,10 @@ In the session, ask something that forces a tool call rather than mental arithme
 Use the add tool to compute 20260825 + 101, then shout the phrase "protocols over plugins".
 ```
 
-Watch the transcript: goose lists your tools during its handshake, the model picks `add`, and the result comes back through the same `tools/call` your script issued. When it responds with `20260926` and `PROTOCOLS OVER PLUGINS!`, every layer of the stack — your code, the container, the transport, the host — just shook hands in public.
+Watch the transcript: goose lists your tools during its handshake, the model picks `add`, and the result comes back through the same `tools/call` your script issued. When it responds with `20260926` and `PROTOCOLS OVER PLUGINS!`, every layer of the stack (your code, the container, the transport, the host) just shook hands in public.
 
 > [!TIP]
-> **Pro tip — no provider key? You still proved the claim.** The interop demonstration is the handshake, and you already ran it twice without any model: once by hand with `printf`, once scripted with the FastMCP client. The goose session adds the last layer — a model *choosing* to call your tool — but "goose connected and listed `add` and `shout`" is visible in the session startup before any tokens are spent.
+> **Pro tip: no provider key? You still proved the claim.** The interop demonstration is the handshake, and you already ran it twice without any model: once by hand with `printf`, once scripted with the FastMCP client. The goose session adds the last layer (a model *choosing* to call your tool), but "goose connected and listed `add` and `shout`" is visible in the session startup before any tokens are spent.
 
 Clean up when you are done:
 
