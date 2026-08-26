@@ -7,27 +7,25 @@ Speak the Agent Client Protocol to a real agent by hand, then watch the agent re
 
 **[▶ Take this lab on the Zenable Learning Hub](https://www.zenable.app/learn?lab=acp-agent-client&utm_source=github&utm_medium=labs_repo&utm_campaign=acp-agent-client_readme)** — fully hosted sandbox environment, progress tracking, and a full-featured lab workspace.
 
-**Duration** 115 minutes · **Difficulty** Intermediate
+**Duration** 70 minutes · **Difficulty** Intermediate
 
 **Topics** `ACP` · `Agent Client Protocol` · `goose` · `JSON-RPC` · `Editor Integration` · `Least Privilege` · `Open Source` · `Python`
 
 **Prerequisites**
 
 - Python 3.11+ and comfort reading a dict
-- [object Object]
+- A terminal (no Docker, no accounts, no API key for most of this lab)
 - Curiosity about what your editor's AI agent is allowed to do
 
 ---
 
-_This README is only the hands-on lab. The concept walk-through (First: which ACP is this? · What the protocol is for · The direction nobody expects · Where this rig stops) lives on the [Learning Hub](https://www.zenable.app/learn?lab=acp-agent-client&utm_source=github&utm_medium=labs_repo&utm_campaign=acp-agent-client_readme)._
+_This README is only the hands-on lab. The concept walk-through (What we're digging into · Terminology · The traffic reverses · Conclusion) lives on the [Learning Hub](https://www.zenable.app/learn?lab=acp-agent-client&utm_source=github&utm_medium=labs_repo&utm_campaign=acp-agent-client_readme)._
 
-## Speak the handshake yourself
+## Getting started
 
-_~18 min · Hands-on_
+_~6 min · Hands-on_
 
-Nothing teaches a protocol like writing a client for it. We are going to talk to a real agent ([goose](https://github.com/block/goose), Block's open-source agent, which implements ACP natively) using nothing but the standard library.
-
-Install goose. We pin the version so your output matches the lab. The Linux release ships as a `.tar.bz2`, so make sure `bzip2` is present before you start. Read the Pro Tip below before you skip that line.
+We'll talk to [goose](https://github.com/block/goose), Block's open-source agent, which speaks ACP natively. Install it pinned, so your output matches ours:
 
 ```bash
 if ! command -v bzip2 >/dev/null 2>&1; then
@@ -38,20 +36,14 @@ export PATH="$HOME/.local/bin:$PATH"
 goose --version
 ```
 
-> [!TIP]
-> **Pro tip: that `goose --version` isn't decoration.** The installer checks that `tar` exists, then extracts with `tar -xjf`, which shells out to `bzip2`, a dependency it never checks for. On a minimal Linux image you get this:
-
 ```console
-tar (child): bzip2: Cannot exec: No such file or directory
-Error: Failed to extract goose-...-linux-gnu.tar.bz2
+goose 1.46.0
 ```
 
-and then **the installer exits 0 anyway**. A script that installs and moves on would sail past this with no binary on disk and fail later somewhere confusing. We hit exactly this building the lab, on a machine where the local dry run had passed, because that machine happened to have `bzip2` already. Verify the thing you just installed actually runs; a zero exit code isn't evidence.
-
 > [!TIP]
-> **Pro tip: `CONFIGURE=false` is doing real work.** Without it the installer drops into an interactive provider setup and waits for input forever, which is exactly the kind of thing that wedges a CI job or a workshop. The installer also honours `GOOSE_BIN_DIR`; the default is `~/.local/bin`, which **isn't** on `PATH` in a fresh shell on most Linux images. Every block below re-exports it for that reason: a new terminal means a new `export`.
+> **Pro tip: run that version check every time.** The installer extracts with `tar -xjf`, which needs `bzip2`, a dependency it never checks for, and when extraction fails it still exits 0 with no binary on disk. We hit exactly that while building this lab. `CONFIGURE=false` matters too: without it the installer waits forever on an interactive provider setup. And `~/.local/bin` usually isn't on `PATH` in a fresh shell, which is why the blocks below keep re-exporting it.
 
-`goose acp` runs goose as an ACP agent server on stdio. Clone the rig and talk to it:
+Now clone the lab rig:
 
 ```bash
 git clone https://github.com/Zenable-io/labs.git ~/zenable-labs 2>/dev/null \
@@ -60,7 +52,22 @@ cd ~/zenable-labs/labs/acp-goose
 ls
 ```
 
-Four files, standard library only. `acp_handshake.py` is a JSON-RPC peer in about a hundred lines; the part that carries the lesson is what the client volunteers about itself:
+```console
+acp_handshake.py
+acp_policy_proxy.py
+demanding_agent.py
+evidence
+permissive_client.py
+README.md
+```
+
+Four Python files, standard library only, plus `evidence/` holding captured output from a known-good run so you can `diff` your results against ours.
+
+## Speak the handshake yourself
+
+_~10 min · Hands-on_
+
+Nothing teaches a protocol like writing a client for it. `goose acp` runs goose as an ACP agent on stdio, and `acp_handshake.py` is a JSON-RPC peer in about a hundred lines. The part carrying the lesson is what our client volunteers about itself:
 
 ```python
 reply = conn.request(
@@ -73,15 +80,13 @@ reply = conn.request(
 )
 ```
 
-Read the rest before running it. `AcpConnection.request` writes one JSON line and reads one back; `_read` does that read on a thread it can abandon, because `readline()` has no timeout and an agent that never answers would otherwise hang the lab with no output at all.
+Read the rest before running it. `AcpConnection.request` writes one JSON line and reads one back, and `_read` does the read on a thread it can abandon, because `readline()` has no timeout and a silent agent would otherwise hang us with nothing on screen.
 
 Run it:
 
 ```bash
 cd ~/zenable-labs/labs/acp-goose && export PATH="$HOME/.local/bin:$PATH" && python3 acp_handshake.py
 ```
-
-You should see something very close to this:
 
 ```console
 agent                goose 1.46.0
@@ -91,22 +96,23 @@ prompt content       embeddedContext, image
 mcp transports       http
 authMethods          1
   - goose-provider: Configure Provider
+      Run `goose configure` to set up your AI provider and API key
 ```
 
-Stop and look at what just happened, because three things in that output are the whole lesson.
+Success! We just negotiated capabilities with a real agent, by hand.
 
-**No model was involved.** You have no API key configured and no local model downloaded, and the handshake still completed. `initialize` is answered before the agent resolves a provider. Capability negotiation is a protocol-layer conversation, and you can inspect any ACP agent this way for free.
+Notice what we never needed: an API key, a local model, or a network connection. `initialize` is answered before goose resolves a provider, so we can inspect any ACP agent this way for free. The highlighted lines are goose saying auth comes later, through ACP's own `authenticate` step. And `mcp transports http` is goose declaring which MCP transports it accepts when we hand it servers.
 
-**The agent advertised `authMethods`.** ACP has its own authentication step (`authenticate`) that the client calls when the agent says it needs one. Here goose is telling you it has no provider configured yet. This is a real seam: the agent can require the client to establish identity before doing work.
+Question: our client claimed `{"fs": {"readTextFile": True, "writeTextFile": True}}`. What did we just agree to?
 
-**The agent advertised `mcpCapabilities`.** goose is saying which MCP transports it can accept when the client hands it MCP servers. The editor is the one that decides what tools exist.
+<details>
+<summary>Answer</summary>
 
-> [!TIP]
-> **Pro tip: capabilities are promises, not preferences.** Look at what our client sent: `clientCapabilities: {fs: {readTextFile: true, writeTextFile: true}}`. We just told the agent it may call back and ask us to read and write files. That is a grant of authority, not a request for a feature, and the next section is what the agent does with it. Claiming a capability you don't intend to police is the ACP equivalent of running a container as root because it was easier.
+We granted authority. That one object tells the agent it may call back into us to read and write files, and the rest of this lab is what happens when it does. A client that claims a capability it doesn't police has volunteered its filesystem, much like running a container as root because it was easier.
 
-### Where the model actually becomes necessary
+</details>
 
-Try opening a session and the boundary shows up precisely:
+So where does the free part end? Let's find the line by opening a session:
 
 ```bash
 cd ~/zenable-labs/labs/acp-goose && export PATH="$HOME/.local/bin:$PATH" && python3 - <<'PYEOF'
@@ -126,25 +132,20 @@ raise SystemExit(1)
 PYEOF
 ```
 
-```console
-initialize       -> ok
-session/new      -> error: Failed to resolve provider: Configuration value not found: GOOSE_PROVIDER
-```
+With no provider configured, `initialize` reports ok and `session/new` comes back as a JSON-RPC error naming the missing `GOOSE_PROVIDER` configuration. The handshake is protocol plumbing; a session is where the model starts. Knowing which of the two failed is half of debugging any ACP integration.
 
-`initialize` needs no model. `session/new` does. That line is where the free part of ACP ends, and it's a useful thing to know when you are debugging an integration: a failing handshake and a failing session are different problems with different causes.
+<details>
+<summary>Seeing a sqlite panic instead?</summary>
 
-> [!TIP]
-> **Pro tip: if you get a sqlite panic instead.** On a machine with an older goose install you may see `panicked at sqlx-sqlite … index out of bounds` rather than a clean error. That is stale local session state, not the protocol. Run against a clean profile to confirm: `HOME=$(mktemp -d) goose acp`. We hit exactly this while building the lab, and spent a while blaming our client for it.
+On a machine with an older goose install you may see `panicked at sqlx-sqlite … index out of bounds` rather than a clean error. That's stale local session state, and you can confirm by running against a clean profile: `HOME=$(mktemp -d) goose acp`. We spent a while blaming our own client for this one.
 
-## Prove it: an agent that only asks
+</details>
 
-_~20 min · Hands-on_
+## An agent that only asks
 
-We could demonstrate this with goose and a model, but that would make the experiment nondeterministic: the interesting callback happens only if the model decides to make it. So we remove the model from the experiment entirely.
+_~9 min · Hands-on_
 
-`demanding_agent.py` does nothing except ask for the two things worth governing.
-
-Its entire behaviour is four lines. It answers `session/new`, then immediately probes:
+We could demonstrate the callbacks with goose and a model, but then the interesting call only happens if the model decides to make it. So we take the model out. `demanding_agent.py` answers `session/new` and immediately asks for the two things worth governing:
 
 ```python
 def probe(peer: Peer) -> None:
@@ -155,9 +156,7 @@ def probe(peer: Peer) -> None:
     print(f"terminal/create      {verdict(shell)}", file=sys.stderr, flush=True)
 ```
 
-No model decides whether those calls happen. They always happen, so whether they *succeed* is a property of the client and nothing else.
-
-`permissive_client.py` grants everything: the way an editor behaves when nobody has thought about this yet. The writes and commands are **real**, so "allowed" means the agent actually reached the machine:
+Those calls always happen, so whether they succeed is a property of the client and nothing else. `permissive_client.py` plays the editor that grants everything, and its writes and commands are real:
 
 ```python
 def _handle(self, req_id: object, method: str, params: dict) -> None:
@@ -170,11 +169,7 @@ def _handle(self, req_id: object, method: str, params: dict) -> None:
         done = subprocess.run(argv, capture_output=True, text=True, check=False)
 ```
 
-That is the whole policy: none. Note also `IDLE_EXIT_SECONDS` and the watchdog thread: the agent never closes the stream, so the client ends the run once the wire goes quiet.
-
 Run them together:
-
-Run them together.
 
 ```bash
 cd ~/zenable-labs/labs/acp-goose && rm -f /tmp/acp-demanding-agent.txt && python3 permissive_client.py -- python3 demanding_agent.py; echo "--- did the file appear? ---"; cat /tmp/acp-demanding-agent.txt
@@ -189,37 +184,48 @@ terminal/create      ALLOWED
 the agent reached the filesystem
 ```
 
-An agent with no model, no credential, and no identity wrote to your filesystem and ran a command as you. It did not exploit anything. It asked, and the client said yes, because we told it during `initialize` that it could.
+An agent with no model and no credential wrote to the filesystem and ran a command. It didn't exploit anything; it asked, and the client said yes, because we said it could during `initialize`.
 
 > [!TIP]
-> **Pro tip: look at the `id` output, not the ALLOWED.** Whatever that line says is the privilege level your agent inherits. In a container it says root. On your laptop it says you, with your SSH keys, your cloud credentials, and your git push rights. ACP doesn't grant the agent anything it can reach directly, but the client executes on its behalf, so the client's privilege *is* the agent's privilege. There is no sandbox in this picture unless you put one there.
+> **Pro tip: read the `id` output, then the ALLOWED.** We captured this run inside the lab VM, which is why it reports root; on your laptop it reports you, with your SSH keys, cloud credentials, and git push rights. The client executes on the agent's behalf, so the client's privilege becomes the agent's privilege. Nothing sandboxes this picture unless you add one.
+
+Question: which process actually wrote that file and ran `id`, the agent or the client?
+
+<details>
+<summary>Answer</summary>
+
+The client. The agent only ever sent JSON lines; `permissive_client.py` did the `write_text` and the `subprocess.run`. That's the whole ACP trust model in one run: agents change the machine by asking, and the client decides what asking achieves.
+
+</details>
 
 ## Put a policy on the wire
 
-_~20 min · Hands-on_
+_~10 min · Hands-on_
 
-Here is the useful consequence of everything being ordinary JSON-RPC: anything on the wire can answer on the client's behalf. `acp_policy_proxy.py` audits every frame and refuses the calls you name.
-
-The decision is one branch, on the agent-to-client leg:
+Everything on this wire is ordinary line-delimited JSON-RPC, so anything sitting between the two processes can answer on the client's behalf. `acp_policy_proxy.py` forwards every frame, records it, and refuses the methods we name. The decision is one branch, on the agent-to-client leg:
 
 ```python
-if method in denied:
-    reply = {"jsonrpc": "2.0", "id": frame["id"], "error": {
-        "code": -32000,
-        "message": f"{method} refused by client policy",
-    }}
+if is_request and method in denied:
+    refusal = {
+        "jsonrpc": "2.0",
+        "id": frame["id"],
+        "error": {
+            "code": REFUSED,
+            "message": f"{method} refused by client policy",
+        },
+    }
+    agent_stdin.write(json.dumps(refusal) + "\n")
+    agent_stdin.flush()
     auditor.record("agent->client", frame, "DENIED")
 ```
 
-It answers with a well-formed JSON-RPC error rather than dropping the frame, and it records every frame either way. Read `Auditor.record` and the forwarding loop before you run it.
-
-First confirm it's transparent: the handshake through the proxy should be identical to the handshake without it.
+First, let's confirm it's transparent. Run the handshake through it and compare against the eight lines we got earlier; they should be identical:
 
 ```bash
 cd ~/zenable-labs/labs/acp-goose && export PATH="$HOME/.local/bin:$PATH" && python3 acp_handshake.py -- python3 acp_policy_proxy.py --audit /tmp/acp-audit.jsonl -- goose acp 2>/dev/null
 ```
 
-Now the same experiment as before, one difference: the proxy in the middle, denying.
+Now the same experiment as the previous section, with one difference: the proxy in the middle, denying.
 
 ```bash
 cd ~/zenable-labs/labs/acp-goose && rm -f /tmp/acp-demanding-agent.txt /tmp/acp-deny.jsonl && python3 permissive_client.py -- python3 acp_policy_proxy.py --deny fs/write_text_file --deny terminal/create --audit /tmp/acp-deny.jsonl -- python3 demanding_agent.py 2>&1 | grep -v '^\[acp\]'; echo "--- did the file appear? ---"; cat /tmp/acp-demanding-agent.txt 2>/dev/null || echo "(absent -- never written)"
@@ -232,7 +238,7 @@ terminal/create      REFUSED -- terminal/create refused by client policy
 (absent -- never written)
 ```
 
-Same agent. Same client. Same request. Opposite outcome, and the file the agent tried to write never existed.
+Same agent, same client, same requests, opposite outcome, and the file never existed. Success!
 
 The audit log is the other half of the value:
 
@@ -249,21 +255,29 @@ cat /tmp/acp-deny.jsonl
 {"direction": "agent->client", "method": "terminal/create", "id": 1002, "verdict": "DENIED"}
 ```
 
-Every attempt is recorded whether or not it succeeded. A denied action you can't see is worth much less than a denied action you can: the log is what tells you an agent has been trying to write outside its lane for a week.
+Every attempt is recorded whether it succeeded or was refused. This log is how you find out an agent has been trying to write outside its lane for a week.
+
+Question: two entries carry `"method": null`. What are those frames? 🤔
+
+<details>
+<summary>Answer</summary>
+
+Responses. A JSON-RPC response carries an `id` and a result, with no `method`, and these two travel agent → client because they answer the `initialize` and `session/new` requests the client sent (see the matching ids 1 and 2). The proxy logs both directions, so answers show up alongside requests.
+
+</details>
 
 > [!TIP]
-> **Pro tip: refuse, don't drop.** The proxy answers the agent with a proper JSON-RPC error rather than swallowing the frame. That matters: an agent waiting on a response it will never receive hangs, and a hung agent looks like a broken editor, which is how "security" becomes the thing everyone turns off. A well-formed refusal is a state the agent already knows how to handle. Any policy layer you build should be loud and fast, never silent.
+> **Pro tip: refuse, don't drop.** The proxy answers with a well-formed JSON-RPC error instead of swallowing the frame. An agent waiting on a response that never comes hangs, a hung agent looks like a broken editor, and a broken-feeling control is a control someone turns off. A refusal is a state the agent already handles.
 
-> [!TIP]
-> **Diving deeper: why this works at all.** The proxy is possible because ACP is symmetric line-delimited JSON-RPC with no transport-level authentication and no message integrity. That is a deliberate design choice for a protocol between a parent process and its own child: on a single machine, the process boundary *is* the trust boundary, and adding crypto between them would be theatre. The consequence is that a local proxy is trivial to build, which cuts both ways: it's also trivial for anything that can start your editor's agent subprocess to sit in that position. Whoever controls the agent command line controls the conversation. That is the thing to protect.
+Before we add a model, let's be clear about what we built: a teaching rig. It matches on method names only, so `--deny fs/write_text_file` is all-or-nothing where real rules say "nothing outside the workspace". Nothing authenticates the agent, and the audit log is a plain file the audited party could edit. A production deployment layers per-path and per-command rules, an attributable identity, and a log the agent can't reach on top of exactly the shape you just built.
 
 ## Drive the real thing
 
-_~12 min · Hands-on_
+_~9 min · Hands-on_
 
-Everything so far worked with no model at all. To watch a real agent take a real turn you need inference, and there are two ways to get it: pick whichever fits your situation.
+Everything so far ran with no model. To watch a real agent take a real turn we need inference, and there are two ways to get it.
 
-**Adventure A: bring an API key.** Fastest path, and it's how most people run goose day to day.
+**Adventure A: bring an API key.** The fastest path if you already have one:
 
 ```bash
 export PATH="$HOME/.local/bin:$PATH"
@@ -271,9 +285,7 @@ export ANTHROPIC_API_KEY="sk-ant-..."     # or OPENAI_API_KEY, etc.
 goose configure                            # choose the matching provider
 ```
 
-**Adventure B: run a local model with Ollama.** No account, nothing to sign up for, and the whole lab stays free. Slower, and the model is less capable, but this is the path CI runs, so it's the one we know works.
-
-Install Ollama and wait for its API to answer. The Linux installer registers a systemd service; anywhere else you start the server yourself, which is what the fallback below is for:
+**Adventure B: run a local model with Ollama.** Free, no accounts, and it's the path our CI runs. Install it and wait for its API to answer:
 
 ```bash
 curl -fsSL https://ollama.com/install.sh | sh
@@ -283,14 +295,14 @@ timeout 90 bash -c 'until curl -fsS http://localhost:11434/api/version >/dev/nul
 ollama --version
 ```
 
-Pull the model. `qwen3:1.7b` is a 1.4 GB download: small enough for a modest VM, and the smallest one we found that reliably emits **well-formed** tool calls:
+Pull the model. `qwen3:1.7b` is a 1.4 GB download, and it's the smallest model we found that reliably emits well-formed tool calls:
 
 ```bash
 ollama pull qwen3:1.7b
 ollama list
 ```
 
-Before wiring it to goose, confirm the model can do the one thing the rest of this section depends on (ask for a tool):
+Before wiring it to goose, confirm the model can do the one thing this section depends on, which is asking for a tool:
 
 ```bash
 curl -sS http://localhost:11434/api/chat -d '{
@@ -313,12 +325,12 @@ print(json.dumps(calls, indent=2))
 '
 ```
 
-You should get a `write_file` call carrying `notes.txt` and `hello`. That JSON is the model's half of everything that follows: goose turns a call like it into an ACP `fs/write_text_file` request, and your proxy is what decides whether it lands.
+You should get a `write_file` call carrying `notes.txt` and `hello`. That JSON is the model's half of everything that follows: goose turns a call like it into an ACP `fs/write_text_file` request, and your proxy decides what happens next.
 
 > [!WARNING]
-> Try `qwen3:0.6b` if you want to see the floor. It still *fires* the tool, but it garbles the schema (nesting `content` inside itself), and an agent wired to a model like that fails in ways that look like protocol bugs and are not. Tool-calling fidelity is a model property, and it's worth checking before you blame the wire.
+> `qwen3:0.6b` still fires the tool but garbles the schema, and an agent wired to a model like that fails in ways that look like protocol bugs. Tool-calling fidelity is a model property; check it before you blame the wire.
 
-goose reads its provider from the environment. A new shell knows none of this, so every block below re-exports it:
+goose reads its provider from the environment, and a new shell knows none of this:
 
 ```bash
 export GOOSE_PROVIDER=ollama
@@ -328,9 +340,9 @@ export OLLAMA_CONTEXT_LENGTH=32768
 ```
 
 > [!TIP]
-> `OLLAMA_CONTEXT_LENGTH` isn't optional padding. Ollama defaults to a 4096-token context, and a tool-calling agent blows past that on the tool definitions alone; goose then starts ignoring its own instructions in ways that read as the model being stupid rather than the context being truncated.
+> `OLLAMA_CONTEXT_LENGTH` matters. Ollama defaults to a 4096-token context, a tool-calling agent blows past that on tool definitions alone, and goose then appears to ignore its own instructions because the context was silently truncated.
 
-Either way, the payoff is the same: run your **proxy** in front of real goose, give it a task that wants to touch the filesystem, and watch the governed calls appear in your audit log as the model works.
+Either way, the payoff is the same: our proxy in front of real goose, denying writes while the model works.
 
 ```bash
 cd ~/zenable-labs/labs/acp-goose && export PATH="$HOME/.local/bin:$PATH"
@@ -339,24 +351,30 @@ python3 permissive_client.py -- \
   goose acp
 ```
 
-Now the `session/update` notifications carry the agent's plan and tool calls, and the `fs/*` requests are a model deciding to change your files. Same wire, same proxy, same audit log: the only new thing is that something on the other end is thinking.
+Watch `/tmp/acp-real.jsonl` as the session runs: the `session/update` notifications carry the agent's plan, and the `fs/*` requests are a model deciding to change your files. Same wire, same proxy, same audit log; the new part is that something on the far end is choosing.
 
 > [!TIP]
-> **Pro tip: this is where `mcpServers` earns its place.** Once you have a session running, look at what you passed to `session/new`. Every MCP server listed there becomes a tool the agent can call, and you chose that list. If you have done our [MCP Enterprise Authorization lab](https://www.zenable.app/learn?lab=mcp-authorization-101&utm_source=github&utm_medium=labs_repo&utm_campaign=acp-agent-client_readme), this is where the two protocols meet: ACP decides *which* MCP servers exist for this session, and the MCP authorization layer decides what the agent may do with each one. Neither is sufficient alone.
+> **Pro tip: this is where `mcpServers` earns its place.** Every MCP server we pass to `session/new` becomes a tool the agent can call, and we chose that list. ACP decides *which* MCP servers a session gets, and MCP's authorization layer decides what the agent may do with each one; our [MCP Enterprise Authorization 101](https://www.zenable.app/learn?lab=mcp-authorization-101&utm_source=github&utm_medium=labs_repo&utm_campaign=acp-agent-client_readme) workshop covers that half.
 
-## What to take away
+## Cleanup
 
-_~5 min · Discussion_
+_~5 min · Hands-on_
 
-Three things worth keeping:
+Everything we made lives in three places: temp files, the goose binary, and the cloned rig. Remove them all:
 
-**ACP is agent↔editor, and the acronym is contested.** If someone says ACP and means agent-to-agent, they mean the IBM protocol that merged into A2A. Different problem, different lineage.
+```bash
+rm -f /tmp/acp-demanding-agent.txt /tmp/acp-audit.jsonl /tmp/acp-deny.jsonl /tmp/acp-real.jsonl
+rm -f "$HOME/.local/bin/goose"
+rm -rf ~/zenable-labs
+```
 
-**The interesting traffic goes the other way.** The editor calling the agent is the boring half. The agent calling back for your filesystem and your shell is where the consequences live, and every one of those is an inbound request something can refuse.
+If you took Adventure B and want the model gone too:
 
-**Capability grants are the real configuration.** Your client tells the agent what it may ask for during `initialize`. Everything downstream is a consequence of that one object. If you are integrating an agent into anything that matters, that is the line to review first.
+```bash
+command -v ollama >/dev/null 2>&1 && ollama rm qwen3:1.7b || true
+```
 
-The tree you cloned is yours to keep. `evidence/` holds captured output from a known-good run, so `diff` tells you whether a change you made is why something stopped working.
+Thanks for exploring the wire with us!
 
 ---
 
