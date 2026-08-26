@@ -203,7 +203,7 @@ At demo depth, three claims carry the story: `iss` is the enterprise, `aud` is t
 This exchange is also where enterprise policy runs: if alice is disabled or this client was never approved, no assertion is produced and the vendor never learns a request happened.
 
 <details>
-<summary><strong>Diving deeper: every claim is load-bearing</strong></summary>
+<summary><strong>Diving deeper: what every claim in the assertion does</strong></summary>
 
 The assertion's header:
 
@@ -277,7 +277,7 @@ Finally a real bearer token. Its claims:
 }
 ```
 
-The issuer flipped: the enterprise vouched for alice, and the vendor decided what alice can do here. And `aud` is the MCP server, the `resource` value from the metadata, which makes the token unusable anywhere else (the attack suite proves that shortly). Success!
+The issuer flipped: the enterprise vouched for alice, and the vendor decided what alice can do here. And `aud` is the MCP server, the `resource` value from the metadata, which makes the token unusable anywhere else (the attack suite tries that shortly). Success!
 
 Question: the ID-JAG carried `sub: fee07d01-…`, and this token carries `sub: f6028681-…`. Same alice. What happened?
 

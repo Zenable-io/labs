@@ -1,11 +1,11 @@
-<!-- Generated from src/lib/labs/content/labs/mcp-101.mdx in Zenable-io/next-gen-governance
+<!-- Generated from src/lib/labs/content/labs/mcp-get-started.mdx in Zenable-io/next-gen-governance
      by services/ui_frontend/scripts/export-lab-readme.js. Do not edit by hand. -->
 
 # Getting Started with MCP
 
-Learn what an MCP host, client, and server actually are, then prove it. Write an MVP server with FastMCP, test it with a scripted client, move it into a container, and connect goose to it without changing a line of server code.
+Learn what an MCP host, client, and server actually are. Write an MVP server with FastMCP, test it with a scripted client, move it into a container, and connect goose to it without changing a line of server code.
 
-**[▶ Take this lab on the Zenable Learning Hub](https://www.zenable.app/learn?lab=mcp-101&utm_source=github&utm_medium=labs_repo&utm_campaign=mcp-101_readme)** — fully hosted sandbox environment, progress tracking, and a full-featured lab workspace.
+**[▶ Take this lab on the Zenable Learning Hub](https://www.zenable.app/learn?lab=mcp-get-started&utm_source=github&utm_medium=labs_repo&utm_campaign=mcp-get-started_readme)** — fully hosted sandbox environment, progress tracking, and a full-featured lab workspace.
 
 **Duration** 75 minutes · **Difficulty** Beginner
 
@@ -19,7 +19,7 @@ Learn what an MCP host, client, and server actually are, then prove it. Write an
 
 ---
 
-_This README is only the hands-on lab. The concept walk-through (What we're building · Terminology · Transports, and a note on auth · Conclusion) lives on the [Learning Hub](https://www.zenable.app/learn?lab=mcp-101&utm_source=github&utm_medium=labs_repo&utm_campaign=mcp-101_readme)._
+_This README is only the hands-on lab. The concept walk-through (What we're building · Terminology · Connecting to a MCP server · Conclusion) lives on the [Learning Hub](https://www.zenable.app/learn?lab=mcp-get-started&utm_source=github&utm_medium=labs_repo&utm_campaign=mcp-get-started_readme)._
 
 ## Getting started
 
@@ -37,12 +37,12 @@ uv sync
 ```console
 Using CPython 3.13.12
 Creating virtual environment at: .venv
-Resolved 88 packages in 3ms
-Installed 77 packages in 190ms
- + annotated-doc==0.0.5
+Resolved 75 packages in 9ms
+Installed 66 packages in 181ms
+ + aiofile==3.12.3
  + annotated-types==0.8.0
 ...
- + fastmcp==2.14.7
+ + fastmcp==3.4.7
 ...
  + uvicorn==0.52.4
  + websockets==17.0.1
@@ -55,14 +55,14 @@ uv run fastmcp version
 ```
 
 ```console
-FastMCP version:                                                          2.14.7
+FastMCP version:                                                           3.4.7
 MCP version:                                                              1.29.1
 Python version:                                                          3.13.12
 Platform:                                    macOS-26.5.2-arm64-arm-64bit-Mach-O
 ...
 ```
 
-Your platform line will differ, and that's fine. As long as the FastMCP version starts with 2, you're ready to get started on the lab!
+Your platform line will differ, and that's fine. As long as the FastMCP version starts with 3, you're ready to get started on the lab!
 
 ## Your first MCP server
 
@@ -92,23 +92,50 @@ if __name__ == "__main__":
     mcp.run()
 ```
 
-The `@mcp.tool` decorator turns each typed function into an MCP tool, and the type hints and docstrings become the schema the model reads. `mcp.run()` with no arguments speaks stdio: it sits and waits for a host to feed it JSON-RPC on stdin.
+The `@mcp.tool` decorator turns each typed function into an MCP tool. FastMCP compiles the Python type hints and docstrings into a JSON Schema and sends it to any client that asks for `tools/list`, so what you write here travels over the wire and is what tells a client how to call your server. `mcp.run()` with no arguments speaks stdio: it sits and waits for a host to feed it JSON-RPC on stdin.
 
-Let's prove it's a protocol speaker and play host ourselves for one message. Every host performs an `initialize` handshake first, so we'll do exactly that by hand:
+Let's play host ourselves for one message. Every host performs an `initialize` handshake first, so we'll do exactly that by hand:
 
 ```bash
 printf '%s\n' \
   '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"you","version":"0"}}}' \
-  | timeout 5 uv run python server.py 2>/dev/null | head -1
+  | timeout 5 uv run python server.py 2>/dev/null | head -1 | jq
 ```
 
 ```console
-{"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2025-06-18","capabilities":{"experimental":{},"prompts":{"listChanged":false},"resources":{"subscribe":false,"listChanged":false},"tools":{"listChanged":true},"tasks":{"list":{},"cancel":{},"requests":{"tools":{"call":{}},"prompts":{"get":{}},"resources":{"read":{}}}}},"serverInfo":{"name":"mcp-get-started","version":"2.14.7"}}}
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "protocolVersion": "2025-06-18",
+    "capabilities": {
+      "experimental": {},
+      "logging": {},
+      "prompts": {
+        "listChanged": false
+      },
+      "resources": {
+        "subscribe": false,
+        "listChanged": false
+      },
+      "tools": {
+        "listChanged": true
+      },
+      "extensions": {
+        "io.modelcontextprotocol/ui": {}
+      }
+    },
+    "serverInfo": {
+      "name": "mcp-get-started",
+      "version": "3.4.7"
+    }
+  }
+}
 ```
 
 One request in, one response out. Success!
 
-Question: near the end of that response you'll see `"serverInfo":{"name":"mcp-get-started",...}`. Where did that name come from?
+Question: near the end of that response you'll see a `serverInfo` block naming `mcp-get-started`. Where did that name come from?
 
 <details>
 <summary>Answer</summary>
@@ -117,8 +144,8 @@ The `FastMCP("mcp-get-started")` constructor call at the top of `server.py`. The
 
 </details>
 
-> [!TIP]
-> **Pro tip: the docstrings and type hints are load-bearing.** FastMCP compiles them into the tool schema the model sees. A tool named `add` with parameters `a` and `b` and no description forces the model to guess; a one-line docstring is the difference between a tool that gets called correctly and one that gets called with `{"text": "2+3"}`. Treat tool signatures as API design, because that's literally what they are.
+> [!NOTE]
+> **Reminder: the docstrings and type hints are what a client reads.** A tool named `add` with parameters `a` and `b` and no description forces the model to guess; a one-line docstring is the difference between a tool that gets called correctly and one that gets called with `{"text": "2+3"}`. Treat tool signatures as API design, because that's literally what they are.
 
 ## Test it with a client
 
@@ -190,7 +217,7 @@ Same `server.py`, no edits. The rig's `Dockerfile` just launches it differently,
 
 ```dockerfile
 FROM python:3.13-slim
-RUN pip install --no-cache-dir 'fastmcp>=2.13,<3'
+RUN pip install --no-cache-dir 'fastmcp>=3.4,<4'
 WORKDIR /app
 COPY server.py .
 EXPOSE 8000
@@ -208,13 +235,22 @@ docker logs mcp-get-started
 
 ```console
 ╭──────────────────────────────────────────────────────────────────────────────╮
+│                                                                              │
+│                                                                              │
 │                         ▄▀▀ ▄▀█ █▀▀ ▀█▀ █▀▄▀█ █▀▀ █▀█                        │
 │                         █▀  █▀█ ▄▄█  █  █ ▀ █ █▄▄ █▀▀                        │
-│                                FastMCP 2.14.7                                │
-│                    🖥  Server:      mcp-get-started                           │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                FastMCP 3.4.7                                 │
+│                            https://gofastmcp.com                             │
+│                                                                              │
+│                  🖥  Server:      mcp-get-started, 3.4.7                      │
+│                  🚀 Deploy free: https://horizon.prefect.io                  │
+│                                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ...
-[08/26/26 17:48:41] INFO     Starting MCP server                  server.py:2580
+[08/26/26 21:27:16] INFO     Starting MCP server                transport.py:361
                              'mcp-get-started' with transport
                              'http' on http://0.0.0.0:8000/mcp
 INFO:     Started server process [1]
@@ -256,7 +292,7 @@ A well-formed JSON-RPC error, asking for the session that a real client would ha
 
 _~10 min · Hands-on_
 
-Your script proved the server is correct. Now let's prove it's interoperable by pointing a real host at it: [goose](https://github.com/block/goose), Block's open-source agent. goose has never heard of your server; all they share is the protocol.
+Your script gave you a correct server. Now let's point a real host at it and see whether it needs anything else from us: [goose](https://github.com/aaif-goose/goose), an open-source agent governed by the [Agentic AI Foundation](https://aaif.io/projects/goose/). goose has never heard of your server; all they share is the protocol.
 
 Install goose (pinned so your output matches the lab):
 
@@ -264,7 +300,7 @@ Install goose (pinned so your output matches the lab):
 if ! command -v bzip2 >/dev/null 2>&1; then
   sudo apt-get update -qq && sudo apt-get install -y -qq bzip2
 fi
-curl -fsSL https://github.com/block/goose/releases/download/stable/download_cli.sh | CONFIGURE=false GOOSE_VERSION=v1.46.0 bash
+curl -fsSL https://github.com/aaif-goose/goose/releases/download/stable/download_cli.sh | CONFIGURE=false GOOSE_VERSION=v1.46.0 bash
 export PATH="$HOME/.local/bin:$PATH"
 goose --version
 ```
@@ -275,7 +311,7 @@ goose 1.46.0
 
 This is where a model finally enters the story: goose is a full host, so it needs an LLM provider to drive tool calls. You bring your own; no key is required if you use a free path. Configure with `goose configure` (any [provider goose supports](https://goose-docs.ai/docs/getting-started/providers/)), including:
 
-- **Local and free**: [Ollama](https://ollama.com/) with a small tool-calling model, like `ollama pull qwen3:1.7b`. Our [ACP workshop](https://www.zenable.app/learn?lab=acp-agent-client&utm_source=github&utm_medium=labs_repo&utm_campaign=mcp-101_readme) walks this setup in detail.
+- **Local and free**: [Ollama](https://ollama.com/) with a small tool-calling model, like `ollama pull qwen3:1.7b`. Our [ACP workshop](https://www.zenable.app/learn?lab=acp-agent-client&utm_source=github&utm_medium=labs_repo&utm_campaign=mcp-get-started_readme) walks this setup in detail.
 - **Hosted and free**: an [OpenRouter](https://openrouter.ai/) account with one of its free-tier models.
 - **Bring your own key**: any paid provider you already use.
 
@@ -295,7 +331,7 @@ Use the add tool to compute 20260825 + 101, then shout the phrase "protocols ove
 Watch the transcript: goose lists your tools during its handshake (the same `initialize` and `tools/list` you sent by hand earlier), the model picks `add`, and the result comes back through the same `tools/call` your script issued. When it responds with `20260926` and `PROTOCOLS OVER PLUGINS!`, you've watched one unchanged server answer three different clients.
 
 > [!TIP]
-> **Pro tip: no provider key? You've already proven the claim.** The interoperability demonstration is the handshake, and you ran it twice without any model: once by hand with `printf`, once scripted with the FastMCP client. The goose session adds the final layer, a model *choosing* to call your tool, but "goose connected and listed `add` and `shout`" is visible in the session startup before any tokens are spent.
+> **Pro tip: no provider key? You can still do this section.** The interoperability happens in the handshake, and you already ran that twice without any model: once by hand with `printf`, once scripted with the FastMCP client. The goose session adds a model *choosing* to call your tool, but "goose connected and listed `add` and `shout`" appears in the session startup before any tokens are spent.
 
 ## Cleanup
 
@@ -311,11 +347,11 @@ docker rmi mcp-get-started
 
 ```console
 Untagged: mcp-get-started:latest
-Deleted: sha256:9e40a25966735f8ca5d727619db6c558e8ff2d4b0cfb606b5f3aa7129b8e2fc2
+Deleted: sha256:733f50fd995332258ecdb2b8bc788c8fd1da439f84a6fdef4e8cd2e3b5fa6bcf
 ```
 
 If you want the rig gone too, `rm -rf ~/zenable-labs` finishes the job. Thanks for building with us!
 
 ---
 
-_Written for the [Zenable Learning Hub](https://www.zenable.app/learn?lab=mcp-101&utm_source=github&utm_medium=labs_repo&utm_campaign=mcp-101_readme); published here because the rig lives here. [Browse every lab](https://www.zenable.app/learn?utm_source=github&utm_medium=labs_repo&utm_campaign=mcp-101_readme), or open an issue on this repo if something is broken._
+_Written for the [Zenable Learning Hub](https://www.zenable.app/learn?lab=mcp-get-started&utm_source=github&utm_medium=labs_repo&utm_campaign=mcp-get-started_readme); published here because the rig lives here. [Browse every lab](https://www.zenable.app/learn?utm_source=github&utm_medium=labs_repo&utm_campaign=mcp-get-started_readme), or open an issue on this repo if something is broken._

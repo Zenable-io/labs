@@ -25,13 +25,13 @@ _This README is only the hands-on lab. The concept walk-through (What we're digg
 
 _~6 min · Hands-on_
 
-We'll talk to [goose](https://github.com/block/goose), Block's open-source agent, which speaks ACP natively. Install it pinned, so your output matches ours:
+We'll talk to [goose](https://github.com/aaif-goose/goose), an open-source agent governed by the [Agentic AI Foundation](https://aaif.io/projects/goose/), which speaks ACP natively. Install it pinned, so your output matches ours:
 
 ```bash
 if ! command -v bzip2 >/dev/null 2>&1; then
   sudo apt-get update -qq && sudo apt-get install -y -qq bzip2
 fi
-curl -fsSL https://github.com/block/goose/releases/download/stable/download_cli.sh | CONFIGURE=false GOOSE_VERSION=v1.46.0 bash
+curl -fsSL https://github.com/aaif-goose/goose/releases/download/stable/download_cli.sh | CONFIGURE=false GOOSE_VERSION=v1.46.0 bash
 export PATH="$HOME/.local/bin:$PATH"
 goose --version
 ```
@@ -67,7 +67,7 @@ Four Python files, standard library only, plus `evidence/` holding captured outp
 
 _~10 min · Hands-on_
 
-Nothing teaches a protocol like writing a client for it. `goose acp` runs goose as an ACP agent on stdio, and `acp_handshake.py` is a JSON-RPC peer in about a hundred lines. The part carrying the lesson is what our client volunteers about itself:
+Nothing teaches a protocol like writing a client for it. `goose acp` runs goose as an ACP agent on stdio, and `acp_handshake.py` is a JSON-RPC peer in about a hundred lines. The part worth reading closely is what our client volunteers about itself:
 
 ```python
 reply = conn.request(
@@ -145,7 +145,7 @@ On a machine with an older goose install you may see `panicked at sqlx-sqlite �
 
 _~9 min · Hands-on_
 
-We could demonstrate the callbacks with goose and a model, but then the interesting call only happens if the model decides to make it. So we take the model out. `demanding_agent.py` answers `session/new` and immediately asks for the two things worth governing:
+We could run the callbacks with goose and a model, but then the interesting call only happens if the model decides to make it. So we take the model out. `demanding_agent.py` answers `session/new` and immediately asks for the two things worth governing:
 
 ```python
 def probe(peer: Peer) -> None:
@@ -342,7 +342,7 @@ export OLLAMA_CONTEXT_LENGTH=32768
 > [!TIP]
 > `OLLAMA_CONTEXT_LENGTH` matters. Ollama defaults to a 4096-token context, a tool-calling agent blows past that on tool definitions alone, and goose then appears to ignore its own instructions because the context was silently truncated.
 
-Either way, the payoff is the same: our proxy in front of real goose, denying writes while the model works.
+Either way, we end up in the same place: our proxy in front of real goose, denying writes while the model works.
 
 ```bash
 cd ~/zenable-labs/labs/acp-goose && export PATH="$HOME/.local/bin:$PATH"

@@ -196,7 +196,7 @@ if access_token is not None:
     claims["ath"] = access_token_hash(access_token)
 ```
 
-Four claims (RFC 9449 §4.2), and each closes a specific attack we're about to demonstrate: `htm`/`htu` pin the method and URL, `iat` bounds how long a captured proof stays interesting, `jti` turns "bounded" into "once", and `ath` binds the proof to this exact token. Note `htu` drops query and fragment; including them is another silent-mismatch bug.
+Four claims (RFC 9449 §4.2), and each closes a specific attack we run shortly: `htm`/`htu` pin the method and URL, `iat` bounds how long a captured proof stays interesting, `jti` turns "bounded" into "once", and `ath` binds the proof to this exact token. Note `htu` drops query and fragment; including them is another silent-mismatch bug.
 
 Now start the resource server. It serves two endpoints that differ only in rigour: `/invoices` validates signature, issuer, audience, expiry, and scope and stops there (what most services do today), while `/invoices/strict` additionally demands the `DPoP` scheme, a `cnf.jkt`, and a proof that survives every check in RFC 9449 §4.3:
 
@@ -258,7 +258,7 @@ Read the first `ATTACKS` line and the last one together. The first is today: an 
 
 The last is the trap everyone walks into. That's a **bound** token, with a `cnf.jkt`, presented with no proof at all, and it works, because the lax endpoint never looked. Turning on DPoP at the authorisation server changes nothing by itself. If you take one operational lesson from this lab, take this one: rollout is the resource server, not the IdP.
 
-Now the case that carries the whole argument: `stolen token + attacker's own proof key`. This is the Storm-0558-shaped attacker reproduced. They have the complete token. They have working DPoP code. They mint a perfectly valid proof over the right URL, right method, a fresh `iat`, a unique `jti`, the correct `ath`. Every check passes except one:
+Now the most interesting case: `stolen token + attacker's own proof key`. This is the Storm-0558-shaped attacker reproduced. They have the complete token. They have working DPoP code. They mint a perfectly valid proof over the right URL, right method, a fresh `iat`, a unique `jti`, the correct `ath`. Every check passes except one:
 
 ```console
 proof key thumbprint does not match token cnf.jkt
@@ -300,7 +300,7 @@ Your production replay cache is a shared store with a TTL matching the proof win
 
 And **`ath`** needs the right key and the wrong token to prove anything at all: an attacker with a *different* key trips the thumbprint check first, so the `ath` rule would never be reached. In layered checks, a test can pass because of a check other than the one it claims to exercise, so order your assertions to keep each one reachable.
 
-The best fifteen minutes in this lab: comment out one check in `verify_proof()` at a time, rerun, and watch exactly one case flip to `BROKEN`. Then try to find a check whose removal breaks nothing, and decide whether you've found redundancy or a test gap. Success once every case behaves as documented.
+Spend fifteen minutes here if you can. Comment out one check in `verify_proof()` at a time, rerun, and watch exactly one case flip to `BROKEN`. Then try to find a check whose removal breaks nothing, and decide whether you've found redundancy or a test gap. Success once every case behaves as documented.
 
 ## A credential that says less
 
