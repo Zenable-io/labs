@@ -15,7 +15,7 @@ Learn what an MCP host, client, and server actually are. Write an MVP server wit
 
 - Python 3.11+ and uv
 - Docker
-- An LLM provider for the final section only (everything before it needs none). Free options work, like a local [Ollama](https://ollama.com/) model or an [OpenRouter](https://openrouter.ai/) free-tier key, or bring your own paid provider key
+- Nothing else. The final section runs a small model locally with [Ollama](https://ollama.com/), so no API key and no account are needed at any point
 
 ---
 
@@ -309,13 +309,67 @@ goose --version
 goose 1.46.0
 ```
 
-This is where a model finally enters the story: goose is a full host, so it needs an LLM provider to drive tool calls. You bring your own; no key is required if you use a free path. Configure with `goose configure` (any [provider goose supports](https://goose-docs.ai/docs/getting-started/providers/)), including:
+This is where a model finally enters the story: goose is a full host, so it needs a model to drive tool calls. We'll run one locally with [Ollama](https://ollama.com/), so there's no key, no account, and no token cost for the rest of the lab.
 
-- **Local and free**: [Ollama](https://ollama.com/) with a small tool-calling model, like `ollama pull qwen3:1.7b`. Our [ACP workshop](https://www.zenable.app/learn?lab=acp-agent-client&utm_source=github&utm_medium=labs_repo&utm_campaign=mcp-get-started_readme) walks this setup in detail.
+```bash
+command -v ollama >/dev/null 2>&1 || curl -fsSL https://ollama.com/install.sh | sh
+ollama pull qwen3:1.7b
+ollama list | grep qwen3
+```
+
+```console
+...
+verifying sha256 digest
+writing manifest
+success
+qwen3:1.7b    8f68893c685c    1.4 GB    Less than a second ago
+```
+
+`qwen3:1.7b` is deliberately tiny. It ships Q4_K_M quantized at 1.4 GB, which fits a 4 GB VM with room for your container, and it can call tools, which is the only capability this section needs:
+
+```bash
+ollama show qwen3:1.7b
+```
+
+```console
+  Model
+    architecture        qwen3
+    parameters          2.0B
+    context length      40960
+    embedding length    2048
+    quantization        Q4_K_M
+
+  Capabilities
+    completion
+    tools
+    thinking
+```
+
+Point goose at it. goose reads its provider from the environment, and these four variables replace anything `goose configure` would have written:
+
+```bash
+export GOOSE_PROVIDER=ollama
+export GOOSE_MODEL=qwen3:1.7b
+export OLLAMA_HOST=http://localhost:11434
+export OLLAMA_CONTEXT_LENGTH=8192
+```
+
+> [!WARNING]
+> `OLLAMA_CONTEXT_LENGTH` is not optional here. Ollama defaults to a 4096-token context, a tool-calling agent spends that on tool definitions alone, and goose then looks like it's ignoring its own instructions when really the context was silently truncated.
+
+<details>
+<summary>Prefer a hosted model, or one you already pay for?</summary>
+
+`goose configure` walks you through any [provider goose supports](https://goose-docs.ai/docs/getting-started/providers/), and the rest of this section works the same on any of them:
+
 - **Hosted and free**: an [OpenRouter](https://openrouter.ai/) account with one of its free-tier models.
 - **Bring your own key**: any paid provider you already use.
 
-Then start a session with your container attached as a Streamable HTTP extension:
+A bigger model calls the tools more reliably, so if `qwen3:1.7b` gets confused, this is the knob to turn. Our [ACP workshop](https://www.zenable.app/learn?lab=acp-agent-client&utm_source=github&utm_medium=labs_repo&utm_campaign=mcp-get-started_readme) walks the local-model setup in more depth.
+
+</details>
+
+Now start a session with your container attached as a Streamable HTTP extension:
 
 ```bash
 export PATH="$HOME/.local/bin:$PATH"
@@ -330,8 +384,8 @@ Use the add tool to compute 20260825 + 101, then shout the phrase "protocols ove
 
 Watch the transcript: goose lists your tools during its handshake (the same `initialize` and `tools/list` you sent by hand earlier), the model picks `add`, and the result comes back through the same `tools/call` your script issued. When it responds with `20260926` and `PROTOCOLS OVER PLUGINS!`, you've watched one unchanged server answer three different clients.
 
-> [!TIP]
-> **Pro tip: no provider key? You can still do this section.** The interoperability happens in the handshake, and you already ran that twice without any model: once by hand with `printf`, once scripted with the FastMCP client. The goose session adds a model *choosing* to call your tool, but "goose connected and listed `add` and `shout`" appears in the session startup before any tokens are spent.
+> [!WARNING]
+> A 2B model sometimes answers in prose instead of calling the tool. Ask again, or say "use the add tool" more insistently. If it never reaches for a tool, switch to a bigger model in the collapsible above; the server and the protocol are not the problem. Either way, "goose connected and listed `add` and `shout`" appears in the session startup before the model does anything at all.
 
 ## Cleanup
 
@@ -348,6 +402,16 @@ docker rmi mcp-get-started
 ```console
 Untagged: mcp-get-started:latest
 Deleted: sha256:733f50fd995332258ecdb2b8bc788c8fd1da439f84a6fdef4e8cd2e3b5fa6bcf
+```
+
+The model is the other big thing we added, at 1.4 GB, so reclaim that too if you're done with it:
+
+```bash
+ollama rm qwen3:1.7b
+```
+
+```console
+deleted 'qwen3:1.7b'
 ```
 
 If you want the rig gone too, `rm -rf ~/zenable-labs` finishes the job. Thanks for building with us!
