@@ -1,7 +1,7 @@
 <!-- Generated from src/lib/labs/content/labs/mcp-101.mdx in Zenable-io/next-gen-governance
      by services/ui_frontend/scripts/export-lab-readme.js. Do not edit by hand. -->
 
-# MCP 101: Build a Server, Swap the Clients
+# Getting Started with MCP
 
 Learn what an MCP host, client, and server actually are, then prove it. Write an MVP server with FastMCP, test it with a scripted client, move it into a container, and connect goose to it without changing a line of server code.
 
@@ -15,7 +15,7 @@ Learn what an MCP host, client, and server actually are, then prove it. Write an
 
 - Python 3.11+ and uv
 - Docker
-- An LLM provider API key (any goose-supported provider) for the final section only (everything before it needs none)
+- An LLM provider for the final section only (everything before it needs none). Free options work, like a local [Ollama](https://ollama.com/) model or an [OpenRouter](https://openrouter.ai/) free-tier key, or bring your own paid provider key
 
 ---
 
@@ -273,7 +273,13 @@ goose --version
 goose 1.46.0
 ```
 
-This is where a model finally enters the story: goose is a full host, so it needs an LLM provider to drive tool calls. Configure one with `goose configure` (any [provider goose supports](https://goose-docs.ai/docs/getting-started/providers/)), then start a session with your container attached as a Streamable HTTP extension:
+This is where a model finally enters the story: goose is a full host, so it needs an LLM provider to drive tool calls. You bring your own; no key is required if you use a free path. Configure with `goose configure` (any [provider goose supports](https://goose-docs.ai/docs/getting-started/providers/)), including:
+
+- **Local and free**: [Ollama](https://ollama.com/) with a small tool-calling model, like `ollama pull qwen3:1.7b`. Our [ACP workshop](https://www.zenable.app/learn?lab=acp-agent-client&utm_source=github&utm_medium=labs_repo&utm_campaign=mcp-101_readme) walks this setup in detail.
+- **Hosted and free**: an [OpenRouter](https://openrouter.ai/) account with one of its free-tier models.
+- **Bring your own key**: any paid provider you already use.
+
+Then start a session with your container attached as a Streamable HTTP extension:
 
 ```bash
 export PATH="$HOME/.local/bin:$PATH"
@@ -295,10 +301,11 @@ Watch the transcript: goose lists your tools during its handshake (the same `ini
 
 _~5 min · Hands-on_
 
-Stop the container (it removes itself, thanks to `--rm`) and delete the image:
+Stop the container (it removes itself, thanks to `--rm`) and delete the image. The `--rm` removal happens asynchronously after the stop, so we give Docker a couple of seconds before deleting the image out from under it:
 
 ```bash
 docker stop mcp-101
+sleep 2
 docker rmi mcp-101
 ```
 

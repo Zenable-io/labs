@@ -360,18 +360,19 @@ Watch `/tmp/acp-real.jsonl` as the session runs: the `session/update` notificati
 
 _~5 min · Hands-on_
 
-Everything we made lives in three places: temp files, the goose binary, and the cloned rig. Remove them all:
-
-```bash
-rm -f /tmp/acp-demanding-agent.txt /tmp/acp-audit.jsonl /tmp/acp-deny.jsonl /tmp/acp-real.jsonl
-rm -f "$HOME/.local/bin/goose"
-rm -rf ~/zenable-labs
-```
-
-If you took Adventure B and want the model gone too:
+If you took Adventure B and want the model gone:
 
 ```bash
 command -v ollama >/dev/null 2>&1 && ollama rm qwen3:1.7b || true
+```
+
+Everything else we made lives in three places: temp files, the goose binary, and the cloned rig. Step out of the rig directory first (removing the directory you're standing in leaves your shell in a deleted location), then remove them all:
+
+```bash
+cd ~
+rm -f /tmp/acp-demanding-agent.txt /tmp/acp-audit.jsonl /tmp/acp-deny.jsonl /tmp/acp-real.jsonl
+rm -f "$HOME/.local/bin/goose"
+rm -rf ~/zenable-labs
 ```
 
 Thanks for exploring the wire with us!
