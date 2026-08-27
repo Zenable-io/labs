@@ -374,9 +374,10 @@ This is where a model finally enters the story: goose is a full host, so it need
 
 `qwen3:1.7b` is a reasoning model: before it answers it writes out its thinking, and on the sandbox's two CPU cores that takes minutes even for a trivial reply. Since goose doesn't currently have a way to turn thinking off in its calls, we're going to adjust the upstream qwen model to turn it off in the Ollama inference runtime.
 
-An Ollama model carries a prompt template, and qwen3's already knows how to skip thinking; that switch just only fires when the caller asks for it. Copy the model's own definition, flip the switch on permanently, and build it under a new name:
+An Ollama model carries a prompt template, and qwen3's already knows how to skip thinking; that switch just only fires when the caller asks for it. Copy the model's own definition, flip the switch on permanently, and build it under a new name. The `ollama pull` on the first line covers a sandbox that came up without the weights on disk; when they're already there it returns straight away.
 
 ```bash
+ollama pull qwen3:1.7b
 ollama show --modelfile qwen3:1.7b > Modelfile.nothink
 sed -i 's|^FROM /.*|FROM qwen3:1.7b|' Modelfile.nothink
 sed -i 's|{{- if and $.IsThinkSet (eq $i $lastUserIdx) }}|{{- if (eq $i $lastUserIdx) }}|' Modelfile.nothink
