@@ -370,13 +370,13 @@ goose --version
 goose 1.46.0
 ```
 
-This is where a model finally enters the story: goose is a full host, so it needs a model to drive tool calls. Your sandbox already runs [Ollama](https://ollama.com/) with `qwen3:1.7b`, a 1.7B model quantized to 1.4 GB that fits alongside your container and can call tools, which is the only capability this section needs. So there's no key, no account, and no token cost for the rest of the lab.
+This is where a model finally enters the story: goose is a full host, so it needs a model to drive tool calls. Your sandbox already runs [Ollama](https://ollama.com/) with `llama3.2:3b`, a 3B model quantized to 2.0 GB that fits alongside your container and can call tools, which is the only capability this section needs. So there's no key, no account, and no token cost for the rest of the lab.
 
 Point goose at it. goose reads its provider from the environment, and these four variables replace anything `goose configure` would have written:
 
 ```bash
 export GOOSE_PROVIDER=ollama
-export GOOSE_MODEL=qwen3:1.7b
+export GOOSE_MODEL=llama3.2:3b
 export OLLAMA_HOST=http://localhost:11434
 export OLLAMA_CONTEXT_LENGTH=8192
 ```
@@ -387,9 +387,9 @@ export OLLAMA_CONTEXT_LENGTH=8192
 <details>
 <summary>Not on a Zenable sandbox, or want a different model?</summary>
 
-On your own machine, `curl -fsSL https://ollama.com/install.sh | sh` then `ollama pull qwen3:1.7b` gets you to the same place.
+On your own machine, `curl -fsSL https://ollama.com/install.sh | sh` then `ollama pull llama3.2:3b` gets you to the same place.
 
-For anything else, `goose configure` walks you through any [provider goose supports](https://goose-docs.ai/docs/getting-started/providers/), and the rest of this section works the same on all of them: an [OpenRouter](https://openrouter.ai/) free-tier model, or a paid provider you already use. A bigger model calls the tools more reliably, so if `qwen3:1.7b` gets confused, this is the knob to turn. Our [ACP workshop](https://www.zenable.app/learn?lab=acp-agent-client&utm_source=github&utm_medium=labs_repo&utm_campaign=mcp-get-started_readme) walks the local-model setup in more depth.
+For anything else, `goose configure` walks you through any [provider goose supports](https://goose-docs.ai/docs/getting-started/providers/), and the rest of this section works the same on all of them: an [OpenRouter](https://openrouter.ai/) free-tier model, or a paid provider you already use. A bigger model calls the tools more reliably, so if `llama3.2:3b` gets confused, this is the knob to turn. Our [ACP workshop](https://www.zenable.app/learn?lab=acp-agent-client&utm_source=github&utm_medium=labs_repo&utm_campaign=mcp-get-started_readme) walks the local-model setup in more depth.
 
 </details>
 

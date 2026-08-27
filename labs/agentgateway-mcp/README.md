@@ -37,6 +37,9 @@ docker compose up -d --build
 
 That builds two MCP servers, starts a Jaeger for later, and brings up the gateway. Give the build a couple of minutes the first time. When it settles:
 
+> [!NOTE]
+> Both build steps in `compose.yaml` carry `network: host`. Your sandbox reaches the internet over IPv6 only and Docker's build network is IPv4-only, so a `pip install` inside a build gets no route and fails with what reads as a DNS error. Building on the host's network sidesteps that. Pulling images is unaffected, because the Docker daemon runs on the host's stack.
+
 ```bash
 docker compose ps
 ```
@@ -454,7 +457,7 @@ curl -fsSL https://github.com/aaif-goose/goose/releases/download/stable/download
   | CONFIGURE=false GOOSE_VERSION=v1.46.0 bash
 export PATH="$HOME/.local/bin:$PATH"
 export GOOSE_PROVIDER=ollama
-export GOOSE_MODEL=qwen3:1.7b
+export GOOSE_MODEL=llama3.2:3b
 export OLLAMA_HOST=http://localhost:11434
 export OLLAMA_CONTEXT_LENGTH=8192
 goose --version
@@ -477,7 +480,7 @@ Ask for something that needs two different servers:
 Use the get-started_add tool to compute 20260825 + 101, then list the open tickets.
 ```
 
-goose sees one MCP server with four tools and has no idea two processes are behind it. Now read what the gateway recorded, with the same filter we wrote earlier:
+goose sees one MCP server with three tools and has no idea two processes are behind it, or that a fourth tool was withheld from the list it was given. Now read what the gateway recorded, with the same filter we wrote earlier:
 
 ```bash
 docker compose logs --no-log-prefix agentgateway | grep '^{' \
@@ -494,7 +497,7 @@ docker compose logs --no-log-prefix agentgateway | grep '^{' \
 Success! 🎉 An agent we didn't write, driving a model we're running locally, and every tool call it made is one JSON record in one place. That's the whole point of the lab in two lines of log.
 
 > [!WARNING]
-> A 2B model sometimes answers in prose instead of calling a tool. Ask again, or name the tool more insistently. The gateway and the protocol aren't the problem, and goose listing all four tools at startup happens before the model does anything at all.
+> Running a model locally can be a little bit slow; keep that in mind after you send a message. Also, such a small model sometimes doesn't correctly call the tool. Ask again, or name the tool more insistently. The gateway and the protocol are working either way: goose lists the three tools at startup, before the model does anything at all. If it reaches for a tool you have never heard of, check that you disabled the `developer` extension above.
 
 ## Cleanup
 

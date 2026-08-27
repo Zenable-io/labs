@@ -295,10 +295,10 @@ timeout 90 bash -c 'until curl -fsS http://localhost:11434/api/version >/dev/nul
 ollama --version
 ```
 
-Pull the model. `qwen3:1.7b` is a 1.4 GB download, and it's the smallest model we found that reliably emits well-formed tool calls:
+Pull the model. `llama3.2:3b` is a 2.0 GB download, small enough to run on the sandbox's CPU and reliable at emitting well-formed tool calls:
 
 ```bash
-ollama pull qwen3:1.7b
+ollama pull llama3.2:3b
 ollama list
 ```
 
@@ -306,7 +306,7 @@ Before wiring it to goose, confirm the model can do the one thing this section d
 
 ```bash
 curl -sS http://localhost:11434/api/chat -d '{
-  "model": "qwen3:1.7b",
+  "model": "llama3.2:3b",
   "stream": false,
   "think": false,
   "messages": [{"role": "user", "content": "Create a file called notes.txt containing the word hello. Use the tool."}],
@@ -335,7 +335,7 @@ goose reads its provider from the environment, and a new shell knows none of thi
 ```bash
 export GOOSE_PROVIDER=ollama
 export OLLAMA_HOST=http://localhost:11434
-export GOOSE_MODEL=qwen3:1.7b
+export GOOSE_MODEL=llama3.2:3b
 export OLLAMA_CONTEXT_LENGTH=32768
 ```
 
@@ -363,7 +363,7 @@ _~5 min · Hands-on_
 If you took Adventure B and want the model gone:
 
 ```bash
-command -v ollama >/dev/null 2>&1 && ollama rm qwen3:1.7b || true
+command -v ollama >/dev/null 2>&1 && ollama rm llama3.2:3b || true
 ```
 
 Everything else we made lives in three places: temp files, the goose binary, and the cloned rig. Step out of the rig directory first (removing the directory you're standing in leaves your shell in a deleted location), then remove them all:
