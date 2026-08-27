@@ -13,9 +13,24 @@ import logging
 import os
 import sys
 
+import httpx
 from fastmcp import Client
+from fastmcp.exceptions import FastMCPError, McpError
 
 URL = os.environ.get("MCP_URL", "http://127.0.0.1:3000/mcp")
+
+# Every way a call in this lab is allowed to fail. FastMCP's connect path
+# re-raises HTTPStatusError and McpError as themselves and wraps everything
+# else in a plain RuntimeError, so this is the whole set:
+#
+#   FastMCPError     the server refused the call, or never had that tool
+#   McpError         the refusal came back as a JSON-RPC error
+#   HTTPStatusError  the gateway rejected the HTTP request before MCP saw it
+#   RuntimeError     the session never opened at all
+#
+# Naming them is the point. A failure we did not predict is a bug in the lab,
+# and it should reach you as a traceback rather than be reworded as a refusal.
+REFUSAL = (FastMCPError, McpError, httpx.HTTPStatusError, RuntimeError)
 
 # A refused call leaves the HTTP session in a state the client cannot close
 # politely, and the teardown then reports itself at ERROR with a traceback,
@@ -25,24 +40,35 @@ for noisy in ("fastmcp.client.transports", "mcp.client.streamable_http"):
     logging.getLogger(noisy).setLevel(logging.CRITICAL)
 
 
-async def run() -> tuple[int, str]:
+def tool_call() -> tuple[str | None, dict]:
+    """The tool and arguments named on the command line, if any."""
+    if len(sys.argv) < 2:
+        return None, {}
+    if len(sys.argv) < 3:
+        return sys.argv[1], {}
+    try:
+        return sys.argv[1], json.loads(sys.argv[2])
+    except json.JSONDecodeError as exc:
+        print(f"arguments must be JSON: {exc}")
+        raise SystemExit(2) from None
+
+
+async def run(name: str | None, args: dict) -> tuple[int, str]:
     code, report = 0, ""
     try:
         async with Client(URL) as client:
-            if len(sys.argv) < 2:
+            if name is None:
                 tools = await client.list_tools()
                 listing = "\n".join(f"  {n}" for n in sorted(t.name for t in tools))
                 report = f"tools at {URL}:\n{listing}"
             else:
-                name = sys.argv[1]
-                args = json.loads(sys.argv[2]) if len(sys.argv) > 2 else {}
                 try:
                     result = await client.call_tool(name, args)
-                except Exception as exc:  # noqa: BLE001 - a refusal is a result
+                except REFUSAL as exc:
                     code, report = 1, f"{name} refused: {type(exc).__name__}: {exc}"
                 else:
                     report = f"{name} -> {result.data}"
-    except Exception as exc:  # noqa: BLE001
+    except REFUSAL as exc:
         # Leaving the block after a refusal unwinds through a disconnect that
         # raises the SAME error again, and losing the value we were returning.
         # Printing it twice reads as two separate failures, so an error we have
@@ -52,6 +78,6 @@ async def run() -> tuple[int, str]:
     return code, report
 
 
-code, report = asyncio.run(run())
+code, report = asyncio.run(run(*tool_call()))
 print(report)
 sys.exit(code)

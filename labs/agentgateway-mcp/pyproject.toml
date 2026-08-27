@@ -4,6 +4,8 @@ version = "0.1.0"
 description = "agentgateway in front of an MCP server: observability, routing, and control"
 requires-python = ">=3.11"
 dependencies = [
+    # client.py names the exceptions it catches, and httpx raises one of them.
+    "httpx>=0.28,<1",
     "fastmcp>=3.4,<4",
 ]
 
