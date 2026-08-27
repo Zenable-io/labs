@@ -1,0 +1,12 @@
+services:
+  mcp-get-started:
+    build:
+      context: .
+      # The Zenable sandbox has IPv6-only egress and Docker's build network is
+      # IPv4-only, so `pip install` in the Dockerfile fails to resolve pypi.org
+      # without this. Pulls are unaffected -- the daemon uses the host stack.
+      network: host
+    container_name: mcp-get-started
+    # 8000 inside; the sandbox's AppStream agent already holds 8000 on the host.
+    ports:
+      - "8765:8000"
