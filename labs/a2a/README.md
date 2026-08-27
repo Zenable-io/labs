@@ -417,12 +417,12 @@ docker compose down -v
 ```
 
 ```console
- Container a2a-keycloak  Stopping
- Container a2a-keycloak  Stopped
- Container a2a-keycloak  Removing
- Container a2a-keycloak  Removed
- Network a2a_default  Removing
- Network a2a_default  Removed
+Container a2a-keycloak  Stopping
+Container a2a-keycloak  Stopped
+Container a2a-keycloak  Removing
+Container a2a-keycloak  Removed
+Network a2a_default  Removing
+Network a2a_default  Removed
 ```
 
 The tree you cloned is yours. `evidence/` holds captured output from a known-good run, so `diff` tells you whether a change you made is why something stopped working, and `scripts/capture-evidence.sh` regenerates all of it against your own stack. If you want the rig gone too, `rm -rf ~/zenable-labs` finishes the job. Thanks for building with us!

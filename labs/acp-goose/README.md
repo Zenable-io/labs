@@ -295,7 +295,7 @@ timeout 90 bash -c 'until curl -fsS http://localhost:11434/api/version >/dev/nul
 ollama --version
 ```
 
-Pull the model. `qwen3:1.7b` is a 1.4 GB download, and it's the smallest model we found that reliably emits well-formed tool calls:
+Pull the model. `qwen3:1.7b` is a 2.0 GB download, small enough to run on the sandbox's CPU and reliable at emitting well-formed tool calls:
 
 ```bash
 ollama pull qwen3:1.7b

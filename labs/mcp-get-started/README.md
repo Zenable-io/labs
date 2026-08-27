@@ -372,11 +372,35 @@ goose 1.46.0
 
 This is where a model finally enters the story: goose is a full host, so it needs a model to drive tool calls. Your sandbox already runs [Ollama](https://ollama.com/) with `qwen3:1.7b`, a 1.7B model quantized to 1.4 GB that fits alongside your container and can call tools, which is the only capability this section needs. So there's no key, no account, and no token cost for the rest of the lab.
 
-Point goose at it. goose reads its provider from the environment, and these four variables replace anything `goose configure` would have written:
+`qwen3:1.7b` is a reasoning model: before it answers it writes out its thinking, and on the sandbox's two CPU cores that takes minutes even for a trivial reply. Since goose doesn't currently have a way to turn thinking off in its calls, we're going to adjust the upstream qwen model to turn it off in the Ollama inference runtime.
+
+An Ollama model carries a prompt template, and qwen3's already knows how to skip thinking; that switch just only fires when the caller asks for it. Copy the model's own definition, flip the switch on permanently, and build it under a new name:
+
+```bash
+ollama show --modelfile qwen3:1.7b > Modelfile.nothink
+sed -i 's|^FROM /.*|FROM qwen3:1.7b|' Modelfile.nothink
+sed -i 's|{{- if and $.IsThinkSet (eq $i $lastUserIdx) }}|{{- if (eq $i $lastUserIdx) }}|' Modelfile.nothink
+sed -i 's|{{- if $.Think -}}|{{- if false -}}|' Modelfile.nothink
+ollama create qwen3-nothink -f Modelfile.nothink
+```
+
+The first `sed` points the new model at the tag instead of a blob path on disk. The other two make the template take the no-thinking branch for every request, whatever the caller asked for. Because it reuses weights already on disk there's no download, and it finishes in about a second.
+
+Check that it answers without thinking:
+
+```bash
+ollama run qwen3-nothink "say ok"
+```
+
+```console
+Okay, I'm ready to help you with whatever you need. Let me know how I can assist you today!
+```
+
+No `Thinking...` block, and seconds rather than minutes. Now point goose at it. goose reads its provider from the environment, and these four variables replace anything `goose configure` would have written:
 
 ```bash
 export GOOSE_PROVIDER=ollama
-export GOOSE_MODEL=qwen3:1.7b
+export GOOSE_MODEL=qwen3-nothink
 export OLLAMA_HOST=http://localhost:11434
 export OLLAMA_CONTEXT_LENGTH=8192
 ```
