@@ -4,12 +4,21 @@ services:
   # The server from the Getting Started with MCP lab, built from its own
   # directory and not edited here. Whether a gateway sits in front of it is
   # not something the server gets a say in.
+  # `network: host` on both builds, because the Zenable sandbox has IPv6-only
+  # egress and Docker's build network is IPv4-only. Without it every `pip
+  # install` in these Dockerfiles fails with what reads as a DNS error, while
+  # the host resolves the same name fine through DNS64/NAT64. Pulls are
+  # unaffected -- the daemon runs on the host stack -- so only builds need it.
   mcp-get-started:
-    build: ../mcp-get-started
+    build:
+      context: ../mcp-get-started
+      network: host
     container_name: mcp-get-started
 
   tickets:
-    build: .
+    build:
+      context: .
+      network: host
     container_name: tickets
 
   jaeger:
