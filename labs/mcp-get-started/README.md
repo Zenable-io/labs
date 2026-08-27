@@ -35,7 +35,7 @@ uv sync
 ```
 
 ```console
-Using CPython 3.13.12
+Using CPython 3.12.13 interpreter at: /usr/bin/python3.12
 Creating virtual environment at: .venv
 Resolved 75 packages in 9ms
 Installed 66 packages in 181ms
@@ -57,8 +57,8 @@ uv run fastmcp version
 ```console
 FastMCP version:                                                           3.4.7
 MCP version:                                                              1.29.1
-Python version:                                                          3.13.12
-Platform:                                    macOS-26.5.2-arm64-arm-64bit-Mach-O
+Python version:                                                          3.12.13
+Platform:             Linux-4.18.0-553.155.1.el8_10.x86_64-x86_64-with-glibc2.28
 ...
 ```
 

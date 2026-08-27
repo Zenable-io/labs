@@ -28,7 +28,8 @@ _~8 min · Hands-on_
 Everything runs locally in Docker; there's nothing to sign up for.
 
 ```bash
-git clone https://github.com/Zenable-io/labs.git ~/zenable-labs
+git clone https://github.com/Zenable-io/labs.git ~/zenable-labs 2>/dev/null \
+  || git -C ~/zenable-labs pull --ff-only
 cd ~/zenable-labs/labs/ema-mcp
 ./run.sh up
 ```
