@@ -19,7 +19,7 @@ Get hands-on with Enterprise-Managed Authorization (EMA) and the ID-JAG grant. S
 
 ---
 
-_This README is only the hands-on lab. The concept walk-through (The person clicking Allow is the person you were governing · Terminology · Why per-server OAuth breaks · Conclusion) lives on the [Learning Hub](https://www.zenable.app/learn?lab=mcp-authorization-101&utm_source=github&utm_medium=labs_repo&utm_campaign=mcp-authorization-101_readme)._
+_This README is only the hands-on lab. The concept walk-through (Centrally managing MCP usage with EMA · Terminology · Why per-server OAuth breaks · Conclusion) lives on the [Learning Hub](https://www.zenable.app/learn?lab=mcp-authorization-101&utm_source=github&utm_medium=labs_repo&utm_campaign=mcp-authorization-101_readme)._
 
 ## Getting started
 
@@ -34,7 +34,7 @@ cd ~/zenable-labs/labs/ema-mcp
 ./run.sh up
 ```
 
-That brings up a Keycloak with two realms, installs the Python dependencies, and starts an MCP server on port 9100. Give it a minute: Keycloak is a JVM application in no hurry, and the MCP server can take over 30 seconds to answer on a cold start.
+That brings up a Keycloak with two realms, installs the Python dependencies, and starts an MCP server on port 9100. Give it a minute; Keycloak and the MCP server can take a minute or so before they're ready.
 
 When it finishes you should see:
 
@@ -56,13 +56,13 @@ Two realms in one Keycloak: `enterprise` issues ID-JAGs and owns admin policy, a
 The Keycloak admin console is at http://localhost:8480 (`admin` / `admin`); worth a tab for the policy section later.
 
 > [!NOTE]
-> **A note on the Keycloak image.** This lab runs a build of Keycloak that can *issue* ID-JAG assertions; no released Keycloak can do that yet, the capability is an open pull request upstream. The repo's README covers the provenance and how to swap in an official image once it ships.
+> **A note on the Keycloak image.** This lab runs [ceposta/keycloak:id-jag](https://hub.docker.com/r/ceposta/keycloak), Christian Posta's build of Keycloak that can *issue* ID-JAG assertions. No released Keycloak can do that yet; upstream is tracking the capability for [26.8.0](https://github.com/keycloak/keycloak/milestone/64), due September 2026. The repo's README covers the provenance and how to swap in an official image once it ships.
 
 ## Discovery: how the client finds its way
 
 _~7 min · Hands-on_
 
-Our client starts knowing two things: the MCP server's URL and its own enterprise IdP. Everything else it discovers. Call the server with no credentials:
+When the client starts it only knows the MCP server's URL and its own enterprise IdP. Everything else it discovers. Let's call the server without credentials:
 
 ```bash
 curl -s -i -X POST http://localhost:9100/mcp \
@@ -99,7 +99,7 @@ curl -s http://localhost:9100/.well-known/oauth-protected-resource/mcp | jq .
 }
 ```
 
-Two values matter enormously, and telling them apart is the most common EMA implementation bug:
+Two values matter enormously:
 
 - `resource`: the canonical identifier of the **MCP server**. The final access token must be audience-restricted to this.
 - `authorization_servers[0]`: the issuer of the **Resource Authorization Server**. The ID-JAG's `aud` must be this.
@@ -183,7 +183,7 @@ curl -s -X POST "$ENT" \
 }
 ```
 
-`token_type` is `N_A`, and that isn't a bug: the spec chose a deliberately unusable value so no generic OAuth library puts this in an `Authorization` header. It's a grant, not a credential. Five minute lifetime, single use. Decode its payload:
+`token_type` is `N_A`, and that isn't a bug: the spec chose a deliberately unusable value so no generic OAuth library puts this in an `Authorization` header. It's a grant, not a credential. Five minute lifetime, single use. Let's decode its payload:
 
 ```console
 {
@@ -199,7 +199,7 @@ curl -s -X POST "$ENT" \
 }
 ```
 
-At demo depth, three claims carry the story: `iss` is the enterprise, `aud` is the vendor's authorization server (straight from the metadata), and `scope` is what the admin permitted, which may be less than we asked for.
+The three most important claims are `iss`, which is the enterprise issuer, `aud`, the vendor's authorization server taken straight from the metadata, and `scope`, what the admin permitted, which may be less than we asked for.
 
 This exchange is also where enterprise policy runs: if alice is disabled or this client was never approved, no assertion is produced and the vendor never learns a request happened.
 
@@ -280,7 +280,7 @@ Finally a real bearer token. Its claims:
 
 The issuer flipped: the enterprise vouched for alice, and the vendor decided what alice can do here. And `aud` is the MCP server, the `resource` value from the metadata, which makes the token unusable anywhere else (the attack suite tries that shortly). Success!
 
-Question: the ID-JAG carried `sub: fee07d01-…`, and this token carries `sub: f6028681-…`. Same alice. What happened?
+Question: the ID-JAG carried `sub: fee07d01-…`, and the access token carries `sub: f6028681-…`. Same alice. What happened?
 
 <details>
 <summary>Answer</summary>
@@ -328,7 +328,7 @@ The tail of the output:
           Error executing tool suppress_finding: insufficient_scope: findings.write required
 ```
 
-Read that last line carefully: the whole point of the lab in one error message. Alice reached the server without ever seeing a browser, and the server still refused an operation she wasn't scoped for. Federated access didn't mean unlimited access.
+Read that last line carefully. Alice reached the server without ever seeing a browser, and the server still refused an operation she wasn't scoped for. Federated access didn't mean unlimited access.
 
 Now request write as well:
 
@@ -384,7 +384,7 @@ EMA makes security claims. Let's test them rather than believe them. Run the sui
  passed: 7   failed: 0
 ```
 
-Every one of those had to fail, and the properties are structural rather than configuration you could forget to turn on. The ID-JAG and the ID token carry the wrong audience and issuer for the MCP server, `jti` makes replay detectable, and a validly-signed token bound elsewhere is refused purely on audience.
+Every one of those had to fail or EMA isn't doing its job. The ID-JAG and the ID token carry the wrong audience and issuer for the MCP server, `jti` makes replay detectable, and a validly-signed token bound elsewhere is refused purely on audience.
 
 What you *can* get wrong is writing a resource server that skips the checks, which is why the lab's `mcp_server.py` is about a hundred lines and worth reading end to end; a follow-on lab hand-runs each attack.
 

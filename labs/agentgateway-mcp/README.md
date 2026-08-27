@@ -25,7 +25,7 @@ _This README is only the hands-on lab. The concept walk-through (Your agents cal
 
 _~8 min · Hands-on_
 
-Everything runs in Docker on your machine, and there's nothing to sign up for.
+Let's start by running some infrastructure:
 
 ```bash
 git clone https://github.com/Zenable-io/labs.git ~/zenable-labs 2>/dev/null \
@@ -35,10 +35,7 @@ cp 01-passthrough.yaml config.yaml
 docker compose up -d --build
 ```
 
-That builds two MCP servers, starts a Jaeger for later, and brings up the gateway. Give the build a couple of minutes the first time. When it settles:
-
-> [!NOTE]
-> Both build steps in `compose.yaml` carry `network: host`. Your sandbox reaches the internet over IPv6 only and Docker's build network is IPv4-only, so a `pip install` inside a build gets no route and fails with what reads as a DNS error. Building on the host's network sidesteps that. Pulling images is unaffected, because the Docker daemon runs on the host's stack.
+That builds two MCP servers, starts a Jaeger instance for later, and brings up the gateway. Give the build a couple of minutes the first time. When it settles:
 
 ```bash
 docker compose ps
@@ -111,11 +108,31 @@ _~13 min · Hands-on_
 Now for the reason we're here. Ask the gateway what just happened:
 
 ```bash
-docker compose logs --no-log-prefix agentgateway | grep '"mcp.method.name":"tools/call"'
+docker compose logs --no-log-prefix agentgateway | grep '"mcp.method.name":"tools/call"' | jq .
 ```
 
 ```console
-{"level":"info","time":"2026-08-27T00:22:00.789058Z","scope":"request","gateway":"default/default","listener":"listener0","route":"default/route0","src.addr":"172.18.0.1:56642","http.method":"POST","http.host":"127.0.0.1","http.path":"/mcp","http.version":"HTTP/1.1","http.status":200,"protocol":"mcp","mcp.method.name":"tools/call","mcp.target":"get-started","mcp.resource.type":"tool","gen_ai.tool.name":"add","mcp.session.id":"eyJ0IjoibWNwIiwicyI6W3sidCI6ImdldC1zdGFydGVkIiwicyI6ImQ1NWUxYzI5OTUzYTRkMTlhMjc4OGE2ZmVkZjdmOTBmIn1dfQ","duration":"4ms"}
+{
+  "level": "info",
+  "time": "2026-08-27T00:22:00.789058Z",
+  "scope": "request",
+  "gateway": "default/default",
+  "listener": "listener0",
+  "route": "default/route0",
+  "src.addr": "172.18.0.1:56642",
+  "http.method": "POST",
+  "http.host": "127.0.0.1",
+  "http.path": "/mcp",
+  "http.version": "HTTP/1.1",
+  "http.status": 200,
+  "protocol": "mcp",
+  "mcp.method.name": "tools/call",
+  "mcp.target": "get-started",
+  "mcp.resource.type": "tool",
+  "gen_ai.tool.name": "add",
+  "mcp.session.id": "eyJ0IjoibWNwIiwicyI6W3sidCI6ImdldC1zdGFydGVkIiwicyI6ImQ1NWUxYzI5OTUzYTRkMTlhMjc4OGE2ZmVkZjdmOTBmIn1dfQ",
+  "duration": "4ms"
+}
 ```
 
 That single record answers the question security asked. Which tool (`gen_ai.tool.name`), on which server (`mcp.target`), from where (`src.addr`), in which session, how long it took, and whether it worked.
@@ -158,9 +175,9 @@ agentgateway_mcp_requests_total{method="initialize",resource_type="unknown",serv
 agentgateway_mcp_requests_total{method="tools/call",resource_type="tool",server="get-started",resource="add",bind="bind/3000",gateway="default/default",listener="listener0",route="default/route0",route_rule="unknown"} 1
 ```
 
-Prometheus format on port 15020, with `server` and `resource` as labels. Two client runs so far, hence two handshakes and one tool call. "Which tools does anyone actually use" is a query, not a research project.
+This is a [Prometheus](https://prometheus.io/) metrics endpoint, showing data with `server` and `resource` as labels. Since we've done two client runs so far, we see two handshakes and a tool call.
 
-Tracing is the one piece that needs configuring. `02-observed.yaml` is the config we're running plus this block:
+Now, let's configure tracing using `02-observed.yaml`:
 
 ```yaml
 config:
@@ -177,7 +194,7 @@ docker compose restart agentgateway
 ```
 
 > [!WARNING]
-> The restart matters. agentgateway watches its config file and reloads `binds` live, which we'll lean on later. The `config` block is process-wide settings read at startup, so editing tracing and waiting achieves nothing. If your traces never show up, this is why.
+> Traces not showing up? Make sure you ran the gateway restart in the previous command, and that your `config.yaml` matches `02-observed.yaml`.
 
 Drive some traffic and look at what Jaeger received:
 
@@ -256,7 +273,7 @@ POST /*	2516us	gen_ai.tool.name=add mcp.method.name=tools/call mcp.resource.type
 tools/call get-started	876us
 ```
 
-`gen_ai.tool.name` is from OpenTelemetry's [generative AI semantic conventions](https://opentelemetry.io/docs/specs/semconv/gen-ai/), which is why the same attribute name turns up in the access log. Whatever you already point at OTLP can read these without being taught anything MCP-specific.
+`gen_ai.tool.name` is from OpenTelemetry's [generative AI semantic conventions](https://github.com/open-telemetry/semantic-conventions-genai/tree/main/docs), which is why the same attribute name turns up in the access log. Whatever you already point at OTLP can read these without being taught anything MCP-specific.
 
 </details>
 
@@ -457,7 +474,7 @@ curl -fsSL https://github.com/aaif-goose/goose/releases/download/stable/download
   | CONFIGURE=false GOOSE_VERSION=v1.46.0 bash
 export PATH="$HOME/.local/bin:$PATH"
 export GOOSE_PROVIDER=ollama
-export GOOSE_MODEL=llama3.2:3b
+export GOOSE_MODEL=qwen3:1.7b
 export OLLAMA_HOST=http://localhost:11434
 export OLLAMA_CONTEXT_LENGTH=8192
 goose --version
