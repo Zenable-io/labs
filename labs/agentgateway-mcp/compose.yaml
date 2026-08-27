@@ -32,7 +32,9 @@ services:
       # event that `cp` over it produces.
       - ./:/cfg:ro
     ports:
+      # MCP traffic, the admin API and built-in UI, and Prometheus metrics.
       - "127.0.0.1:3000:3000"
+      - "127.0.0.1:15000:15000"
       - "127.0.0.1:15020:15020"
     depends_on:
       - mcp-get-started
