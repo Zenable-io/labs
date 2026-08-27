@@ -1,8 +1,16 @@
 """The whole MCP server. Transport is chosen at launch, never in here."""
 
 from fastmcp import FastMCP
+from starlette.requests import Request
+from starlette.responses import PlainTextResponse
 
 mcp = FastMCP("mcp-get-started")
+
+
+# Only mounted by the HTTP transports; stdio has no routes to serve it on.
+@mcp.custom_route("/health", methods=["GET"])
+async def health(request: Request) -> PlainTextResponse:
+    return PlainTextResponse("OK")
 
 
 @mcp.tool

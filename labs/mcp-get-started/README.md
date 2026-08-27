@@ -71,9 +71,19 @@ _~12 min · Hands-on_
 Open `server.py`. This is the whole server (yes, all of it):
 
 ```python
+"""The whole MCP server. Transport is chosen at launch, never in here."""
+
 from fastmcp import FastMCP
+from starlette.requests import Request
+from starlette.responses import PlainTextResponse
 
 mcp = FastMCP("mcp-get-started")
+
+
+# Only mounted by the HTTP transports; stdio has no routes to serve it on.
+@mcp.custom_route("/health", methods=["GET"])
+async def health(request: Request) -> PlainTextResponse:
+    return PlainTextResponse("OK")
 
 
 @mcp.tool
@@ -93,6 +103,8 @@ if __name__ == "__main__":
 ```
 
 The `@mcp.tool` decorator turns each typed function into an MCP tool. FastMCP compiles the Python type hints and docstrings into a JSON Schema and sends it to any client that asks for `tools/list`, so what you write here travels over the wire and is what tells a client how to call your server. `mcp.run()` with no arguments speaks stdio: it sits and waits for a host to feed it JSON-RPC on stdin.
+
+`@mcp.custom_route` adds an ordinary HTTP route alongside the protocol. FastMCP serves it only when the server runs over an HTTP transport, so under stdio the `/health` handler sits there unused. We'll use it two sections from now to tell when the container is actually ready to answer.
 
 Let's play host ourselves for one message. Every host performs an `initialize` handshake first, so we'll do exactly that by hand:
 
@@ -154,6 +166,8 @@ _~10 min · Hands-on_
 A model is a terrible first test harness: it's nondeterministic and it hides the wire. FastMCP ships a client, and the lab's `client.py` scripts the exact calls a host would make:
 
 ```python
+"""Scripted MCP client. Pass a file path for stdio, a URL for Streamable HTTP."""
+
 import asyncio
 import sys
 
@@ -196,6 +210,24 @@ Question: the schema says `add` takes integers. What do you think happens if we 
 <details>
 <summary>Answer</summary>
 
+Send the bad argument yourself:
+
+```bash
+uv run python - <<'PY'
+import asyncio
+
+from fastmcp import Client
+
+
+async def main() -> None:
+    async with Client("server.py") as client:
+        await client.call_tool("add", {"a": "two", "b": 3})
+
+
+asyncio.run(main())
+PY
+```
+
 The call is rejected before your function ever runs:
 
 ```console
@@ -224,12 +256,12 @@ EXPOSE 8000
 CMD ["fastmcp", "run", "server.py", "--transport", "http", "--host", "0.0.0.0", "--port", "8000"]
 ```
 
-Build and run it:
+Build and run it. Two flags need explaining. `--network=host` lets the build's `pip install` reach PyPI: the sandbox has IPv6-only egress, and Docker's build network is IPv4-only, so without it pip fails to resolve `pypi.org`. And the server listens on 8000 inside the container while we publish it on 8765, because the sandbox already has something on 8000:
 
 ```bash
-docker build -t mcp-get-started .
-docker run -d --rm --name mcp-get-started -p 8000:8000 mcp-get-started
-sleep 2
+docker build --network=host -t mcp-get-started .
+docker run -d --rm --name mcp-get-started -p 8765:8000 mcp-get-started
+timeout 60 bash -c 'until curl -fs http://127.0.0.1:8765/health >/dev/null; do sleep 0.5; done'
 docker logs mcp-get-started
 ```
 
@@ -262,7 +294,7 @@ INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
 The highlighted lines confirm the switch: same server, now speaking Streamable HTTP on `/mcp`. Time for the retest, with the file path swapped for a URL:
 
 ```bash
-uv run python client.py http://127.0.0.1:8000/mcp
+uv run python client.py http://127.0.0.1:8765/mcp
 ```
 
 ```console
@@ -276,7 +308,7 @@ The same three lines as before. The server code didn't change, the client code d
 Out of curiosity, what happens if something that doesn't speak MCP knocks on that port? Let's ask with plain curl 🤔
 
 ```bash
-curl -s http://127.0.0.1:8000/mcp -H "Accept: text/event-stream"
+curl -s http://127.0.0.1:8765/mcp -H "Accept: text/event-stream"
 ```
 
 ```console
@@ -286,7 +318,7 @@ curl -s http://127.0.0.1:8000/mcp -H "Accept: text/event-stream"
 A well-formed JSON-RPC error, asking for the session that a real client would have established during its handshake. The server speaks MCP and only MCP; there's no web page hiding in there.
 
 > [!TIP]
-> **Pro tip: `/mcp` is convention, not magic.** FastMCP serves Streamable HTTP at `/mcp` by default, and most clients expect the full URL including the path. When some host "can't connect" to a server that's demonstrably up, a missing or misspelled path is the first thing to check. A trailing slash is forgiven (`/mcp/` gets a 307 redirect to `/mcp`), but a missing path isn't.
+> **Pro tip: `/mcp` is convention.** FastMCP serves Streamable HTTP at `/mcp` by default, and most clients expect the full URL including the path. When some host "can't connect" to a server that's demonstrably up, a missing or misspelled path is the first thing to check. A trailing slash is forgiven (`/mcp/` gets a 307 redirect to `/mcp`), but a missing path isn't.
 
 ## Swap the client for goose
 
@@ -306,7 +338,7 @@ goose --version
 goose 1.46.0
 ```
 
-This is where a model finally enters the story: goose is a full host, so it needs a model to drive tool calls. Your sandbox already runs [Ollama](https://ollama.com/) with `qwen3:1.7b`, a 2B model quantized to 1.4 GB that fits alongside your container and can call tools, which is the only capability this section needs. So there's no key, no account, and no token cost for the rest of the lab.
+This is where a model finally enters the story: goose is a full host, so it needs a model to drive tool calls. Your sandbox already runs [Ollama](https://ollama.com/) with `qwen3:1.7b`, a 1.7B model quantized to 1.4 GB that fits alongside your container and can call tools, which is the only capability this section needs. So there's no key, no account, and no token cost for the rest of the lab.
 
 Point goose at it. goose reads its provider from the environment, and these four variables replace anything `goose configure` would have written:
 
@@ -329,11 +361,24 @@ For anything else, `goose configure` walks you through any [provider goose suppo
 
 </details>
 
+One thing to set first. goose ships a `developer` extension that's on by default, and its tools sit in the same list the model picks from. Asked to add two numbers, a small model will reach for goose's own `analyze` tool and never touch your server. Turn it off so your two tools are the only ones the model can see:
+
+```bash
+mkdir -p ~/.config/goose
+cat > ~/.config/goose/config.yaml <<'EOF'
+extensions:
+  developer:
+    enabled: false
+    name: developer
+    type: builtin
+EOF
+```
+
 Now start a session with your container attached as a Streamable HTTP extension:
 
 ```bash
 export PATH="$HOME/.local/bin:$PATH"
-goose session --with-streamable-http-extension "http://127.0.0.1:8000/mcp"
+goose session --with-streamable-http-extension "http://127.0.0.1:8765/mcp"
 ```
 
 In the session, ask something that forces a tool call rather than mental arithmetic:
@@ -345,7 +390,7 @@ Use the add tool to compute 20260825 + 101, then shout the phrase "protocols ove
 Watch the transcript: goose lists your tools during its handshake (the same `initialize` and `tools/list` you sent by hand earlier), the model picks `add`, and the result comes back through the same `tools/call` your script issued. When it responds with `20260926` and `PROTOCOLS OVER PLUGINS!`, you've watched one unchanged server answer three different clients.
 
 > [!WARNING]
-> A 2B model sometimes answers in prose instead of calling the tool. Ask again, or say "use the add tool" more insistently. If it never reaches for a tool, switch to a bigger model in the collapsible above; the server and the protocol are not the problem. Either way, "goose connected and listed `add` and `shout`" appears in the session startup before the model does anything at all.
+> A 1.7B model sometimes answers in prose instead of calling the tool. Ask again, or say "use the add tool" more insistently. If it reaches for a tool you never wrote, check that you disabled the `developer` extension above. If it never reaches for a tool at all, switch to a bigger model in the collapsible; the server and the protocol are not the problem. Either way, "goose connected and listed `add` and `shout`" appears in the session startup before the model does anything at all.
 
 ## Cleanup
 
