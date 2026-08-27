@@ -284,9 +284,9 @@ _~10 min · Hands-on_
 There's a second MCP server sitting in the compose file that we haven't touched. `tickets.py` has `list_tickets` and `close_ticket`, and it's a separate process from a separate image. Adding it to the gateway takes three lines:
 
 ```yaml
-          - name: tickets
-            mcp:
-              host: http://tickets:8000/mcp
+- name: tickets
+  mcp:
+    host: http://tickets:8000/mcp
 ```
 
 This one is a route change, so no restart is needed:
@@ -353,12 +353,12 @@ _~14 min · Hands-on_
 `mcpAuthorization` is an allow list of CEL expressions. A tool no rule names is refused:
 
 ```yaml
-      policies:
-        mcpAuthorization:
-          rules:
-          - 'mcp.tool.name == "add"'
-          - 'mcp.tool.name == "shout"'
-          - 'mcp.tool.name == "list_tickets"'
+policies:
+  mcpAuthorization:
+    rules:
+    - 'mcp.tool.name == "add"'
+    - 'mcp.tool.name == "shout"'
+    - 'mcp.tool.name == "list_tickets"'
 ```
 
 ```bash
@@ -418,10 +418,10 @@ A gateway policy is worth exactly as much as the network that forces traffic thr
 Rate limits work the same way, as a policy on the route. `05-ratelimited.yaml` adds a bucket of ten:
 
 ```yaml
-        localRateLimit:
-        - maxTokens: 10
-          tokensPerFill: 1
-          fillInterval: 6s
+localRateLimit:
+- maxTokens: 10
+  tokensPerFill: 1
+  fillInterval: 6s
 ```
 
 ```bash
@@ -526,16 +526,16 @@ docker compose down
 ```
 
 ```console
- Container agentgateway Stopped
- Container agentgateway Removing
- Container agentgateway Removed
- Container jaeger Stopped
- Container mcp-get-started Stopped
- Container tickets Stopped
- Container jaeger Removed
- Container mcp-get-started Removed
- Container tickets Removed
- Network agentgateway-mcp_default Removed
+Container agentgateway Stopped
+Container agentgateway Removing
+Container agentgateway Removed
+Container jaeger Stopped
+Container mcp-get-started Stopped
+Container tickets Stopped
+Container jaeger Removed
+Container mcp-get-started Removed
+Container tickets Removed
+Network agentgateway-mcp_default Removed
 ```
 
 If you're on a workshop VM, terminating the instance is enough. Thanks for building with us!

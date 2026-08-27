@@ -337,8 +337,8 @@ uv run python ema_client.py --user alice --scope "findings.read findings.write"
 ```
 
 ```console
-      ✓ suppress_finding():
-          suppressed F-1001
+✓ suppress_finding():
+    suppressed F-1001
 ```
 
 Same user, same client, same server. The only thing that changed is what the enterprise was willing to assert. Success!

@@ -35,14 +35,14 @@ docker compose up -d --wait
 ```
 
 ```console
- Network agent-identity_default  Creating
- Network agent-identity_default  Created
- Container agent-identity-keycloak  Creating
- Container agent-identity-keycloak  Created
- Container agent-identity-keycloak  Starting
- Container agent-identity-keycloak  Started
- Container agent-identity-keycloak  Waiting
- Container agent-identity-keycloak  Healthy
+Network agent-identity_default  Creating
+Network agent-identity_default  Created
+Container agent-identity-keycloak  Creating
+Container agent-identity-keycloak  Created
+Container agent-identity-keycloak  Starting
+Container agent-identity-keycloak  Started
+Container agent-identity-keycloak  Waiting
+Container agent-identity-keycloak  Healthy
 ```
 
 > [!WARNING]
@@ -402,12 +402,12 @@ docker compose down -v
 ```
 
 ```console
- Container agent-identity-keycloak  Stopping
- Container agent-identity-keycloak  Stopped
- Container agent-identity-keycloak  Removing
- Container agent-identity-keycloak  Removed
- Network agent-identity_default  Removing
- Network agent-identity_default  Removed
+Container agent-identity-keycloak  Stopping
+Container agent-identity-keycloak  Stopped
+Container agent-identity-keycloak  Removing
+Container agent-identity-keycloak  Removed
+Network agent-identity_default  Removing
+Network agent-identity_default  Removed
 ```
 
 If you want the rig gone too, `rm -rf ~/zenable-labs` finishes the job. Thanks for building with us!
