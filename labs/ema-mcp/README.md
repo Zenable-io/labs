@@ -171,7 +171,9 @@ curl -s -X POST "$ENT" \
   -d requested_token_type=urn:ietf:params:oauth:token-type:id-jag \
   -d audience="$S/realms/vendor" \
   -d resource=http://localhost:9100/mcp \
-  -d scope=findings.read | jq '{issued_token_type, token_type, scope, expires_in}'
+  -d scope=findings.read > /tmp/idjag.json
+
+jq '{issued_token_type, token_type, scope, expires_in}' /tmp/idjag.json
 ```
 
 ```console
@@ -183,21 +185,32 @@ curl -s -X POST "$ENT" \
 }
 ```
 
-`token_type` is `N_A`, and that isn't a bug: the spec chose a deliberately unusable value so no generic OAuth library puts this in an `Authorization` header. It's a grant, not a credential. Five minute lifetime, single use. Let's decode its payload:
+`token_type` is `N_A`, and that isn't a bug: the spec chose a deliberately unusable value so no generic OAuth library puts this in an `Authorization` header. It's a grant, not a credential. Five minute lifetime, single use.
+
+We kept the whole response in `/tmp/idjag.json`, so the assertion itself is still there to look at. A JWT is three base64url segments joined by dots, and the payload is the middle one, so decoding it is a `jq` filter rather than a tool you have to install:
+
+```bash
+jq -r .access_token /tmp/idjag.json \
+  | jq -R 'split(".")[1] | gsub("-";"+") | gsub("_";"/") | @base64d | fromjson'
+```
 
 ```console
 {
-  "exp": 1787708669,
-  "iat": 1787708369,
-  "jti": "9652466f-9a3a-3cbb-c420-11f9c23489ba",
+  "exp": 1787831085,
+  "iat": 1787830785,
+  "jti": "f1e710d0-4e00-89a2-cf65-d0a3b024d250",
   "iss": "http://localhost:8480/realms/enterprise",
   "aud": "http://localhost:8480/realms/vendor",
-  "sub": "fee07d01-ecb4-4084-89bc-c1ca657019c8",
+  "sub": "c2812727-549a-4e31-9437-e620a7ab6cb5",
   "typ": "IDJAG",
+  "sid": "1314s5a6kuaKD6yj2J2veOJa",
   "scope": "findings.read",
   "client_id": "mcp-client"
 }
 ```
+
+> [!TIP]
+> **Pro tip: the `gsub` pair is doing real work.** JWTs use base64**url**, which swaps `+` and `/` for `-` and `_` so a token survives being pasted into a URL. `@base64d` decodes standard base64 and rejects the swapped characters, so without translating them back you get "string is not valid base64 data" on whichever token happens to contain one. Your ids and timestamps will differ from ours throughout; the claim names are what to compare.
 
 The three most important claims are `iss`, which is the enterprise issuer, `aud`, the vendor's authorization server taken straight from the metadata, and `scope`, what the admin permitted, which may be less than we asked for.
 
@@ -206,20 +219,27 @@ This exchange is also where enterprise policy runs: if alice is disabled or this
 <details>
 <summary><strong>Diving deeper: what every claim in the assertion does</strong></summary>
 
-The assertion's header:
+The header is the first segment rather than the second, so the same filter with `[0]` reads it:
+
+```bash
+jq -r .access_token /tmp/idjag.json \
+  | jq -R 'split(".")[0] | gsub("-";"+") | gsub("_";"/") | @base64d | fromjson'
+```
 
 ```console
 {
   "alg": "RS256",
   "typ": "oauth-id-jag+jwt",
-  "kid": "nB8hV8Ge6bvoE6YodDDe0ZKfIeaO9bp82SPfdKm8yGk"
+  "kid": "-W49ahgKWXOpb-q1Ivj6UEVE4b4T5M6_n18ncWUPA-o"
 }
 ```
+
+That `kid` is a good example of why the translation matters: it carries both a `-` and a `_`.
 
 - `typ: oauth-id-jag+jwt` in the **header**: a receiver must check this, or a token of another type with the right claims could be replayed here.
 - `iss`: the enterprise. The vendor decides whether to trust this issuer at all.
 - `aud`: the vendor's authorization server. Not the MCP server.
-- `sub`: alice's user id **in the enterprise realm**: `fee07d01-…`.
+- `sub`: alice's user id **in the enterprise realm**: `c2812727-…`.
 - `jti`: the replay defence; the receiver records it and refuses a second use.
 - `client_id`: which MCP client this was minted for; leg 2 checks the caller matches.
 - `scope`: what the admin permitted.
@@ -248,39 +268,66 @@ curl -s -X POST "$VEN" \
   -d grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer \
   -d client_id=mcp-client -d client_secret=mcp-client-vendor-secret \
   --data-urlencode "assertion=$IDJAG" \
-  -d scope=findings.read | jq '{token_type, scope, expires_in}'
+  -d scope=findings.read > /tmp/access.json
+
+jq '{token_type, scope, expires_in}' /tmp/access.json
 ```
 
 ```console
 {
   "token_type": "Bearer",
-  "scope": "profile findings.read email",
+  "scope": "findings.read profile email",
   "expires_in": 300
 }
 ```
 
-Finally a real bearer token. Its claims:
+Finally a real bearer token. Same filter as before, pointed at the new file:
+
+```bash
+jq -r .access_token /tmp/access.json \
+  | jq -R 'split(".")[1] | gsub("-";"+") | gsub("_";"/") | @base64d | fromjson'
+```
 
 ```console
 {
-  "exp": 1787708678,
-  "iat": 1787708378,
+  "exp": 1787831097,
+  "iat": 1787830797,
+  "jti": "trrtag:40fbaf9f-cc6a-5c5e-d9a7-4909708b84ae",
   "iss": "http://localhost:8480/realms/vendor",
   "aud": [
     "http://localhost:9100/mcp",
     "account"
   ],
-  "sub": "f6028681-3aeb-4b7c-a998-4bf924bf8dbd",
+  "sub": "a66f09e5-9088-4297-8ec3-1591532b650b",
   "typ": "Bearer",
   "azp": "mcp-client",
-  "scope": "profile findings.read email",
-  "preferred_username": "alice"
+  "acr": "1",
+  "realm_access": {
+    "roles": [
+      "offline_access",
+      "uma_authorization",
+      "default-roles-vendor"
+    ]
+  },
+  "resource_access": {
+    "account": {
+      "roles": [
+        "manage-account",
+        "manage-account-links",
+        "view-profile"
+      ]
+    }
+  },
+  "scope": "findings.read profile email",
+  "email_verified": false,
+  "preferred_username": "alice",
+  "email": "alice@acme.example"
 }
 ```
 
-The issuer flipped: the enterprise vouched for alice, and the vendor decided what alice can do here. And `aud` is the MCP server, the `resource` value from the metadata, which makes the token unusable anywhere else (the attack suite tries that shortly). Success!
+Longer than the assertion, and most of the extra is Keycloak's own account-management boilerplate rather than anything EMA cares about. The highlighted lines are the ones that matter. The issuer flipped: the enterprise vouched for alice, and the vendor decided what alice can do here. And `aud` is the MCP server, the `resource` value from the metadata, which makes the token unusable anywhere else (the attack suite tries that shortly). Success!
 
-Question: the ID-JAG carried `sub: fee07d01-…`, and the access token carries `sub: f6028681-…`. Same alice. What happened?
+Question: the ID-JAG carried `sub: c2812727-…`, and the access token carries `sub: a66f09e5-…`. Same alice. What happened?
 
 <details>
 <summary>Answer</summary>
@@ -494,6 +541,7 @@ Both controls deny access, but only the unapproved-audience denial keeps the req
 _~5 min · Hands-on_
 
 ```bash
+rm -f /tmp/idjag.json /tmp/access.json
 cd ~/zenable-labs/labs/ema-mcp && ./run.sh down
 ```
 
