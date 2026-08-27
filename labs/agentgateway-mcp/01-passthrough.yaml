@@ -1,0 +1,13 @@
+# yaml-language-server: $schema=https://agentgateway.dev/schema/config
+# Step 1: the gateway forwards and nothing else. The client sees the same
+# tools it saw when it talked to the server directly.
+binds:
+- port: 3000
+  listeners:
+  - routes:
+    - backends:
+      - mcp:
+          targets:
+          - name: get-started
+            mcp:
+              host: http://mcp-get-started:8000/mcp

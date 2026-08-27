@@ -1,0 +1,18 @@
+# yaml-language-server: $schema=https://agentgateway.dev/schema/config
+# Step 2: same forwarding, now with traces going to Jaeger. Access logs and
+# Prometheus metrics need no configuration at all -- they are already on.
+config:
+  tracing:
+    otlpEndpoint: http://jaeger:4317
+    # Every request, because a lab that samples 1% shows the reader nothing.
+    randomSampling: "true"
+binds:
+- port: 3000
+  listeners:
+  - routes:
+    - backends:
+      - mcp:
+          targets:
+          - name: get-started
+            mcp:
+              host: http://mcp-get-started:8000/mcp

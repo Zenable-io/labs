@@ -1,0 +1,32 @@
+# yaml-language-server: $schema=https://agentgateway.dev/schema/config
+# Step 5: step 4's rules, plus a cap on how fast anyone may call through.
+# The limit is per route and counts every MCP request, handshake included.
+config:
+  tracing:
+    otlpEndpoint: http://jaeger:4317
+    randomSampling: "true"
+binds:
+- port: 3000
+  listeners:
+  - routes:
+    - policies:
+        # Ten requests, then one back per six seconds. Low enough to hit by
+        # hand; a production number would be nowhere near this.
+        localRateLimit:
+        - maxTokens: 10
+          tokensPerFill: 1
+          fillInterval: 6s
+        mcpAuthorization:
+          rules:
+          - 'mcp.tool.name == "add"'
+          - 'mcp.tool.name == "shout"'
+          - 'mcp.tool.name == "list_tickets"'
+      backends:
+      - mcp:
+          targets:
+          - name: get-started
+            mcp:
+              host: http://mcp-get-started:8000/mcp
+          - name: tickets
+            mcp:
+              host: http://tickets:8000/mcp

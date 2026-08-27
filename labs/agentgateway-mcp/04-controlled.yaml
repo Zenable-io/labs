@@ -1,0 +1,32 @@
+# yaml-language-server: $schema=https://agentgateway.dev/schema/config
+# Step 4: the gateway starts refusing things. mcpAuthorization is an allow
+# list -- a tool no rule names is filtered out of tools/list, and refused if
+# a client asks for it anyway.
+#
+# The names here are the tools' OWN names, not the prefixed ones a client
+# sees after multiplexing. `mcp.tool.name` is documented as "the resolved tool
+# name sent to the upstream target", and the target has never heard of the
+# prefix the gateway added.
+config:
+  tracing:
+    otlpEndpoint: http://jaeger:4317
+    randomSampling: "true"
+binds:
+- port: 3000
+  listeners:
+  - routes:
+    - policies:
+        mcpAuthorization:
+          rules:
+          - 'mcp.tool.name == "add"'
+          - 'mcp.tool.name == "shout"'
+          - 'mcp.tool.name == "list_tickets"'
+      backends:
+      - mcp:
+          targets:
+          - name: get-started
+            mcp:
+              host: http://mcp-get-started:8000/mcp
+          - name: tickets
+            mcp:
+              host: http://tickets:8000/mcp

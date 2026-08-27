@@ -1,0 +1,20 @@
+# yaml-language-server: $schema=https://agentgateway.dev/schema/config
+# Step 3: two servers behind one endpoint. Tool names gain a target prefix so
+# they cannot collide.
+config:
+  tracing:
+    otlpEndpoint: http://jaeger:4317
+    randomSampling: "true"
+binds:
+- port: 3000
+  listeners:
+  - routes:
+    - backends:
+      - mcp:
+          targets:
+          - name: get-started
+            mcp:
+              host: http://mcp-get-started:8000/mcp
+          - name: tickets
+            mcp:
+              host: http://tickets:8000/mcp

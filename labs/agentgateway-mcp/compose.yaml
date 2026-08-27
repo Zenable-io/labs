@@ -1,0 +1,40 @@
+name: agentgateway-mcp
+
+services:
+  # The server from the Getting Started with MCP lab, built from its own
+  # directory and not edited here. Whether a gateway sits in front of it is
+  # not something the server gets a say in.
+  mcp-get-started:
+    build: ../mcp-get-started
+    container_name: mcp-get-started
+
+  tickets:
+    build: .
+    container_name: tickets
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.68.0
+    container_name: jaeger
+    environment:
+      # Jaeger accepts OTLP directly with this set, so the stack needs no
+      # separate collector.
+      - COLLECTOR_OTLP_ENABLED=true
+    ports:
+      - "127.0.0.1:16686:16686"
+
+  agentgateway:
+    image: ghcr.io/agentgateway/agentgateway:v1.4.1
+    container_name: agentgateway
+    command: ["-f", "/cfg/config.yaml"]
+    volumes:
+      # The DIRECTORY, not the file. agentgateway watches the config path and
+      # reloads on change, and a bind-mounted single file does not deliver the
+      # event that `cp` over it produces.
+      - ./:/cfg:ro
+    ports:
+      - "127.0.0.1:3000:3000"
+      - "127.0.0.1:15020:15020"
+    depends_on:
+      - mcp-get-started
+      - tickets
+      - jaeger
