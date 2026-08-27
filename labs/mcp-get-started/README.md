@@ -231,11 +231,20 @@ PY
 The call is rejected before your function ever runs:
 
 ```console
-ToolError: 1 validation error for call[add]
+[08/27/26 08:40:04] INFO     Starting MCP server 'mcp-get-started' with transport 'stdio'
+                    WARNING  Invalid arguments for tool 'add': [{'type': 'int_parsing', 'loc': ('a',), 'msg': 'Input should be a valid integer,
+                             unable to parse string as an integer', 'input': 'two'}]
+Traceback (most recent call last):
+  File "<stdin>", line 11, in <module>
+...
+    raise ToolError(msg)
+fastmcp.exceptions.ToolError: 1 validation error for call[add]
 a
   Input should be a valid integer, unable to parse string as an integer [type=int_parsing, input_value='two', input_type=str]
     For further information visit https://errors.pydantic.dev/2.13/v/int_parsing
 ```
+
+The `WARNING` line is the server rejecting the call; everything after it is your client raising on the error it got back.
 
 FastMCP validates every call against the schema it generated from your type hints, using [Pydantic](https://docs.pydantic.dev/). Your `add` function only ever sees real integers, which means the type hints are doing double duty: documentation for the model, and input validation for you.
 
@@ -253,17 +262,40 @@ RUN pip install --no-cache-dir 'fastmcp>=3.4,<4'
 WORKDIR /app
 COPY server.py .
 EXPOSE 8000
+# Readiness for `docker compose up --wait`, which returns only once this passes.
+# The image has no curl, so probe with the interpreter that is already here.
+HEALTHCHECK --interval=2s --timeout=3s --start-period=2s --retries=15 \
+  CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')" || exit 1
 CMD ["fastmcp", "run", "server.py", "--transport", "http", "--host", "0.0.0.0", "--port", "8000"]
 ```
 
-Build and run it. Two flags need explaining. `--network=host` lets the build's `pip install` reach PyPI: the sandbox has IPv6-only egress, and Docker's build network is IPv4-only, so without it pip fails to resolve `pypi.org`. And the server listens on 8000 inside the container while we publish it on 8765, because the sandbox already has something on 8000:
+The `HEALTHCHECK` is what lets the container say whether it's ready rather than merely started. It calls the `/health` route you wrote earlier, from inside the container, using the Python already in the image because this one has no `curl`.
+
+A `compose.yaml` sits beside it holding the two launch decisions:
+
+```yaml
+services:
+  mcp-get-started:
+    build:
+      context: .
+      # The Zenable sandbox has IPv6-only egress and Docker's build network is
+      # IPv4-only, so `pip install` in the Dockerfile fails to resolve pypi.org
+      # without this. Pulls are unaffected -- the daemon uses the host stack.
+      network: host
+    container_name: mcp-get-started
+    # 8000 inside; the sandbox's AppStream agent already holds 8000 on the host.
+    ports:
+      - "8765:8000"
+```
+
+Now build and start it:
 
 ```bash
-docker build --network=host -t mcp-get-started .
-docker run -d --rm --name mcp-get-started -p 8765:8000 mcp-get-started
-timeout 60 bash -c 'until curl -fs http://127.0.0.1:8765/health >/dev/null; do sleep 0.5; done'
-docker logs mcp-get-started
+docker compose up -d --wait
+docker compose logs --no-log-prefix
 ```
+
+`--wait` is the readiness gate: Compose returns only once the healthcheck passes, and exits non-zero if the container never gets there. No sleeping, no polling, and no chance of testing a server that isn't listening yet.
 
 ```console
 ╭──────────────────────────────────────────────────────────────────────────────╮
@@ -390,18 +422,17 @@ Use the add tool to compute 20260825 + 101, then shout the phrase "protocols ove
 Watch the transcript: goose lists your tools during its handshake (the same `initialize` and `tools/list` you sent by hand earlier), the model picks `add`, and the result comes back through the same `tools/call` your script issued. When it responds with `20260926` and `PROTOCOLS OVER PLUGINS!`, you've watched one unchanged server answer three different clients.
 
 > [!WARNING]
-> A 1.7B model sometimes answers in prose instead of calling the tool. Ask again, or say "use the add tool" more insistently. If it reaches for a tool you never wrote, check that you disabled the `developer` extension above. If it never reaches for a tool at all, switch to a bigger model in the collapsible; the server and the protocol are not the problem. Either way, "goose connected and listed `add` and `shout`" appears in the session startup before the model does anything at all.
+> Running a model locally can be a little bit slow; keep that in mind after you send a message. Also, such a small model sometimes doesn't correctly call the tool. Ask again, or say "use the add tool" more insistently. If it reaches for a tool you never wrote, check that you disabled the `developer` extension above. If it never reaches for a tool at all, switch to a bigger model in the collapsible; the server and the protocol are not the problem. Either way, "goose connected and listed `add` and `shout`" appears in the session startup before the model does anything at all.
 
 ## Cleanup
 
 _~5 min · Hands-on_
 
-Stop the container (it removes itself, thanks to `--rm`) and delete the image. The `--rm` removal happens asynchronously after the stop, so we give Docker a couple of seconds before deleting the image out from under it:
+Stop the container and delete the image. `docker compose down` removes the container before it returns, so nothing is still holding the image when we delete it:
 
 ```bash
-docker stop mcp-get-started
-sleep 2
-docker rmi mcp-get-started
+docker compose down
+docker rmi mcp-get-started-mcp-get-started
 ```
 
 You should expect to see the image get tagged and deleted like this:
