@@ -467,21 +467,77 @@ _~10 min · Hands-on_
 
 We've been driving this with a script we wrote. Let's finish with a real agent and watch its tool calls land in the log.
 
-[goose](https://github.com/aaif-goose/goose) is the open-source agent from the Getting Started lab. Install it and point it at the local model your sandbox already runs:
+[goose](https://github.com/aaif-goose/goose) is the open-source agent from the Getting Started lab. Install it, pinned so your output matches the lab:
 
 ```bash
 curl -fsSL https://github.com/aaif-goose/goose/releases/download/stable/download_cli.sh \
   | CONFIGURE=false GOOSE_VERSION=v1.46.0 bash
 export PATH="$HOME/.local/bin:$PATH"
-export GOOSE_PROVIDER=ollama
-export GOOSE_MODEL=qwen3:1.7b
-export OLLAMA_HOST=http://localhost:11434
-export OLLAMA_CONTEXT_LENGTH=8192
 goose --version
 ```
 
 ```console
 goose 1.46.0
+```
+
+goose is a full host, so it needs a model to drive tool calls. Your sandbox already runs [Ollama](https://ollama.com/) with `qwen3:1.7b`, a 1.7B model quantized to 1.4 GB that can call tools, which is the only capability this section needs. No key, no account, no token cost.
+
+`qwen3:1.7b` is a reasoning model: before it answers it writes out its thinking, and on the sandbox's two CPU cores that takes minutes even for a trivial reply. Since goose doesn't currently have a way to turn thinking off in its calls, we're going to adjust the upstream qwen model to turn it off in the Ollama inference runtime.
+
+An Ollama model carries a prompt template, and qwen3's already knows how to skip thinking; that switch just only fires when the caller asks for it. Copy the model's own definition, flip the switch on permanently, and build it under a new name:
+
+```bash
+ollama show --modelfile qwen3:1.7b > Modelfile.nothink
+sed -i 's|^FROM /.*|FROM qwen3:1.7b|' Modelfile.nothink
+sed -i 's|{{- if and $.IsThinkSet (eq $i $lastUserIdx) }}|{{- if (eq $i $lastUserIdx) }}|' Modelfile.nothink
+sed -i 's|{{- if $.Think -}}|{{- if false -}}|' Modelfile.nothink
+ollama create qwen3-nothink -f Modelfile.nothink
+```
+
+The first `sed` points the new model at the tag instead of a blob path on disk. The other two make the template take the no-thinking branch for every request, whatever the caller asked for. Because it reuses weights already on disk there's no download, and it finishes in about a second.
+
+Check that it answers without thinking:
+
+```bash
+ollama run qwen3-nothink "say ok"
+```
+
+```console
+Okay, I'm ready to help you with whatever you need. Let me know how I can assist you today!
+```
+
+No `Thinking...` block, and seconds rather than minutes. Now point goose at it. goose reads its provider from the environment, and these four variables replace anything `goose configure` would have written:
+
+```bash
+export GOOSE_PROVIDER=ollama
+export GOOSE_MODEL=qwen3-nothink
+export OLLAMA_HOST=http://localhost:11434
+export OLLAMA_CONTEXT_LENGTH=8192
+```
+
+> [!WARNING]
+> `OLLAMA_CONTEXT_LENGTH` is not optional here. Ollama defaults to a 4096-token context, a tool-calling agent spends that on tool definitions alone, and goose then looks like it's ignoring its own instructions when really the context was silently truncated.
+
+<details>
+<summary>Not on a Zenable sandbox, or want a different model?</summary>
+
+On your own machine, `curl -fsSL https://ollama.com/install.sh | sh` then `ollama pull qwen3:1.7b` gets you to the same place, and the `ollama create` above works unchanged.
+
+For anything else, `goose configure` walks you through any [provider goose supports](https://goose-docs.ai/docs/getting-started/providers/), and the rest of this section works the same on all of them. A bigger model calls the tools more reliably, so if `qwen3-nothink` gets confused, this is the knob to turn.
+
+</details>
+
+One thing to set first. goose ships a `developer` extension that's on by default, and its tools sit in the same list the model picks from. Asked to add two numbers, a small model will reach for goose's own `analyze` tool and never touch the gateway. Turn it off so the gateway's tools are the only ones the model can see:
+
+```bash
+mkdir -p ~/.config/goose
+cat > ~/.config/goose/config.yaml <<'EOF'
+extensions:
+  developer:
+    enabled: false
+    name: developer
+    type: builtin
+EOF
 ```
 
 The extension URL is the gateway's, and that's the only difference from the earlier lab:
@@ -514,7 +570,7 @@ docker compose logs --no-log-prefix agentgateway | grep '^{' \
 Success! 🎉 An agent we didn't write, driving a model we're running locally, and every tool call it made is one JSON record in one place. That's the whole point of the lab in two lines of log.
 
 > [!WARNING]
-> Running a model locally can be a little bit slow; keep that in mind after you send a message. Also, such a small model sometimes doesn't correctly call the tool. Ask again, or name the tool more insistently. The gateway and the protocol are working either way: goose lists the three tools at startup, before the model does anything at all. If it reaches for a tool you have never heard of, check that you disabled the `developer` extension above.
+> Running a model locally on two CPU cores is still slow even with thinking off; keep that in mind after you send a message. Also, such a small model sometimes doesn't correctly call the tool. Ask again, or name the tool more insistently. The gateway and the protocol are working either way: goose lists the three tools at startup, before the model does anything at all. If it reaches for a tool you have never heard of, check that you disabled the `developer` extension above.
 
 ## Cleanup
 
@@ -536,6 +592,13 @@ Container jaeger Removed
 Container mcp-get-started Removed
 Container tickets Removed
 Network agentgateway-mcp_default Removed
+```
+
+The derived model and the goose config outlive the containers, so drop them too:
+
+```bash
+ollama rm qwen3-nothink
+rm -f Modelfile.nothink ~/.config/goose/config.yaml
 ```
 
 If you're on a workshop VM, terminating the instance is enough. Thanks for building with us!

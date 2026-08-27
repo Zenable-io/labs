@@ -1,3 +1,6 @@
 .venv/
 __pycache__/
 *.pyc
+
+# Derived Ollama model definition -- labs build it in place with `ollama show`.
+Modelfile.nothink

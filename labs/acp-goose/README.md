@@ -330,12 +330,36 @@ You should get a `write_file` call carrying `notes.txt` and `hello`. That JSON i
 > [!WARNING]
 > `qwen3:0.6b` still fires the tool but garbles the schema, and an agent wired to a model like that fails in ways that look like protocol bugs. Tool-calling fidelity is a model property; check it before you blame the wire.
 
-goose reads its provider from the environment, and a new shell knows none of this:
+Notice the `"think": false` in that request. `qwen3:1.7b` is a reasoning model: left alone it writes out its thinking before it answers, and on the sandbox's two CPU cores that takes minutes even for a trivial reply. We could set the flag because we wrote the HTTP call ourselves. goose doesn't currently have a way to send it, so before we hand the model to goose we turn thinking off one level down, in the Ollama inference runtime.
+
+An Ollama model carries a prompt template, and qwen3's already knows how to skip thinking; that switch just only fires when the caller asks for it. Copy the model's own definition, flip the switch on permanently, and build it under a new name:
+
+```bash
+ollama show --modelfile qwen3:1.7b > Modelfile.nothink
+sed -i 's|^FROM /.*|FROM qwen3:1.7b|' Modelfile.nothink
+sed -i 's|{{- if and $.IsThinkSet (eq $i $lastUserIdx) }}|{{- if (eq $i $lastUserIdx) }}|' Modelfile.nothink
+sed -i 's|{{- if $.Think -}}|{{- if false -}}|' Modelfile.nothink
+ollama create qwen3-nothink -f Modelfile.nothink
+```
+
+The first `sed` points the new model at the tag instead of a blob path on disk. The other two make the template take the no-thinking branch for every request, whatever the caller asked for. Because it reuses weights already on disk there's no download, and it finishes in about a second.
+
+Check that it answers without thinking:
+
+```bash
+ollama run qwen3-nothink "say ok"
+```
+
+```console
+Okay, I'm ready to help you with whatever you need. Let me know how I can assist you today!
+```
+
+No `Thinking...` block, and seconds rather than minutes. goose reads its provider from the environment, and a new shell knows none of this:
 
 ```bash
 export GOOSE_PROVIDER=ollama
 export OLLAMA_HOST=http://localhost:11434
-export GOOSE_MODEL=qwen3:1.7b
+export GOOSE_MODEL=qwen3-nothink
 export OLLAMA_CONTEXT_LENGTH=32768
 ```
 
@@ -360,10 +384,11 @@ Watch `/tmp/acp-real.jsonl` as the session runs: the `session/update` notificati
 
 _~5 min · Hands-on_
 
-If you took Adventure B and want the model gone:
+If you took Adventure B and want the models gone:
 
 ```bash
-command -v ollama >/dev/null 2>&1 && ollama rm qwen3:1.7b || true
+command -v ollama >/dev/null 2>&1 && ollama rm qwen3-nothink qwen3:1.7b || true
+rm -f Modelfile.nothink
 ```
 
 Everything else we made lives in three places: temp files, the goose binary, and the cloned rig. Step out of the rig directory first (removing the directory you're standing in leaves your shell in a deleted location), then remove them all:
