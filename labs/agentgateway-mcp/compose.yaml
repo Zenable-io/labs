@@ -1,9 +1,10 @@
 name: agentgateway-mcp
 
 services:
-  # The server from the Getting Started with MCP lab, built from its own
-  # directory and not edited here. Whether a gateway sits in front of it is
-  # not something the server gets a say in.
+  # `server.py` here is a deliberate copy of the one in the mcp-get-started
+  # lab, not a build of that directory. Every lab builds only from its own
+  # directory, so editing one can never change what another one runs, and a
+  # reader can clone a single lab and have everything it needs.
   # `network: host` on both builds, because the Zenable sandbox has IPv6-only
   # egress and Docker's build network is IPv4-only. Without it every `pip
   # install` in these Dockerfiles fails with what reads as a DNS error, while
@@ -11,13 +12,15 @@ services:
   # unaffected -- the daemon runs on the host stack -- so only builds need it.
   mcp-get-started:
     build:
-      context: ../mcp-get-started
+      context: .
+      dockerfile: Dockerfile.get-started
       network: host
     container_name: mcp-get-started
 
   tickets:
     build:
       context: .
+      dockerfile: Dockerfile.tickets
       network: host
     container_name: tickets
 

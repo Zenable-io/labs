@@ -1,0 +1,9 @@
+FROM python:3.13-slim
+RUN pip install --no-cache-dir 'fastmcp>=3.4,<4'
+WORKDIR /app
+COPY server.py .
+EXPOSE 8000
+# No HEALTHCHECK, unlike the mcp-get-started lab's copy of this server: nothing
+# here waits on health, and a healthcheck would put "(health: starting)" in the
+# STATUS column of the `docker compose ps` output the workshop shows.
+CMD ["fastmcp", "run", "server.py", "--transport", "http", "--host", "0.0.0.0", "--port", "8000"]
