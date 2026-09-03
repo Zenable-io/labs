@@ -7,13 +7,13 @@ Put a gateway between your agent and your MCP servers. Watch every tool call in 
 
 **[▶ Take this lab on the Zenable Learning Hub](https://www.zenable.app/learn?lab=agentgateway-mcp&utm_source=github&utm_medium=labs_repo&utm_campaign=agentgateway-mcp_readme)** — fully hosted sandbox environment, progress tracking, and a full-featured lab workspace.
 
-**Duration** 65 minutes · **Difficulty** Advanced
+**Duration** 73 minutes · **Difficulty** Advanced
 
 **Topics** `MCP` · `agentgateway` · `Observability` · `OpenTelemetry` · `Governance` · `Rate Limiting` · `goose` · `Docker` · `Open Source`
 
 **Prerequisites**
 
-- The Getting Started with MCP workshop, or an MCP server you have run yourself
+- A rough idea of what an MCP server, an MCP client and a tool call are
 - Docker and git
 - Comfort reading YAML and a shell prompt
 
@@ -78,7 +78,7 @@ tools at http://127.0.0.1:3000/mcp:
   shout
 ```
 
-The same two tools from the Getting Started lab, reached on a different port. Call one:
+The server's two tools, reached through the gateway rather than directly. Call one:
 
 ```bash
 uv run python client.py add '{"a":20260825,"b":101}'
@@ -88,9 +88,9 @@ uv run python client.py add '{"a":20260825,"b":101}'
 add -> 20260926
 ```
 
-Success! `server.py` is byte for byte the file you wrote in the earlier lab, and `client.py` here contains no mention of a gateway. Both ends are talking MCP to something that speaks MCP.
+Success! `server.py` is an ordinary MCP server with no proxy awareness in it, and `client.py` never mentions a gateway. Both ends are talking MCP to something that speaks MCP.
 
-Question: the client asked for `add`, and the gateway has never seen our server's code. How did it know `add` was on offer? Have a guess before opening the answer.
+Question: the client asked for `add`, and the gateway has never seen our server's code. How did it know `add` existed? Have a guess before opening the answer.
 
 <details>
 <summary>Answer</summary>
@@ -160,7 +160,7 @@ docker compose logs --no-log-prefix agentgateway | grep '^{' \
 Success! Every tool call any agent makes, in one place, in a shape a log pipeline already understands. Ship that to whatever you use and "which tools ran last week" stops being a research project.
 
 > [!NOTE]
-> agentgateway can also write requests to a SQLite or Postgres database (`config.logging.database`), and the built-in UI has a Logs tab that reads it. It stays empty here. Upstream gates that store to LLM traffic, in [log.rs](https://github.com/agentgateway/agentgateway/blob/main/crates/agentgateway/src/telemetry/log.rs): "For now we only enable this log for LLM requests to keep cost/performance appropriate." For MCP, the access log above is the durable record.
+> agentgateway can also write requests to a SQLite or Postgres database (`config.logging.database`), and the built-in UI has a Logs tab that reads it. It stays empty here. Upstream restricts that store to LLM traffic, in [log.rs](https://github.com/agentgateway/agentgateway/blob/main/crates/agentgateway/src/telemetry/log.rs): "For now we only enable this log for LLM requests to keep cost/performance appropriate." For MCP, the access log above is the durable record.
 
 The same traffic is already counted, too:
 
@@ -305,7 +305,18 @@ tools at http://127.0.0.1:3000/mcp:
   tickets_list_tickets
 ```
 
-Two things happened. The client now sees four tools from one endpoint, and every name gained a `<target>_` prefix. The prefix is how two servers can each ship a tool called `search` without either one having to rename it.
+Two things happened. The client now sees four tools from one endpoint, and every name gained a `<target>_` prefix.
+
+Question: both of our servers could ship a tool called `search`. What does the client see, and which server gets the call? Have a guess before opening the answer.
+
+<details>
+<summary>Answer</summary>
+
+The client sees two tools, `get-started_search` and `tickets_search`, and the prefix decides where each call goes.
+
+The gateway strips the prefix again before it forwards, so each server receives a plain `search` and neither one has to rename anything.
+
+</details>
 
 ```bash
 uv run python client.py tickets_list_tickets
@@ -342,7 +353,7 @@ agentgateway_mcp_requests_total{method="tools/call",resource_type="tool",server=
 ```
 
 > [!TIP]
-> **Pro tip: tool count is a budget, not a free variable.** Every tool the gateway advertises goes into the model's context on every turn, and a model given eighty tools picks worse than one given eight. Multiplexing makes it easy to expose everything through one URL, which makes it easy to spend that budget without noticing.
+> **Pro tip: every tool you expose costs context on every turn.** A model given eighty tools picks worse than one given eight. Multiplexing makes it easy to expose everything through one URL, which makes it easy to spend that budget without noticing.
 
 ## Teaching it to say no
 
@@ -411,7 +422,7 @@ No. It's safe from anything that goes through the gateway.
 
 Our compose file publishes no port for the ticket server, so on this machine the gateway really is the only route in. That's a property of the network, arranged separately, and the gateway has no way to enforce it. Somewhere with a flat network and a reachable server, `close_ticket` is one direct HTTP call away.
 
-A gateway policy is worth exactly as much as the network that forces traffic through the gateway.
+So the policy only applies where the network actually forces traffic through the gateway.
 
 </details>
 
@@ -467,7 +478,7 @@ _~10 min · Hands-on_
 
 We've been driving this with a script we wrote. Let's finish with a real agent and watch its tool calls land in the log.
 
-[goose](https://github.com/aaif-goose/goose) is the open-source agent from the Getting Started lab. Install it, pinned so your output matches the lab:
+[goose](https://github.com/aaif-goose/goose) is an open-source coding agent. Install it, pinned so your output matches the lab:
 
 ```bash
 curl -fsSL https://github.com/aaif-goose/goose/releases/download/stable/download_cli.sh \
@@ -480,11 +491,13 @@ goose --version
 goose 1.46.0
 ```
 
-goose is a full host, so it needs a model to drive tool calls. Your sandbox already runs [Ollama](https://ollama.com/) with `qwen3:1.7b`, a 1.7B model quantized to 1.4 GB that can call tools, which is the only capability this section needs. No key, no account, no token cost.
+goose is a full host, so it needs a model to drive tool calls. Your sandbox already runs [Ollama](https://ollama.com/) with `qwen3:1.7b`, a 1.7B model quantized to 1.4 GB that can call tools, which is the only capability this section needs. It needs no API key and no account, and costs nothing to run.
 
-`qwen3:1.7b` is a reasoning model: before it answers it writes out its thinking, and on the sandbox's two CPU cores that takes minutes even for a trivial reply. Since goose doesn't currently have a way to turn thinking off in its calls, we're going to adjust the upstream qwen model to turn it off in the Ollama inference runtime.
+`qwen3:1.7b` is a reasoning model: before it answers it writes out its thinking, and on the sandbox's two CPU cores that takes minutes even for a trivial reply. goose has no way to turn thinking off in its calls, so we turn it off in the Ollama runtime instead.
 
-An Ollama model carries a prompt template, and qwen3's already knows how to skip thinking; that switch just only fires when the caller asks for it. Copy the model's own definition, flip the switch on permanently, and build it under a new name. The `ollama pull` on the first line covers a sandbox that came up without the weights on disk; when they're already there it returns straight away.
+An Ollama model carries a prompt template, and qwen3's already knows how to skip thinking; that switch only fires when the caller asks for it. Copy the model's own definition, flip the switch on permanently, and build it under a new name.
+
+The `ollama pull` on the first line covers a sandbox that came up without the weights on disk; when they're already there it returns straight away.
 
 ```bash
 ollama pull qwen3:1.7b
@@ -495,7 +508,7 @@ sed -i 's|{{- if $.Think -}}|{{- if false -}}|' Modelfile.nothink
 ollama create qwen3-nothink -f Modelfile.nothink
 ```
 
-The first `sed` points the new model at the tag instead of a blob path on disk. The other two make the template take the no-thinking branch for every request, whatever the caller asked for. Because it reuses weights already on disk there's no download, and it finishes in about a second.
+The first `sed` points the new model at the tag instead of a blob path on disk. The other two make the template take the no-thinking branch for every request. It reuses the weights already on disk, so there's no download and it finishes in about a second.
 
 Check that it answers without thinking:
 
@@ -517,7 +530,7 @@ export OLLAMA_CONTEXT_LENGTH=8192
 ```
 
 > [!WARNING]
-> `OLLAMA_CONTEXT_LENGTH` is not optional here. Ollama defaults to a 4096-token context, a tool-calling agent spends that on tool definitions alone, and goose then looks like it's ignoring its own instructions when really the context was silently truncated.
+> `OLLAMA_CONTEXT_LENGTH` isn't optional here. Ollama defaults to a 4096-token context, a tool-calling agent spends that on tool definitions alone, and goose then looks like it's ignoring its own instructions when really the context was silently truncated.
 
 <details>
 <summary>Not on a Zenable sandbox, or want a different model?</summary>
@@ -528,7 +541,9 @@ For anything else, `goose configure` walks you through any [provider goose suppo
 
 </details>
 
-One thing to set first. goose ships a `developer` extension that's on by default, and its tools sit in the same list the model picks from. Asked to add two numbers, a small model will reach for goose's own `analyze` tool and never touch the gateway. Turn it off so the gateway's tools are the only ones the model can see:
+One thing to set first. goose ships a `developer` extension that's on by default, and its tools sit in the same list the model picks from. Asked to add two numbers, a small model will reach for goose's own `analyze` tool and never touch the gateway.
+
+Turn it off so the gateway's tools are the only ones the model can see:
 
 ```bash
 mkdir -p ~/.config/goose
@@ -541,7 +556,7 @@ extensions:
 EOF
 ```
 
-The extension URL is the gateway's, and that's the only difference from the earlier lab:
+The extension URL is the gateway's, which is all goose needs to know:
 
 ```bash
 export PATH="$HOME/.local/bin:$PATH"
@@ -568,10 +583,13 @@ docker compose logs --no-log-prefix agentgateway | grep '^{' \
 {"tool":"list_tickets","target":"tickets","status":200,"ms":"3ms"}
 ```
 
-Success! 🎉 An agent we didn't write, driving a model we're running locally, and every tool call it made is one JSON record in one place. That's the whole point of the lab in two lines of log.
+Success! 🎉 goose drove a local model through the gateway, and every tool call it made is one JSON record in one place.
 
 > [!WARNING]
-> Running a model locally on two CPU cores is still slow even with thinking off; keep that in mind after you send a message. Also, such a small model sometimes doesn't correctly call the tool. Ask again, or name the tool more insistently. The gateway and the protocol are working either way: goose lists the three tools at startup, before the model does anything at all. If it reaches for a tool you have never heard of, check that you disabled the `developer` extension above.
+> Running a model locally on two CPU cores is still slow even with thinking off, so expect a wait after you send a message.
+
+> [!NOTE]
+> A model this small sometimes misses the tool call. Ask again, or name the tool more insistently. goose lists the three tools at startup, before the model acts, so the gateway and the protocol are working either way. If it reaches for a tool you have never heard of, check that you disabled the `developer` extension above.
 
 ## Cleanup
 

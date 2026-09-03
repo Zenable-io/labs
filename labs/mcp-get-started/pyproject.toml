@@ -4,7 +4,7 @@ version = "0"
 description = "An MVP MCP server and scripted client for the MCP 101 workshop"
 requires-python = ">=3.11"
 dependencies = [
-    "fastmcp>=3.4,<4",
+    "fastmcp[tasks]>=3.4,<4",
 ]
 
 [tool.uv]

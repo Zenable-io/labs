@@ -1,1 +1,4 @@
 Docker version 29.7.2, build a7dcaa6
+FastMCP version:                                                           3.4.7
+MCP version:                                                              1.29.1
+pydocket version: 0.25.0

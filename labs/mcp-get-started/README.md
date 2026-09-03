@@ -3,13 +3,13 @@
 
 # Getting Started with MCP
 
-Learn what an MCP host, client, and server actually are. Write an MVP server with FastMCP, test it with a scripted client, move it into a container, and connect goose to it without changing a line of server code.
+Learn what an MCP host, client, and server actually are. Write an MVP server with FastMCP, test it with a scripted client, move it into a container, connect goose to it without changing a line of server code, and hand it work to finish while you wait.
 
 **[▶ Take this lab on the Zenable Learning Hub](https://www.zenable.app/learn?lab=mcp-get-started&utm_source=github&utm_medium=labs_repo&utm_campaign=mcp-get-started_readme)** — fully hosted sandbox environment, progress tracking, and a full-featured lab workspace.
 
-**Duration** 75 minutes · **Difficulty** Beginner
+**Duration** 85 minutes · **Difficulty** Beginner
 
-**Topics** `MCP` · `FastMCP` · `stdio` · `Streamable HTTP` · `OAuth` · `goose` · `Docker` · `Python` · `Open Source`
+**Topics** `MCP` · `FastMCP` · `stdio` · `Streamable HTTP` · `Tasks` · `OAuth` · `goose` · `Docker` · `Python` · `Open Source`
 
 **Prerequisites**
 
@@ -37,12 +37,14 @@ uv sync
 ```console
 Using CPython 3.12.13 interpreter at: /usr/bin/python3.12
 Creating virtual environment at: .venv
-Resolved 75 packages in 9ms
-Installed 66 packages in 181ms
+Resolved 87 packages in 9ms
+Installed 76 packages in 181ms
  + aiofile==3.12.3
- + annotated-types==0.8.0
+ + annotated-doc==0.0.5
 ...
  + fastmcp==3.4.7
+...
+ + pydocket==0.25.0
 ...
  + uvicorn==0.52.4
  + websockets==17.0.1
@@ -73,6 +75,8 @@ Open `server.py`. This is the whole server (yes, all of it):
 ```python
 """The whole MCP server. Transport is chosen at launch, never in here."""
 
+import asyncio
+
 from fastmcp import FastMCP
 from starlette.requests import Request
 from starlette.responses import PlainTextResponse
@@ -98,6 +102,15 @@ def shout(text: str) -> str:
     return text.upper() + "!"
 
 
+# task=True needs an async function and the `tasks` extra; the client decides
+# per call whether to use it.
+@mcp.tool(task=True)
+async def slow_shout(text: str, seconds: int = 10) -> str:
+    """Uppercase a string, slowly. Long enough that a caller shouldn't wait on it."""
+    await asyncio.sleep(seconds)
+    return text.upper() + "!"
+
+
 if __name__ == "__main__":
     mcp.run()
 ```
@@ -105,6 +118,8 @@ if __name__ == "__main__":
 The `@mcp.tool` decorator turns each typed function into an MCP tool. FastMCP compiles the Python type hints and docstrings into a JSON Schema and sends it to any client that asks for `tools/list`, so what you write here travels over the wire and is what tells a client how to call your server. `mcp.run()` with no arguments speaks stdio: it sits and waits for a host to feed it JSON-RPC on stdin.
 
 `@mcp.custom_route` adds an ordinary HTTP route alongside the protocol. FastMCP serves it only when the server runs over an HTTP transport, so under stdio the `/health` handler sits there unused. We'll use it two sections from now to tell when the container is actually ready to answer.
+
+`slow_shout` is the odd one out, with a `task=True` and an `await` in it. That pair lets a client send the work off and collect the answer later instead of holding the connection open. It behaves like any other tool until somebody asks for that, so leave it be for now; the last section of this lab is about nothing else.
 
 Let's play host ourselves for one message. Every host performs an `initialize` handshake first, so we'll do exactly that by hand:
 
@@ -132,6 +147,21 @@ printf '%s\n' \
       },
       "tools": {
         "listChanged": true
+      },
+      "tasks": {
+        "list": {},
+        "cancel": {},
+        "requests": {
+          "tools": {
+            "call": {}
+          },
+          "prompts": {
+            "get": {}
+          },
+          "resources": {
+            "read": {}
+          }
+        }
       },
       "extensions": {
         "io.modelcontextprotocol/ui": {}
@@ -198,7 +228,7 @@ uv run python client.py
 ```
 
 ```console
-tools: ['add', 'shout']
+tools: ['add', 'shout', 'slow_shout']
 add(2, 3) = 5
 shout = MCP WORKS!
 ```
@@ -258,7 +288,7 @@ Same `server.py`, no edits. The lab's `Dockerfile` just launches it differently,
 
 ```dockerfile
 FROM python:3.13-slim
-RUN pip install --no-cache-dir 'fastmcp>=3.4,<4'
+RUN pip install --no-cache-dir 'fastmcp[tasks]>=3.4,<4'
 WORKDIR /app
 COPY server.py .
 EXPOSE 8000
@@ -330,7 +360,7 @@ uv run python client.py http://127.0.0.1:8765/mcp
 ```
 
 ```console
-tools: ['add', 'shout']
+tools: ['add', 'shout', 'slow_shout']
 add(2, 3) = 5
 shout = MCP WORKS!
 ```
@@ -447,7 +477,111 @@ Use the add tool to compute 20260825 + 101, then shout the phrase "protocols ove
 Watch the transcript: goose lists your tools during its handshake (the same `initialize` and `tools/list` you sent by hand earlier), the model picks `add`, and the result comes back through the same `tools/call` your script issued. When it responds with `20260926` and `PROTOCOLS OVER PLUGINS!`, you've watched one unchanged server answer three different clients.
 
 > [!WARNING]
-> Running a model locally can be a little bit slow; keep that in mind after you send a message. Also, such a small model sometimes doesn't correctly call the tool. Ask again, or say "use the add tool" more insistently. If it reaches for a tool you never wrote, check that you disabled the `developer` extension above. If it never reaches for a tool at all, switch to a bigger model in the collapsible; the server and the protocol are not the problem. Either way, "goose connected and listed `add` and `shout`" appears in the session startup before the model does anything at all.
+> Running a model locally can be a little bit slow; keep that in mind after you send a message. Also, such a small model sometimes doesn't correctly call the tool. Ask again, or say "use the add tool" more insistently. If it reaches for a tool you never wrote, check that you disabled the `developer` extension above. If it never reaches for a tool at all, switch to a bigger model in the collapsible; the server and the protocol are not the problem. Either way, "goose connected and listed `add`, `shout` and `slow_shout`" appears in the session startup before the model does anything at all.
+
+## Send the work and come back for it
+
+_~10 min · Hands-on_
+
+Every call so far came back while you waited. Plenty of real work takes minutes though: a repository scan, an image build, a model chewing through a long document. Holding an HTTP connection open for that long fails in all the usual ways, and the host spends the whole time unable to get on with anything else.
+
+MCP handles this with tasks. The client marks a `tools/call` as task-augmented, the server answers immediately with a task id, and the work carries on behind it. The client checks in with `tasks/get` whenever it likes, then collects the answer with `tasks/result`. The design started life as [SEP-1686](https://modelcontextprotocol.io/seps/1686-tasks) and now ships as the `io.modelcontextprotocol/tasks` extension, so expect the details to keep moving for a while yet.
+
+Your server has been ready for this since the first section. `slow_shout` is the tool with `task=True` on it, and the `tasks` block in that very first `initialize` response is the server advertising the capability. FastMCP gets the machinery from the `tasks` extra, which is why the lab's `pyproject.toml` and `Dockerfile` both ask for `fastmcp[tasks]` instead of plain `fastmcp`. It queues in-process by default and can be pointed at Redis once one process stops being enough.
+
+Time to drive the whole cycle by hand. Your container is still running, and this is the same `curl` that got told `Missing session ID` a couple of sections ago, now with the handshake it was missing:
+
+```bash
+MCP=http://127.0.0.1:8765/mcp
+JSON='Content-Type: application/json'
+STREAM='Accept: application/json, text/event-stream'
+
+# The handshake that earns a session, and the notification that opens it.
+MCP_SESSION=$(curl -sS -D - -o /dev/null "$MCP" -H "$JSON" -H "$STREAM" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{"tasks":{"requests":{"tools":{"call":{}}}}},"clientInfo":{"name":"curl","version":"0"}}}' \
+  | tr -d '\r' | sed -n 's/^mcp-session-id: //p')
+curl -sS -o /dev/null "$MCP" -H "$JSON" -H "$STREAM" -H "Mcp-Session-Id: $MCP_SESSION" \
+  -d '{"jsonrpc":"2.0","method":"notifications/initialized"}'
+
+# One request in, one line of JSON back, for the rest of this section.
+mcp() {
+  curl -sS "$MCP" -H "$JSON" -H "$STREAM" -H "Mcp-Session-Id: $MCP_SESSION" \
+    -d "$(jq -nc --arg m "$1" --argjson p "$2" '{jsonrpc:"2.0",id:1,method:$m,params:$p}')" \
+    | sed -n 's/^data: //p'
+}
+
+# Which tools will accept a task?
+mcp tools/list '{}' | jq -c '.result.tools[] | {name, execution}'
+
+# The synchronous way: ten seconds of holding the line.
+time mcp tools/call '{"name":"slow_shout","arguments":{"text":"the slow way"}}' \
+  | jq -c '.result.structuredContent'
+
+# The task way: same tool, same arguments, plus a `task` on the request.
+TASK_ID=$(mcp tools/call '{"name":"slow_shout","arguments":{"text":"tasks work"},"task":{"ttl":60000}}' \
+  | jq -r '.result.task.taskId')
+TASK=$(jq -nc --arg id "$TASK_ID" '{taskId:$id}')
+echo "submitted $TASK_ID"
+
+mcp tasks/get "$TASK" | jq -c '.result | {status, lastUpdatedAt}'
+sleep 12
+mcp tasks/get "$TASK" | jq -c '.result | {status, lastUpdatedAt}'
+
+# Collect the answer the task was holding for us.
+mcp tasks/result "$TASK" | jq '.result.content'
+```
+
+```console
+{"name":"add","execution":null}
+{"name":"shout","execution":null}
+{"name":"slow_shout","execution":{"taskSupport":"optional"}}
+{"result":"THE SLOW WAY!"}
+
+real	0m10.020s
+user	0m0.006s
+sys	0m0.008s
+submitted 9024beb9-0e6c-4f08-89fe-1ac1f6212eb2
+{"status":"working","lastUpdatedAt":"2026-09-03T17:14:48.782380Z"}
+{"status":"completed","lastUpdatedAt":"2026-09-03T17:15:00.805371Z"}
+[
+  {
+    "type": "text",
+    "text": "TASKS WORK!"
+  }
+]
+```
+
+Reading down the highlights: `slow_shout` is the only tool advertising `taskSupport`, so it's the only one that will accept a `task` on the way in. The plain call spends the full ten seconds on the wire, which `time` shows. The augmented call hands back a `taskId` straight away and reports `working` a moment later, then `completed` after the sleep, and `TASKS WORK!` comes back from `tasks/result`. Success!
+
+Two details in the reply are worth keeping. The `ttl` we asked for, 60 seconds, is how long the server holds the finished answer before discarding it, so a client that wanders off too long comes back to nothing. And every `tasks/get` carries a `pollInterval` of 5000, the server's own suggestion for how often to knock; the `sleep 12` above is us being impatient with a tool we know takes ten seconds.
+
+Question: what do you think `tasks/result` gives you if you ask for it while the task is still `working`? Have a guess, then send it and see 🤔
+
+<details>
+<summary>Answer</summary>
+
+Submit one and ask for its result immediately:
+
+```bash
+TASK_ID=$(mcp tools/call '{"name":"slow_shout","arguments":{"text":"too soon"},"task":{"ttl":60000}}' \
+  | jq -r '.result.task.taskId')
+mcp tasks/result "$(jq -nc --arg id "$TASK_ID" '{taskId:$id}')" | jq
+```
+
+```console
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "error": {
+    "code": -32602,
+    "message": "Task not completed yet (current state: working)"
+  }
+}
+```
+
+An error, straight back. `tasks/result` collects an answer that already exists; it never waits for one. Polling `tasks/get` until the status settles is the client's job, and `pollInterval` is the server telling it how to pace that. Asking for a `taskId` the server has never heard of gets you the same error code with `Task <id> not found`.
+
+</details>
 
 ## Cleanup
 
