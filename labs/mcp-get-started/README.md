@@ -251,12 +251,13 @@ Send the bad argument yourself:
 ```bash
 uv run python - <<'PY'
 import asyncio
+from pathlib import Path
 
 from fastmcp import Client
 
 
 async def main() -> None:
-    async with Client("server.py") as client:
+    async with Client(Path("server.py")) as client:
         await client.call_tool("add", {"a": "two", "b": 3})
 
 
@@ -271,7 +272,7 @@ The call is rejected before your function ever runs:
                     WARNING  Invalid arguments for tool 'add': [{'type': 'int_parsing', 'loc': ('a',), 'msg': 'Input should be a valid integer,
                              unable to parse string as an integer', 'input': 'two'}]
 Traceback (most recent call last):
-  File "<stdin>", line 11, in <module>
+  File "<stdin>", line 12, in <module>
 ...
     raise ToolError(msg)
 fastmcp.exceptions.ToolError: 1 validation error for call[add]
@@ -403,15 +404,22 @@ goose --version
 ```
 
 ```console
-goose 1.46.0
+1.46.0
 ```
 
 This is where a model finally enters the story: goose is a full host, so it needs a model to drive tool calls. Your sandbox already runs [Ollama](https://ollama.com/) with `qwen3:1.7b`, a 1.7B model quantized to 1.4 GB that fits alongside your container and can call tools, which is the only capability this section needs. So there's no key, no account, and no token cost for the rest of the lab.
 
-`qwen3:1.7b` is a reasoning model: before it answers it writes out its thinking, and on the sandbox's two CPU cores that costs about twenty seconds for a one-word reply and several minutes for a turn that calls two tools. We turn thinking off by building a copy of the model with the switch baked into its template. The `ollama pull` on the first line covers a sandbox that came up without the weights on disk; when they're already there it returns straight away.
+`qwen3:1.7b` is a reasoning model: before it answers it writes out its thinking, and on the sandbox's two CPU cores that costs about twenty seconds for a one-word reply and several minutes for a turn that calls two tools. We turn thinking off by building a copy of the model with the switch baked into its template.
+
+First make sure the weights are on disk. This covers a sandbox that came up without them; when they're already there it returns straight away. Run it on its own and wait for it to finish, because the progress display takes over the terminal and swallows anything you paste behind it:
 
 ```bash
 ollama pull qwen3:1.7b
+```
+
+Now derive the copy with thinking pinned off:
+
+```bash
 ollama show --modelfile qwen3:1.7b > Modelfile.nothink
 sed -i 's|^FROM /.*|FROM qwen3:1.7b|' Modelfile.nothink
 sed -i 's|{{- if and $.IsThinkSet (eq $i $lastUserIdx) }}|{{- if (eq $i $lastUserIdx) }}|' Modelfile.nothink
@@ -538,12 +546,25 @@ In the session, ask something that forces a tool call rather than mental arithme
 Use the add tool to compute 20260825 + 101, then shout the phrase "protocols over plugins".
 ```
 
-Watch the transcript: goose lists your tools on connecting, the model picks `add`, and the result comes back through a `tools/call`. When the transcript shows `add` and then `shout` being called, you've watched one unchanged server answer three different clients. The model's summary afterwards varies; the two tool calls are the part that matters.
+Watch the transcript. goose prints a `▸ <tool> <extension>` line with the arguments underneath for each call it makes, so a turn that goes to plan looks like this:
+
+```console
+  ────────────────────────────────────────
+  ▸ add mcp-get-started
+    a: 20260825
+    b: 101
+  ────────────────────────────────────────
+  ▸ shout mcp-get-started
+    text: protocols over plugins
+The result of adding 20260825 and 101 is 20260926. Then, the phrase "protocols over plugins" was shouted.
+```
+
+When the transcript shows `add` and then `shout` being called, you've watched one unchanged server answer three different clients. The model's summary afterwards varies; the two tool calls are the part that matters.
 
 goose is on an older protocol revision than the one you've been sending by hand, so it opens with the `initialize` handshake and gets a session, where your `server/discover` got a stateless envelope. Your server answers both without knowing or caring which is on the other end, which is the whole reason a version-negotiating protocol is worth the trouble.
 
 > [!WARNING]
-> Running a model locally can be a little bit slow; keep that in mind after you send a message. Also, such a small model sometimes doesn't correctly call the tool, or answers without repeating the sum. Ask again, or say "use the add tool" more insistently. If it reaches for a tool you never wrote, check that `GOOSE_PATH_ROOT` is set in the shell you started goose from. If it never reaches for a tool at all, switch to a bigger model in the collapsible; the server and the protocol are not the problem. Either way, "goose connected and listed `add`, `shout` and `slow_shout`" appears in the session startup before the model does anything at all.
+> Running a model locally can be a little bit slow; keep that in mind after you send a message. Also, such a small model sometimes doesn't correctly call the tool, or answers without repeating the sum. Ask again, or say "use the add tool" more insistently. If it reaches for a tool you never wrote, check that `GOOSE_PATH_ROOT` is set in the shell you started goose from. If it never reaches for a tool at all, switch to a bigger model in the collapsible; the server and the protocol are not the problem. The `▸ add mcp-get-started` line in the transcript is the one to look for: it names the tool and the extension it came from, so seeing it means the call reached your server.
 
 ## Send the work and come back for it
 

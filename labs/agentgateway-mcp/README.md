@@ -42,11 +42,11 @@ docker compose ps
 ```
 
 ```console
-NAME              IMAGE                                      COMMAND                  SERVICE           CREATED          STATUS          PORTS
-agentgateway      ghcr.io/agentgateway/agentgateway:v1.4.1   "/app/agentgateway -…"   agentgateway      18 seconds ago   Up 17 seconds   127.0.0.1:3000->3000/tcp, 127.0.0.1:15000->15000/tcp, 127.0.0.1:15020->15020/tcp
-jaeger            jaegertracing/all-in-one:1.68.0            "/go/bin/all-in-one-…"   jaeger            18 seconds ago   Up 17 seconds   4317-4318/tcp, 9411/tcp, 14250/tcp, 14268/tcp, 127.0.0.1:16686->16686/tcp
-mcp-get-started   agentgateway-mcp-mcp-get-started           "fastmcp run server.…"   mcp-get-started   18 seconds ago   Up 17 seconds   8000/tcp
-tickets           agentgateway-mcp-tickets                   "fastmcp run tickets…"   tickets           18 seconds ago   Up 17 seconds   8000/tcp
+NAME              IMAGE                                      COMMAND                  SERVICE           CREATED         STATUS         PORTS
+agentgateway      ghcr.io/agentgateway/agentgateway:v1.4.1   "/app/agentgateway -…"   agentgateway      9 seconds ago   Up 7 seconds   127.0.0.1:3000->3000/tcp, 127.0.0.1:15000->15000/tcp, 127.0.0.1:15020->15020/tcp
+jaeger            jaegertracing/all-in-one:1.68.0            "/go/bin/all-in-one-…"   jaeger            9 seconds ago   Up 8 seconds   4317-4318/tcp, 9411/tcp, 14250/tcp, 14268/tcp, 127.0.0.1:16686->16686/tcp
+mcp-get-started   agentgateway-mcp-mcp-get-started           "fastmcp run server.…"   mcp-get-started   9 seconds ago   Up 8 seconds   8000/tcp
+tickets           agentgateway-mcp-tickets                   "fastmcp run tickets…"   tickets           9 seconds ago   Up 8 seconds   8000/tcp
 ```
 
 Look at the two highlighted lines. `mcp-get-started` and `tickets` show `8000/tcp` with no address in front, so neither publishes a port to your machine. The gateway is the only way in, which is how you'd run this anywhere that matters.
@@ -231,10 +231,10 @@ curl -s http://127.0.0.1:16686/api/services | jq -c .data
 ```
 
 ```console
-["agentgateway"]
+["agentgateway","jaeger-all-in-one"]
 ```
 
-Success! Three views of one tool call, and the server still doesn't know we're here.
+Jaeger traces itself as well, which is why it shows up beside the gateway. Success! Three views of one tool call, and the server still doesn't know we're here.
 
 agentgateway ships its own UI as well, on the admin port. Open **http://localhost:15000/ui** and you get the live configuration: the bind on 3000, the route, and the MCP targets behind it. Same data, from the same process, over the API the page calls:
 
@@ -269,9 +269,11 @@ curl -s "http://127.0.0.1:16686/api/traces?service=agentgateway&limit=30" \
 ```
 
 ```console
-POST /*	2516us	gen_ai.tool.name=add mcp.method.name=tools/call mcp.resource.type=tool mcp.session.id=eyJ0IjoibWNwIiwicyI6W3sidCI6ImdldC1zdGFydGVkIiwicyI6ImIyNjdkMGE2ZmNlYzQxOWE5NmNkZGNiY2I5NTg0MmRmIn1dfQ mcp.target=get-started
-tools/call get-started	876us
+tools/call get-started	979us
+POST /*	2960us	gen_ai.tool.name=add mcp.method.name=tools/call mcp.resource.type=tool mcp.session.id=eyJ0IjoibWNwIiwicyI6W3sidCI6ImdldC1zdGFydGVkIiwicyI6IjRkZTBhMTAyZjdjZjRjMDI4MjkzNTlmMmY3Mzc1MjRmIn1dfQ mcp.target=get-started
 ```
+
+The two spans come back in whichever order Jaeger stored them, so yours may show the parent first.
 
 `gen_ai.tool.name` is from OpenTelemetry's [generative AI semantic conventions](https://github.com/open-telemetry/semantic-conventions-genai/tree/main/docs), which is why the same attribute name turns up in the access log. Whatever you already point at OTLP can read these without being taught anything MCP-specific.
 
@@ -488,15 +490,22 @@ goose --version
 ```
 
 ```console
-goose 1.46.0
+1.46.0
 ```
 
 goose is a full host, so it needs a model to drive tool calls. Your sandbox already runs [Ollama](https://ollama.com/) with `qwen3:1.7b`, a 1.7B model quantized to 1.4 GB that can call tools, which is the only capability this section needs. It needs no API key and no account, and costs nothing to run.
 
-`qwen3:1.7b` is a reasoning model: before it answers it writes out its thinking, and on the sandbox's two CPU cores that costs about twenty seconds for a one-word reply and several minutes for a turn that calls two tools. We turn thinking off by building a copy of the model with the switch baked into its template. The `ollama pull` on the first line covers a sandbox that came up without the weights on disk; when they're already there it returns straight away.
+`qwen3:1.7b` is a reasoning model: before it answers it writes out its thinking, and on the sandbox's two CPU cores that costs about twenty seconds for a one-word reply and several minutes for a turn that calls two tools. We turn thinking off by building a copy of the model with the switch baked into its template.
+
+First make sure the weights are on disk. This covers a sandbox that came up without them; when they're already there it returns straight away. Run it on its own and wait for it to finish, because the progress display takes over the terminal and swallows anything you paste behind it:
 
 ```bash
 ollama pull qwen3:1.7b
+```
+
+Now derive the copy with thinking pinned off:
+
+```bash
 ollama show --modelfile qwen3:1.7b > Modelfile.nothink
 sed -i 's|^FROM /.*|FROM qwen3:1.7b|' Modelfile.nothink
 sed -i 's|{{- if and $.IsThinkSet (eq $i $lastUserIdx) }}|{{- if (eq $i $lastUserIdx) }}|' Modelfile.nothink
@@ -647,7 +656,7 @@ Success! 🎉 goose drove a local model through the gateway, and every tool call
 > Two CPU cores are still two CPU cores. With thinking off, a turn that calls two tools takes about a minute on the sandbox, so expect a wait after you send a message.
 
 > [!NOTE]
-> A model this small sometimes misses a tool call, or lists the tickets without repeating the sum. Ask again, or name the tool more insistently. goose lists the three tools at startup, before the model acts, so the gateway and the protocol are working either way. If it reaches for a tool you have never heard of, check that `GOOSE_PATH_ROOT` is set in the shell you started goose from.
+> A model this small sometimes misses a tool call, or lists the tickets without repeating the sum. Ask again, or name the tool more insistently. Each call goose makes prints a `▸ <tool> agentgateway` line, so those lines are what to check when you're unsure whether the model reached the gateway at all. If it reaches for a tool you have never heard of, check that `GOOSE_PATH_ROOT` is set in the shell you started goose from.
 
 ## Cleanup
 
