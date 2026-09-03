@@ -3,10 +3,15 @@
 import asyncio
 
 from fastmcp import FastMCP
+from fastmcp_tasks import TasksExtension
 from starlette.requests import Request
 from starlette.responses import PlainTextResponse
 
 mcp = FastMCP("mcp-get-started")
+
+# Turns on `task=True` below. Defaults to an in-process queue; point it at
+# Redis when one process is no longer enough.
+mcp.add_extension(TasksExtension())
 
 
 # Only mounted by the HTTP transports; stdio has no routes to serve it on.

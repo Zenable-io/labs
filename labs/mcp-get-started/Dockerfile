@@ -1,5 +1,5 @@
 FROM python:3.13-slim
-RUN pip install --no-cache-dir 'fastmcp[tasks]>=3.4,<4'
+RUN pip install --no-cache-dir 'fastmcp[tasks]>=4,<5'
 WORKDIR /app
 COPY server.py .
 EXPOSE 8000
