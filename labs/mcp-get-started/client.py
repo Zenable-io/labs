@@ -2,10 +2,14 @@
 
 import asyncio
 import sys
+from pathlib import Path
 
 from fastmcp import Client
 
-target = sys.argv[1] if len(sys.argv) > 1 else "server.py"
+arg = sys.argv[1] if len(sys.argv) > 1 else "server.py"
+# A Path means "spawn it and speak stdio", a URL means Streamable HTTP.
+# FastMCP 4 deprecated guessing that from a bare string, so be explicit.
+target: Path | str = arg if arg.startswith("http") else Path(arg)
 
 
 async def main() -> None:
