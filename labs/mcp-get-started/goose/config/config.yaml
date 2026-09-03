@@ -1,0 +1,37 @@
+# goose profile for this lab. Point goose at it with
+#   export GOOSE_PATH_ROOT="$PWD/goose"
+# and goose reads this file instead of ~/.config/goose/config.yaml, and keeps
+# its sessions and logs under goose/data and goose/state here, so nothing in
+# your own goose setup is touched.
+
+# Ollama, and the derived qwen3 model the lab builds with thinking pinned off.
+GOOSE_PROVIDER: ollama
+GOOSE_MODEL: qwen3-nothink
+OLLAMA_HOST: http://localhost:11434
+# goose sends this to Ollama as num_ctx on every request. Ollama's own default
+# is 4096, which a tool-calling agent spends on tool definitions alone.
+GOOSE_CONTEXT_LIMIT: 8192
+
+# Exactly one extension: your server. goose enables its own platform
+# extensions unless a profile says otherwise, so each one is listed and
+# turned off here rather than left to the default.
+extensions:
+  mcp-get-started:
+    enabled: true
+    type: streamable_http
+    name: mcp-get-started
+    uri: http://127.0.0.1:8765/mcp
+    timeout: 300
+  developer: {enabled: false, type: platform, name: developer}
+  analyze: {enabled: false, type: platform, name: analyze}
+  todo: {enabled: false, type: platform, name: todo}
+  apps: {enabled: false, type: platform, name: apps}
+  extensionmanager: {enabled: false, type: platform, name: extensionmanager}
+  scheduler: {enabled: false, type: platform, name: scheduler}
+  summon: {enabled: false, type: platform, name: summon}
+  skills: {enabled: false, type: platform, name: skills}
+  tom: {enabled: false, type: platform, name: tom}
+  chatrecall: {enabled: false, type: platform, name: chatrecall}
+  summarize: {enabled: false, type: platform, name: summarize}
+  code_execution: {enabled: false, type: platform, name: code_execution}
+  orchestrator: {enabled: false, type: platform, name: orchestrator}

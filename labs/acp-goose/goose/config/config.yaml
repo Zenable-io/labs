@@ -1,0 +1,16 @@
+# goose profile for this lab. Point goose at it with
+#   export GOOSE_PATH_ROOT="$PWD/goose"
+# and goose reads this file instead of ~/.config/goose/config.yaml, and keeps
+# its sessions and logs under goose/data and goose/state here, so nothing in
+# your own goose setup is touched.
+#
+# This lab keeps goose's default extensions: the file writes and shell
+# commands it asks the ACP client for come from the developer extension.
+
+# Ollama, and the derived qwen3 model the lab builds with thinking pinned off.
+GOOSE_PROVIDER: ollama
+GOOSE_MODEL: qwen3-nothink
+OLLAMA_HOST: http://localhost:11434
+# goose sends this to Ollama as num_ctx on every request. Ollama's own default
+# is 4096, which a tool-calling agent spends on tool definitions alone.
+GOOSE_CONTEXT_LIMIT: 32768

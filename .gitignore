@@ -4,3 +4,7 @@ __pycache__/
 
 # Derived Ollama model definition -- labs build it in place with `ollama show`.
 Modelfile.nothink
+
+# goose writes sessions and logs under a lab profile (GOOSE_PATH_ROOT).
+**/goose/data/
+**/goose/state/

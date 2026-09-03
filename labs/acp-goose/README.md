@@ -330,46 +330,71 @@ You should get a `write_file` call carrying `notes.txt` and `hello`. That JSON i
 > [!WARNING]
 > `qwen3:0.6b` still fires the tool but garbles the schema, and an agent wired to a model like that fails in ways that look like protocol bugs. Tool-calling fidelity is a model property; check it before you blame the wire.
 
-Notice the `"think": false` in that request. `qwen3:1.7b` is a reasoning model: left alone it writes out its thinking before it answers, and on the sandbox's two CPU cores that takes minutes even for a trivial reply. We could set the flag because we wrote the HTTP call ourselves. goose doesn't currently have a way to send it, so before we hand the model to goose we turn thinking off one level down, in the Ollama inference runtime.
-
-An Ollama model carries a prompt template, and qwen3's already knows how to skip thinking; that switch just only fires when the caller asks for it. Copy the model's own definition, flip the switch on permanently, and build it under a new name:
+Notice the `"think": false` in the previous request. `qwen3:1.7b` is a reasoning model: left alone it writes out its thinking before it answers, and on the sandbox's two CPU cores that costs about twenty seconds for a one-word reply and several minutes for a turn that calls tools. We could set the flag because we wrote the HTTP call ourselves. goose has no way to send it, so before we hand the model to goose we build a copy of the model with the switch baked into its template:
 
 ```bash
 ollama show --modelfile qwen3:1.7b > Modelfile.nothink
 sed -i 's|^FROM /.*|FROM qwen3:1.7b|' Modelfile.nothink
 sed -i 's|{{- if and $.IsThinkSet (eq $i $lastUserIdx) }}|{{- if (eq $i $lastUserIdx) }}|' Modelfile.nothink
 sed -i 's|{{- if $.Think -}}|{{- if false -}}|' Modelfile.nothink
+sed -i 's|{{ if and $.IsThinkSet (not $.Think) -}}|{{ if true -}}|' Modelfile.nothink
+grep -q '{{ if true -}}' Modelfile.nothink
 ollama create qwen3-nothink -f Modelfile.nothink
 ```
 
-The first `sed` points the new model at the tag instead of a blob path on disk. The other two make the template take the no-thinking branch for every request, whatever the caller asked for. Because it reuses weights already on disk there's no download, and it finishes in about a second.
-
-Check that it answers without thinking:
+Because it reuses weights already on disk there's no download, and it finishes in about a second. Check that it answers without thinking:
 
 ```bash
-ollama run qwen3-nothink "say ok"
+ollama run qwen3-nothink "Reply with only the word: pong"
 ```
 
 ```console
-Okay, I'm ready to help you with whatever you need. Let me know how I can assist you today!
+pong
 ```
 
-No `Thinking...` block, and seconds rather than minutes. goose reads its provider from the environment, and a new shell knows none of this:
+No `Thinking...` block, and the wait is loading the weights rather than generating; plain `qwen3:1.7b` spends about twenty seconds thinking first.
+
+<details>
+<summary>Qwen3 is a thinking model, but we turned thinking off. Open this panel to go down the rabbit hole of how, and why</summary>
+
+Why: a 1.7B model on two CPU cores produces a handful of tokens a second, and thinking mode spends hundreds of them before the first word of the answer. On the sandbox, a turn that calls two tools takes around a minute with thinking off and five to seven minutes with it on.
+
+The [Qwen3 model card](https://huggingface.co/Qwen/Qwen3-1.7B#switching-between-thinking-and-non-thinking-mode) documents two ways to switch it off. A soft switch, by including `/no_think` in the prompt, which the model treats as a request. And a hard switch, by setting `enable_thinking=False` in the chat template, which starts the reply with an empty `<think></think>` block so there's nowhere left to think. Ollama's copy of that template carries both, and flips both when a caller sends `think: false` on a request, which is what our hand-written call did. goose can't, so we bake both switches into a copy of the model instead.
+
+`ollama show --modelfile` prints the model's definition, template included, and each `sed` changes one line of it:
+
+- `FROM /usr/share/ollama/.ollama/models/blobs/sha256-…` becomes `FROM qwen3:1.7b`. The printed definition points at a blob on disk; pointing at the tag reuses the same weights without copying them.
+- `{{- if and $.IsThinkSet (eq $i $lastUserIdx) }}` becomes `{{- if (eq $i $lastUserIdx) }}`. The template appended a thinking switch word to your message only when the caller had set `think`; now it appends one on every request.
+- `{{- if $.Think -}}` becomes `{{- if false -}}`. That word was ` /think` or ` /no_think` depending on the request; now it's always ` /no_think`, the soft switch.
+- `{{ if and $.IsThinkSet (not $.Think) -}}` becomes `{{ if true -}}`. The empty `<think></think>` block opened the reply only when a caller sent `think: false`; now it opens every reply, the hard switch.
+- `grep -q '{{ if true -}}'` fails the block if that last edit didn't land. `sed` exits 0 whether or not it matched anything, so without this a changed upstream template would build a model that thinks under a name that says it doesn't.
+
+The request no longer has a say. Send `think: true` to `qwen3-nothink` and you still get no thinking, because there's no branch left for the value to reach.
+
+> [!NOTE]
+> A model this small still reasons in the open when a prompt gives it room to wonder what you meant. Ask it to "say ok" and you'll get a paragraph of deliberation with no think block around it. Direct prompts get direct answers.
+
+</details>
+
+goose reads its provider from a config file, and a new shell knows none of this. Rather than editing the one in your home directory, the lab ships a goose profile and one environment variable tells goose to read it:
+
+```yaml
+GOOSE_PROVIDER: ollama
+GOOSE_MODEL: qwen3-nothink
+OLLAMA_HOST: http://localhost:11434
+GOOSE_CONTEXT_LIMIT: 32768
+```
 
 ```bash
-export GOOSE_PROVIDER=ollama
-export OLLAMA_HOST=http://localhost:11434
-export GOOSE_MODEL=qwen3-nothink
-export OLLAMA_CONTEXT_LENGTH=32768
+cd ~/zenable-labs/labs/acp-goose && export GOOSE_PATH_ROOT="$PWD/goose"
 ```
 
-> [!TIP]
-> `OLLAMA_CONTEXT_LENGTH` matters. Ollama defaults to a 4096-token context, a tool-calling agent blows past that on tool definitions alone, and goose then appears to ignore its own instructions because the context was silently truncated.
+`GOOSE_CONTEXT_LIMIT` is what goose sends Ollama as the context window. Ollama's own default is 4096 tokens, a tool-calling agent spends that on tool definitions alone, and the failure looks like a model ignoring instructions when really the prompt was silently truncated. `GOOSE_PATH_ROOT` also moves goose's sessions and logs under `goose/` in this directory, so nothing in your own goose setup is read or written. This profile leaves goose's own extensions on: the file writes it asks our client for come from its `developer` extension.
 
 Either way, we end up in the same place: our proxy in front of real goose, denying writes while the model works.
 
 ```bash
-cd ~/zenable-labs/labs/acp-goose && export PATH="$HOME/.local/bin:$PATH"
+cd ~/zenable-labs/labs/acp-goose && export PATH="$HOME/.local/bin:$PATH" && export GOOSE_PATH_ROOT="$PWD/goose"
 python3 permissive_client.py -- \
   python3 acp_policy_proxy.py --deny fs/write_text_file --audit /tmp/acp-real.jsonl -- \
   goose acp
@@ -388,7 +413,7 @@ If you took Adventure B and want the models gone:
 
 ```bash
 command -v ollama >/dev/null 2>&1 && ollama rm qwen3-nothink qwen3:1.7b || true
-rm -f Modelfile.nothink
+rm -rf Modelfile.nothink goose/data goose/state
 ```
 
 Everything else we made lives in three places: temp files, the goose binary, and the cloned rig. Step out of the rig directory first (removing the directory you're standing in leaves your shell in a deleted location), then remove them all:
