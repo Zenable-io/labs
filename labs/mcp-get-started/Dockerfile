@@ -1,5 +1,7 @@
 FROM python:3.13-slim
-RUN pip install --no-cache-dir 'fastmcp[tasks]>=4,<5'
+# Same floor as pyproject.toml. 4.0.2 is the first release carrying the tasks
+# behaviour this lab walks through.
+RUN pip install --no-cache-dir 'fastmcp[tasks]>=4.0.2,<5'
 WORKDIR /app
 COPY server.py .
 EXPOSE 8000

@@ -8,7 +8,16 @@ set -euo pipefail
 DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$DIR"
 
-IMAGE="${KC_IMAGE:-ceposta/keycloak:id-jag}"
+# Pinned by digest, not just by tag. `id-jag` is a mutable tag on a third
+# party's personal Docker Hub account — it carries no version, has no release
+# feed behind it, and its contents can be replaced under the same name at any
+# time, so the weekly update automation cannot cooldown or verify it. The digest
+# is the only thing here that names a fixed set of bytes.
+#
+# Resolve a replacement with:
+#   docker buildx imagetools inspect ceposta/keycloak:id-jag --format '{{.Manifest.Digest}}'
+# and only after deciding the new contents are trustworthy.
+IMAGE="${KC_IMAGE:-ceposta/keycloak:id-jag@sha256:5d945dc3e04fa616eae7ad883f158f32951503f465dfedd0ab866e0a38bb8934}"
 CONTAINER=kc-idjag
 
 down() {

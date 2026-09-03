@@ -12,3 +12,7 @@ dependencies = [
 
 [tool.uv]
 package = false
+# Adopt only packages published more than a week ago, so a compromised
+# release has time to surface before a lab installs it. Enforced by the
+# resolver, so `uv lock --upgrade` and a reader's `uv sync` obey it alike.
+exclude-newer = "7 days"

@@ -13,7 +13,7 @@ DPoP -- attacker has exfiltrated the access token
   [   HELD] stolen token + attacker's own proof key
             HTTP 401 DPoP proof rejected: proof key thumbprint does not match token cnf.jkt
   [   HELD] captured token + proof, replayed verbatim
-            first 200, replay HTTP 401 DPoP proof rejected: replayed jti ce0033cd-8bd1-4067-a2f1-b0035fc3a13a
+            first 200, replay HTTP 401 DPoP proof rejected: replayed jti 86cd9a62-7c7f-49b5-97df-f98acc5b0b70
   [   HELD] proof minted for a different URL (htu)
             HTTP 401 DPoP proof rejected: htu 'http://localhost:8081/invoices' != 'http://localhost:8081/invoices/strict'
   [   HELD] proof minted for a different method (htm)
@@ -39,7 +39,7 @@ SD-JWT -- what a verifier learns, and what it can replay
   [   HELD] verifier sees only the disclosed claims
             disclosed ['capabilities', 'cnf', 'iss', 'operator', 'sub']; withheld ['cost_center', 'deployment_env', 'model', 'operator_contact', 'owner_employee_id']
   [   HELD] count of withheld claims is blurred by decoys
-            9 unopenable digests hide 5 real claims
+            7 unopenable digests hide 5 real claims
   [   HELD] verifier replays the presentation elsewhere (aud)
             rejected: Invalid audience in KB-JWT
   [   HELD] presentation replayed in a later session (nonce)

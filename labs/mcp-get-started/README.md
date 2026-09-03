@@ -408,9 +408,7 @@ goose 1.46.0
 
 This is where a model finally enters the story: goose is a full host, so it needs a model to drive tool calls. Your sandbox already runs [Ollama](https://ollama.com/) with `qwen3:1.7b`, a 1.7B model quantized to 1.4 GB that fits alongside your container and can call tools, which is the only capability this section needs. So there's no key, no account, and no token cost for the rest of the lab.
 
-`qwen3:1.7b` is a reasoning model: before it answers it writes out its thinking, and on the sandbox's two CPU cores that takes minutes even for a trivial reply. Since goose doesn't currently have a way to turn thinking off in its calls, we're going to adjust the upstream qwen model to turn it off in the Ollama inference runtime.
-
-An Ollama model carries a prompt template, and qwen3's already knows how to skip thinking; that switch just only fires when the caller asks for it. Copy the model's own definition, flip the switch on permanently, and build it under a new name. The `ollama pull` on the first line covers a sandbox that came up without the weights on disk; when they're already there it returns straight away.
+`qwen3:1.7b` is a reasoning model: before it answers it writes out its thinking, and on the sandbox's two CPU cores that costs about twenty seconds for a one-word reply and several minutes for a turn that calls two tools. We turn thinking off by building a copy of the model with the switch baked into its template. The `ollama pull` on the first line covers a sandbox that came up without the weights on disk; when they're already there it returns straight away.
 
 ```bash
 ollama pull qwen3:1.7b
@@ -418,65 +416,120 @@ ollama show --modelfile qwen3:1.7b > Modelfile.nothink
 sed -i 's|^FROM /.*|FROM qwen3:1.7b|' Modelfile.nothink
 sed -i 's|{{- if and $.IsThinkSet (eq $i $lastUserIdx) }}|{{- if (eq $i $lastUserIdx) }}|' Modelfile.nothink
 sed -i 's|{{- if $.Think -}}|{{- if false -}}|' Modelfile.nothink
+sed -i 's|{{ if and $.IsThinkSet (not $.Think) -}}|{{ if true -}}|' Modelfile.nothink
+grep -q '{{ if true -}}' Modelfile.nothink
 ollama create qwen3-nothink -f Modelfile.nothink
 ```
 
-The first `sed` points the new model at the tag instead of a blob path on disk. The other two make the template append qwen3's own `/no_think` token to every request, whatever the caller asked for. Because it reuses weights already on disk there's no download, and it finishes in about a second.
-
-Check what it does now:
+Because it reuses weights already on disk there's no download, and it finishes in about a second. Check that it answers without thinking:
 
 ```bash
-ollama run qwen3-nothink "say ok"
+ollama run qwen3-nothink "Reply with only the word: pong"
 ```
 
 ```console
-Okay, I'll say "Okay" and be ready to help you. Let me know how I can assist you today!
+pong
 ```
 
-An answer in seconds rather than minutes, with no `<think>` block in front of it.
+No `Thinking...` block, and the wait is loading the weights rather than generating. Try the same prompt against plain `qwen3:1.7b` if you want to watch the difference: a `Thinking...` block, and about twenty seconds of it.
 
-> [!WARNING]
-> `/no_think` is a request, and a 1.7B model grants it most of the time rather than always. If your run comes back with a paragraph of reasoning and a `</think>` before the answer, that's the model ignoring the hint; run it again. The point of the switch is that most turns get shorter, which is what makes the next section bearable on two CPU cores.
+<details>
+<summary>Qwen3 is a thinking model, but we turned thinking off. Open this panel to go down the rabbit hole of how, and why</summary>
 
-Now point goose at it. goose reads its provider from the environment, and these four variables replace anything `goose configure` would have written:
+Why: a 1.7B model on two CPU cores produces a handful of tokens a second, and thinking mode spends hundreds of them before the first word of the answer. On the sandbox, a two-tool prompt like the one we give goose below takes around a minute with thinking off and five to seven minutes with it on.
+
+The [Qwen3 model card](https://huggingface.co/Qwen/Qwen3-1.7B#switching-between-thinking-and-non-thinking-mode) documents two ways to switch it off. A soft switch, by including `/no_think` in the prompt, which the model treats as a request. And a hard switch, by setting `enable_thinking=False` in the chat template, which starts the reply with an empty `<think></think>` block so there's nowhere left to think. Ollama's copy of that template carries both, and flips both when a caller sends `think: false` on a request. However, goose has no way to send `think: false`, so we bake both switches into a copy of the model instead.
+
+`ollama show --modelfile` prints the model's definition, template included, and each `sed` changes one line of it:
+
+- `FROM /usr/share/ollama/.ollama/models/blobs/sha256-…` becomes `FROM qwen3:1.7b`. The printed definition points at a blob on disk; pointing at the tag reuses the same weights without copying them.
+- `{{- if and $.IsThinkSet (eq $i $lastUserIdx) }}` becomes `{{- if (eq $i $lastUserIdx) }}`. The template appended a thinking switch word to your message only when the caller had set `think`; now it appends one on every request.
+- `{{- if $.Think -}}` becomes `{{- if false -}}`. That word was ` /think` or ` /no_think` depending on the request; now it's always ` /no_think`, the soft switch.
+- `{{ if and $.IsThinkSet (not $.Think) -}}` becomes `{{ if true -}}`. The empty `<think></think>` block opened the reply only when a caller sent `think: false`; now it opens every reply, the hard switch.
+- `grep -q '{{ if true -}}'` fails the block if that last edit didn't land. `sed` exits 0 whether or not it matched anything, so without this a changed upstream template would build a model that thinks under a name that says it doesn't.
+
+The request no longer has a say. Send `think: true` to `qwen3-nothink` and you still get no thinking, because there's no branch left for the value to reach.
+
+> [!NOTE]
+> A model this small still reasons in the open when a prompt gives it room to wonder what you meant. Ask it to "say ok" and you'll get a paragraph of deliberation with no think block around it. Direct prompts get direct answers.
+
+</details>
+
+Now point goose at it. Rather than exporting variables and editing the config file in your home directory, the lab ships a goose profile, and one environment variable tells goose to read it:
+
+```yaml
+GOOSE_PROVIDER: ollama
+GOOSE_MODEL: qwen3-nothink
+OLLAMA_HOST: http://localhost:11434
+GOOSE_CONTEXT_LIMIT: 8192
+
+extensions:
+  mcp-get-started:
+    enabled: true
+    type: streamable_http
+    name: mcp-get-started
+    uri: http://127.0.0.1:8765/mcp
+    timeout: 300
+  developer: {enabled: false, type: platform, name: developer}
+  analyze: {enabled: false, type: platform, name: analyze}
+  todo: {enabled: false, type: platform, name: todo}
+  # ...and every other extension goose would otherwise enable on its own
+```
 
 ```bash
-export GOOSE_PROVIDER=ollama
-export GOOSE_MODEL=qwen3-nothink
-export OLLAMA_HOST=http://localhost:11434
-export OLLAMA_CONTEXT_LENGTH=8192
+cat goose/config/config.yaml
+export GOOSE_PATH_ROOT="$PWD/goose"
 ```
 
-> [!WARNING]
-> `OLLAMA_CONTEXT_LENGTH` is not optional here. Ollama defaults to a 4096-token context, a tool-calling agent spends that on tool definitions alone, and goose then looks like it's ignoring its own instructions when really the context was silently truncated.
+Three things in that file matter. The provider and model are what `goose configure` would have asked you for. `GOOSE_CONTEXT_LIMIT` is what goose sends Ollama as the context window; Ollama's own default is 4096 tokens, a tool-calling agent spends that on tool definitions alone, and the failure looks like a model ignoring instructions when really the prompt was silently truncated. And the `extensions` list is exactly one entry, your server, with every extension goose ships turned off by name.
+
+`GOOSE_PATH_ROOT` also moves goose's sessions and logs under `goose/` in this directory, so nothing in your own goose setup is read or written.
+
+<details>
+<summary>goose has tools of its own, and the profile hides them. Open this panel to see which ones, and how we found out</summary>
+
+goose ships a set of extensions and turns most of them on by default, in whatever config it finds, even an empty one. Point it at an empty directory and ask what it has:
+
+```bash
+GOOSE_PATH_ROOT="$(mktemp -d)" goose info -v | grep -E '^    [a-z_]+:$|enabled:' | paste - - | sort
+```
+
+```console
+analyze:	      enabled: true
+apps:	      enabled: true
+chatrecall:	      enabled: false
+code_execution:	      enabled: false
+developer:	      enabled: true
+extensionmanager:	      enabled: true
+orchestrator:	      enabled: false
+scheduler:	      enabled: true
+skills:	      enabled: true
+summarize:	      enabled: false
+summon:	      enabled: true
+todo:	      enabled: true
+tom:	      enabled: true
+```
+
+Nine of thirteen on, before a single MCP server has been added. Each contributes tools to the list the model picks from: `analyze`, `delegate`, `load_skill`, `todo_write`, `create_app`, `manage_extensions` and more, thirteen tools next to your server's three. Given a list like that and asked to add two numbers, a small model reaches for `analyze` and never touches your server. Given three tools, it picks correctly.
+
+The profile lists all thirteen with `enabled: false` rather than only the ones that matter today, because goose treats any it can't find as enabled by default. `goose session --no-profile` would get the same result in one flag; a file you can read shows exactly what the agent was given.
+
+</details>
 
 <details>
 <summary>Not on a Zenable sandbox, or want a different model?</summary>
 
-On your own machine, `curl -fsSL https://ollama.com/install.sh | sh` then `ollama pull qwen3:1.7b` gets you to the same place.
+On your own machine, `curl -fsSL https://ollama.com/install.sh | sh` then `ollama pull qwen3:1.7b` gets you to the same place, and the `ollama create` above works unchanged.
 
-For anything else, `goose configure` walks you through any [provider goose supports](https://goose-docs.ai/docs/getting-started/providers/), and the rest of this section works the same on all of them: an [OpenRouter](https://openrouter.ai/) free-tier model, or a paid provider you already use. A bigger model calls the tools more reliably, so if `qwen3:1.7b` gets confused, this is the knob to turn. Our [ACP workshop](https://www.zenable.app/learn?lab=acp-agent-client&utm_source=github&utm_medium=labs_repo&utm_campaign=mcp-get-started_readme) walks the local-model setup in more depth.
+For anything else, change `GOOSE_PROVIDER` and `GOOSE_MODEL` in `goose/config/config.yaml` to any [provider goose supports](https://goose-docs.ai/docs/getting-started/providers/), add its API key the way that provider's page describes, and the rest of this section works the same: an [OpenRouter](https://openrouter.ai/) free-tier model, or a paid provider you already use. A bigger model calls the tools more reliably, so if `qwen3-nothink` gets confused, this is the knob to turn. Our [ACP workshop](https://www.zenable.app/learn?lab=acp-agent-client&utm_source=github&utm_medium=labs_repo&utm_campaign=mcp-get-started_readme) walks the local-model setup in more depth.
 
 </details>
 
-One thing to set first. goose ships a `developer` extension that's on by default, and its tools sit in the same list the model picks from. Asked to add two numbers, a small model will reach for goose's own `analyze` tool and never touch your server. Turn it off so your two tools are the only ones the model can see:
-
-```bash
-mkdir -p ~/.config/goose
-cat > ~/.config/goose/config.yaml <<'EOF'
-extensions:
-  developer:
-    enabled: false
-    name: developer
-    type: builtin
-EOF
-```
-
-Now start a session with your container attached as a Streamable HTTP extension:
+The profile already names your server, so starting a session needs no flags:
 
 ```bash
 export PATH="$HOME/.local/bin:$PATH"
-goose session --with-streamable-http-extension "http://127.0.0.1:8765/mcp"
+goose session
 ```
 
 In the session, ask something that forces a tool call rather than mental arithmetic:
@@ -485,12 +538,12 @@ In the session, ask something that forces a tool call rather than mental arithme
 Use the add tool to compute 20260825 + 101, then shout the phrase "protocols over plugins".
 ```
 
-Watch the transcript: goose lists your tools on connecting, the model picks `add`, and the result comes back through a `tools/call`. When it responds with `20260926` and `PROTOCOLS OVER PLUGINS!`, you've watched one unchanged server answer three different clients.
+Watch the transcript: goose lists your tools on connecting, the model picks `add`, and the result comes back through a `tools/call`. When the transcript shows `add` and then `shout` being called, you've watched one unchanged server answer three different clients. The model's summary afterwards varies; the two tool calls are the part that matters.
 
 goose is on an older protocol revision than the one you've been sending by hand, so it opens with the `initialize` handshake and gets a session, where your `server/discover` got a stateless envelope. Your server answers both without knowing or caring which is on the other end, which is the whole reason a version-negotiating protocol is worth the trouble.
 
 > [!WARNING]
-> Running a model locally can be a little bit slow; keep that in mind after you send a message. Also, such a small model sometimes doesn't correctly call the tool. Ask again, or say "use the add tool" more insistently. If it reaches for a tool you never wrote, check that you disabled the `developer` extension above. If it never reaches for a tool at all, switch to a bigger model in the collapsible; the server and the protocol are not the problem. Either way, "goose connected and listed `add`, `shout` and `slow_shout`" appears in the session startup before the model does anything at all.
+> Running a model locally can be a little bit slow; keep that in mind after you send a message. Also, such a small model sometimes doesn't correctly call the tool, or answers without repeating the sum. Ask again, or say "use the add tool" more insistently. If it reaches for a tool you never wrote, check that `GOOSE_PATH_ROOT` is set in the shell you started goose from. If it never reaches for a tool at all, switch to a bigger model in the collapsible; the server and the protocol are not the problem. Either way, "goose connected and listed `add`, `shout` and `slow_shout`" appears in the session startup before the model does anything at all.
 
 ## Send the work and come back for it
 
@@ -613,6 +666,13 @@ You should expect to see the image get tagged and deleted like this:
 ```console
 Untagged: mcp-get-started-mcp-get-started:latest
 Deleted: sha256:e971ad962ecec954073aa4bc6af0b8d81dda6635fa7cfb418c29d45d7a88183d
+```
+
+The derived model and goose's session files outlive the container, so drop them too:
+
+```bash
+ollama rm qwen3-nothink
+rm -rf Modelfile.nothink goose/data goose/state
 ```
 
 If you want to delete the lab code samples and instructions as well, run `rm -rf ~/zenable-labs`. Thanks for building with us!

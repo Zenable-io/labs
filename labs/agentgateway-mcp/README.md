@@ -43,10 +43,10 @@ docker compose ps
 
 ```console
 NAME              IMAGE                                      COMMAND                  SERVICE           CREATED          STATUS          PORTS
-agentgateway      ghcr.io/agentgateway/agentgateway:v1.4.1   "/app/agentgateway -…"   agentgateway      18 seconds ago   Up 17 seconds   127.0.0.1:3000->3000/tcp, 127.0.0.1:15000->15000/tcp, 127.0.0.1:15020->15020/tcp
-jaeger            jaegertracing/all-in-one:1.68.0            "/go/bin/all-in-one-…"   jaeger            18 seconds ago   Up 17 seconds   127.0.0.1:16686->16686/tcp
-mcp-get-started   agentgateway-mcp-mcp-get-started           "fastmcp run server.…"   mcp-get-started   18 seconds ago   Up 17 seconds   8000/tcp
-tickets           agentgateway-mcp-tickets                   "fastmcp run tickets…"   tickets           18 seconds ago   Up 17 seconds   8000/tcp
+agentgateway      ghcr.io/agentgateway/agentgateway:v1.4.1   "/app/agentgateway -…"   agentgateway      18 seconds ago   Up 18 seconds   127.0.0.1:3000->3000/tcp, 127.0.0.1:15000->15000/tcp, 127.0.0.1:15020->15020/tcp
+jaeger            jaegertracing/all-in-one:1.76.0            "/go/bin/all-in-one-…"   jaeger            19 seconds ago   Up 18 seconds   127.0.0.1:16686->16686/tcp
+mcp-get-started   agentgateway-mcp-mcp-get-started           "fastmcp run server.…"   mcp-get-started   19 seconds ago   Up 18 seconds   8000/tcp
+tickets           agentgateway-mcp-tickets                   "fastmcp run tickets…"   tickets           19 seconds ago   Up 18 seconds   8000/tcp
 ```
 
 Look at the two highlighted lines. `mcp-get-started` and `tickets` show `8000/tcp` with no address in front, so neither publishes a port to your machine. The gateway is the only way in, which is how you'd run this anywhere that matters.
@@ -165,17 +165,17 @@ Success! Every tool call any agent makes, in one place, in a shape a log pipelin
 The same traffic is already counted, too:
 
 ```bash
-curl -s http://127.0.0.1:15020/metrics | grep '^agentgateway_mcp_requests_total'
+curl -s http://127.0.0.1:15020/metrics | grep '^agentgateway_mcp_requests_total' | sort
 ```
 
 ```console
-agentgateway_mcp_requests_total{method="tools/list",resource_type="unknown",server="unknown",resource="unknown",bind="bind/3000",gateway="default/default",listener="listener0",route="default/route0",route_rule="unknown"} 2
-agentgateway_mcp_requests_total{method="notifications/initialized",resource_type="unknown",server="unknown",resource="unknown",bind="bind/3000",gateway="default/default",listener="listener0",route="default/route0",route_rule="unknown"} 2
 agentgateway_mcp_requests_total{method="initialize",resource_type="unknown",server="unknown",resource="unknown",bind="bind/3000",gateway="default/default",listener="listener0",route="default/route0",route_rule="unknown"} 2
+agentgateway_mcp_requests_total{method="notifications/initialized",resource_type="unknown",server="unknown",resource="unknown",bind="bind/3000",gateway="default/default",listener="listener0",route="default/route0",route_rule="unknown"} 2
 agentgateway_mcp_requests_total{method="tools/call",resource_type="tool",server="get-started",resource="add",bind="bind/3000",gateway="default/default",listener="listener0",route="default/route0",route_rule="unknown"} 1
+agentgateway_mcp_requests_total{method="tools/list",resource_type="unknown",server="unknown",resource="unknown",bind="bind/3000",gateway="default/default",listener="listener0",route="default/route0",route_rule="unknown"} 2
 ```
 
-This is a [Prometheus](https://prometheus.io/) metrics endpoint, showing data with `server` and `resource` as labels. Since we've done two client runs so far, we see two handshakes and a tool call.
+This is a [Prometheus](https://prometheus.io/) metrics endpoint, showing data with `server` and `resource` as labels. Since we've done two client runs so far, we see two handshakes and a tool call. The `sort` is there because Prometheus makes no promise about line order, and it changes from one scrape to the next.
 
 Now, let's configure tracing using `02-observed.yaml`:
 
@@ -343,7 +343,7 @@ curl -s http://127.0.0.1:15000/api/config \
 The metrics keep the two apart as well:
 
 ```bash
-curl -s http://127.0.0.1:15020/metrics | grep 'resource_type="tool"' | sed 's/,bind=.*} / -> /'
+curl -s http://127.0.0.1:15020/metrics | grep 'resource_type="tool"' | sed 's/,bind=.*} / -> /' | sort
 ```
 
 ```console
@@ -493,11 +493,7 @@ goose 1.46.0
 
 goose is a full host, so it needs a model to drive tool calls. Your sandbox already runs [Ollama](https://ollama.com/) with `qwen3:1.7b`, a 1.7B model quantized to 1.4 GB that can call tools, which is the only capability this section needs. It needs no API key and no account, and costs nothing to run.
 
-`qwen3:1.7b` is a reasoning model: before it answers it writes out its thinking, and on the sandbox's two CPU cores that takes minutes even for a trivial reply. goose has no way to turn thinking off in its calls, so we turn it off in the Ollama runtime instead.
-
-An Ollama model carries a prompt template, and qwen3's already knows how to skip thinking; that switch only fires when the caller asks for it. Copy the model's own definition, flip the switch on permanently, and build it under a new name.
-
-The `ollama pull` on the first line covers a sandbox that came up without the weights on disk; when they're already there it returns straight away.
+`qwen3:1.7b` is a reasoning model: before it answers it writes out its thinking, and on the sandbox's two CPU cores that costs about twenty seconds for a one-word reply and several minutes for a turn that calls two tools. We turn thinking off by building a copy of the model with the switch baked into its template. The `ollama pull` on the first line covers a sandbox that came up without the weights on disk; when they're already there it returns straight away.
 
 ```bash
 ollama pull qwen3:1.7b
@@ -505,62 +501,120 @@ ollama show --modelfile qwen3:1.7b > Modelfile.nothink
 sed -i 's|^FROM /.*|FROM qwen3:1.7b|' Modelfile.nothink
 sed -i 's|{{- if and $.IsThinkSet (eq $i $lastUserIdx) }}|{{- if (eq $i $lastUserIdx) }}|' Modelfile.nothink
 sed -i 's|{{- if $.Think -}}|{{- if false -}}|' Modelfile.nothink
+sed -i 's|{{ if and $.IsThinkSet (not $.Think) -}}|{{ if true -}}|' Modelfile.nothink
+grep -q '{{ if true -}}' Modelfile.nothink
 ollama create qwen3-nothink -f Modelfile.nothink
 ```
 
-The first `sed` points the new model at the tag instead of a blob path on disk. The other two make the template take the no-thinking branch for every request. It reuses the weights already on disk, so there's no download and it finishes in about a second.
-
-Check that it answers without thinking:
+It reuses the weights already on disk, so there's no download and it finishes in about a second. Check that it answers without thinking:
 
 ```bash
-ollama run qwen3-nothink "say ok"
+ollama run qwen3-nothink "Reply with only the word: pong"
 ```
 
 ```console
-Okay, I'm ready to help you with whatever you need. Let me know how I can assist you today!
+pong
 ```
 
-No `Thinking...` block, and seconds rather than minutes. Now point goose at it. goose reads its provider from the environment, and these four variables replace anything `goose configure` would have written:
+No `Thinking...` block, and the wait is loading the weights rather than generating. Try the same prompt against plain `qwen3:1.7b` if you want to watch the difference: a `Thinking...` block, and about twenty seconds of it.
+
+<details>
+<summary>Qwen3 is a thinking model, but we turned thinking off. Open this panel to go down the rabbit hole of how, and why</summary>
+
+Why: a 1.7B model on two CPU cores produces a handful of tokens a second, and thinking mode spends hundreds of them before the first word of the answer. On the sandbox, the two-tool prompt we give goose later in this section takes around a minute with thinking off and five to seven minutes with it on.
+
+The [Qwen3 model card](https://huggingface.co/Qwen/Qwen3-1.7B#switching-between-thinking-and-non-thinking-mode) documents two ways to switch it off. A soft switch, by including `/no_think` in the prompt, which the model treats as a request. And a hard switch, by setting `enable_thinking=False` in the chat template, which starts the reply with an empty `<think></think>` block so there's nowhere left to think. Ollama's copy of that template carries both, and flips both when a caller sends `think: false` on a request. However, goose has no way to send `think: false`, so we bake both switches into a copy of the model instead.
+
+`ollama show --modelfile` prints the model's definition, template included, and each `sed` changes one line of it:
+
+- `FROM /usr/share/ollama/.ollama/models/blobs/sha256-…` becomes `FROM qwen3:1.7b`. The printed definition points at a blob on disk; pointing at the tag reuses the same weights without copying them.
+- `{{- if and $.IsThinkSet (eq $i $lastUserIdx) }}` becomes `{{- if (eq $i $lastUserIdx) }}`. The template appended a thinking switch word to your message only when the caller had set `think`; now it appends one on every request.
+- `{{- if $.Think -}}` becomes `{{- if false -}}`. That word was ` /think` or ` /no_think` depending on the request; now it's always ` /no_think`, the soft switch.
+- `{{ if and $.IsThinkSet (not $.Think) -}}` becomes `{{ if true -}}`. The empty `<think></think>` block opened the reply only when a caller sent `think: false`; now it opens every reply, the hard switch.
+- `grep -q '{{ if true -}}'` fails the block if that last edit didn't land. `sed` exits 0 whether or not it matched anything, so without this a changed upstream template would build a model that thinks under a name that says it doesn't.
+
+The request no longer has a say. Send `think: true` to `qwen3-nothink` and you still get no thinking, because there's no branch left for the value to reach.
+
+> [!NOTE]
+> A model this small still reasons in the open when a prompt gives it room to wonder what you meant. Ask it to "say ok" and you'll get a paragraph of deliberation with no think block around it. Direct prompts get direct answers.
+
+</details>
+
+Now point goose at it. Rather than exporting variables and editing the config file in your home directory, the lab ships a goose profile, and one environment variable tells goose to read it:
+
+```yaml
+GOOSE_PROVIDER: ollama
+GOOSE_MODEL: qwen3-nothink
+OLLAMA_HOST: http://localhost:11434
+GOOSE_CONTEXT_LIMIT: 8192
+
+extensions:
+  agentgateway:
+    enabled: true
+    type: streamable_http
+    name: agentgateway
+    uri: http://127.0.0.1:3000/mcp
+    timeout: 300
+  developer: {enabled: false, type: platform, name: developer}
+  analyze: {enabled: false, type: platform, name: analyze}
+  todo: {enabled: false, type: platform, name: todo}
+  # ...and every other extension goose would otherwise enable on its own
+```
 
 ```bash
-export GOOSE_PROVIDER=ollama
-export GOOSE_MODEL=qwen3-nothink
-export OLLAMA_HOST=http://localhost:11434
-export OLLAMA_CONTEXT_LENGTH=8192
+cat goose/config/config.yaml
+export GOOSE_PATH_ROOT="$PWD/goose"
 ```
 
-> [!WARNING]
-> `OLLAMA_CONTEXT_LENGTH` isn't optional here. Ollama defaults to a 4096-token context, a tool-calling agent spends that on tool definitions alone, and goose then looks like it's ignoring its own instructions when really the context was silently truncated.
+Three things in that file matter. The provider and model are what `goose configure` would have asked you for. `GOOSE_CONTEXT_LIMIT` is what goose sends Ollama as the context window; Ollama's own default is 4096 tokens, a tool-calling agent spends that on tool definitions alone, and the failure looks like a model ignoring instructions when really the prompt was silently truncated. And the `extensions` list is exactly one entry, the gateway, with every extension goose ships turned off by name.
+
+`GOOSE_PATH_ROOT` also moves goose's sessions and logs under `goose/` in this directory, so nothing in your own goose setup is read or written.
+
+<details>
+<summary>goose has tools of its own, and the profile hides them. Open this panel to see which ones, and how we found out</summary>
+
+goose ships a set of extensions and turns most of them on by default, in whatever config it finds, even an empty one. Point it at an empty directory and ask what it has:
+
+```bash
+GOOSE_PATH_ROOT="$(mktemp -d)" goose info -v | grep -E '^    [a-z_]+:$|enabled:' | paste - - | sort
+```
+
+```console
+analyze:	      enabled: true
+apps:	      enabled: true
+chatrecall:	      enabled: false
+code_execution:	      enabled: false
+developer:	      enabled: true
+extensionmanager:	      enabled: true
+orchestrator:	      enabled: false
+scheduler:	      enabled: true
+skills:	      enabled: true
+summarize:	      enabled: false
+summon:	      enabled: true
+todo:	      enabled: true
+tom:	      enabled: true
+```
+
+Nine of thirteen on, before a single MCP server has been added. Each contributes tools to the list the model picks from: `analyze`, `delegate`, `load_skill`, `todo_write`, `create_app`, `manage_extensions` and more, thirteen tools next to the gateway's three. Given that list and asked to add two numbers, the 1.7B model picked `analyze`, then `delegate`, and never reached the gateway. Given three tools, it picks correctly.
+
+The profile lists all thirteen with `enabled: false` rather than only the ones that matter today, because goose treats any it can't find as enabled by default. `goose session --no-profile` would get the same result in one flag; a file you can read shows exactly what the agent was given.
+
+</details>
 
 <details>
 <summary>Not on a Zenable sandbox, or want a different model?</summary>
 
 On your own machine, `curl -fsSL https://ollama.com/install.sh | sh` then `ollama pull qwen3:1.7b` gets you to the same place, and the `ollama create` above works unchanged.
 
-For anything else, `goose configure` walks you through any [provider goose supports](https://goose-docs.ai/docs/getting-started/providers/), and the rest of this section works the same on all of them. A bigger model calls the tools more reliably, so if `qwen3-nothink` gets confused, this is the knob to turn.
+For anything else, change `GOOSE_PROVIDER` and `GOOSE_MODEL` in `goose/config/config.yaml` to any [provider goose supports](https://goose-docs.ai/docs/getting-started/providers/), add its API key the way that provider's page describes, and the rest of this section works the same. A bigger model calls the tools more reliably, so if `qwen3-nothink` gets confused, this is the knob to turn.
 
 </details>
 
-One thing to set first. goose ships a `developer` extension that's on by default, and its tools sit in the same list the model picks from. Asked to add two numbers, a small model will reach for goose's own `analyze` tool and never touch the gateway.
-
-Turn it off so the gateway's tools are the only ones the model can see:
-
-```bash
-mkdir -p ~/.config/goose
-cat > ~/.config/goose/config.yaml <<'EOF'
-extensions:
-  developer:
-    enabled: false
-    name: developer
-    type: builtin
-EOF
-```
-
-The extension URL is the gateway's, which is all goose needs to know:
+The profile already names the gateway, so starting a session needs no flags:
 
 ```bash
 export PATH="$HOME/.local/bin:$PATH"
-goose session --with-streamable-http-extension "http://127.0.0.1:3000/mcp"
+goose session
 ```
 
 Ask for something that needs two different servers:
@@ -579,17 +633,21 @@ docker compose logs --no-log-prefix agentgateway | grep '^{' \
 ```
 
 ```console
-{"tool":"add","target":"get-started","status":200,"ms":"4ms"}
+{"tool":"close_ticket","target":"tickets","status":400,"ms":"0ms"}
 {"tool":"list_tickets","target":"tickets","status":200,"ms":"3ms"}
+{"tool":"list_tickets","target":"tickets","status":200,"ms":"6ms"}
+{"tool":"add","target":"get-started","status":200,"ms":"4ms"}
 ```
+
+The last two lines are goose. It asked for both tools in one turn, so they land in whichever order they finish, and yours may show `add` first. Above them sit our own refused `close_ticket` and the `list_tickets` that followed it, still in the same log, because the gateway doesn't know or care which client made a call.
 
 Success! 🎉 goose drove a local model through the gateway, and every tool call it made is one JSON record in one place.
 
 > [!WARNING]
-> Running a model locally on two CPU cores is still slow even with thinking off, so expect a wait after you send a message.
+> Two CPU cores are still two CPU cores. With thinking off, a turn that calls two tools takes about a minute on the sandbox, so expect a wait after you send a message.
 
 > [!NOTE]
-> A model this small sometimes misses the tool call. Ask again, or name the tool more insistently. goose lists the three tools at startup, before the model acts, so the gateway and the protocol are working either way. If it reaches for a tool you have never heard of, check that you disabled the `developer` extension above.
+> A model this small sometimes misses a tool call, or lists the tickets without repeating the sum. Ask again, or name the tool more insistently. goose lists the three tools at startup, before the model acts, so the gateway and the protocol are working either way. If it reaches for a tool you have never heard of, check that `GOOSE_PATH_ROOT` is set in the shell you started goose from.
 
 ## Cleanup
 
@@ -613,11 +671,11 @@ Container tickets Removed
 Network agentgateway-mcp_default Removed
 ```
 
-The derived model and the goose config outlive the containers, so drop them too:
+The derived model and goose's session files outlive the containers, so drop them too:
 
 ```bash
 ollama rm qwen3-nothink
-rm -f Modelfile.nothink ~/.config/goose/config.yaml
+rm -rf Modelfile.nothink goose/data goose/state
 ```
 
 If you're on a workshop VM, terminating the instance is enough. Thanks for building with us!

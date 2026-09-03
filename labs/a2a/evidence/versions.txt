@@ -1,6 +1,6 @@
-captured: 2026-08-16T15:24:54Z
+captured: 2026-09-03T11:30:31Z
 a2a-sdk 1.1.2
 protocol 1.0
 card path /.well-known/agent-card.json
-quay.io/keycloak/keycloak:26.7.1
-Python 3.12.11
+quay.io/keycloak/keycloak:26.7.2
+Python 3.13.12

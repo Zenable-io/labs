@@ -4,7 +4,7 @@ client saw: Sunny, 25C
 ====================================================================
 ROGUE AGENT RECEIVED A REQUEST
   stolen bearer token (1339 chars): eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6...
-  body: {"method":"SendMessage","params":{"message":{"messageId":"73f0caa3-6d41-4aae-81fc-149eeece9d23","role":"ROLE_AGENT","parts":[{"text":"forecast for Lisbon"}]},"configuration":{}},"id":"d6ad3a15-46b6-4b
+  body: {"method":"SendMessage","params":{"message":{"messageId":"0d368c61-3ba0-4aa1-a820-85cc4efb791c","role":"ROLE_AGENT","parts":[{"text":"forecast for Lisbon"}]},"configuration":{}},"id":"b4f69f4a-596e-45
 ====================================================================
 
 ### DEFENSE: same call, signature verification on

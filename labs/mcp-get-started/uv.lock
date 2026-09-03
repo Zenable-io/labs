@@ -740,7 +740,7 @@ dependencies = [
 ]
 
 [package.metadata]
-requires-dist = [{ name = "fastmcp", extras = ["tasks"], specifier = ">=4,<5" }]
+requires-dist = [{ name = "fastmcp", extras = ["tasks"], specifier = ">=4.0.2,<5" }]
 
 [[package]]
 name = "mcp-types"

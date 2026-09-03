@@ -4,7 +4,7 @@
 # TLS checks that make a production Keycloak safe to expose.
 services:
   keycloak:
-    image: quay.io/keycloak/keycloak:26.7.1
+    image: quay.io/keycloak/keycloak:26.7.2
     container_name: agent-identity-keycloak
     # DPoP is a preview feature, so it must be named explicitly; without it
     # the client attribute below is accepted and silently does nothing, and
