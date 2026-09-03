@@ -1,17 +1,5 @@
-{"name":"add","execution":null}
-{"name":"shout","execution":null}
-{"name":"slow_shout","execution":{"taskSupport":"optional"}}
 {"result":"THE SLOW WAY!"}
-
-real	0m10.020s
-user	0m0.006s
-sys	0m0.008s
-submitted 9024beb9-0e6c-4f08-89fe-1ac1f6212eb2
-{"status":"working","lastUpdatedAt":"2026-09-03T17:14:48.782380Z"}
-{"status":"completed","lastUpdatedAt":"2026-09-03T17:15:00.805371Z"}
-[
-  {
-    "type": "text",
-    "text": "TASKS WORK!"
-  }
-]
+waited 10s for that
+submitted d49tt8EqL5SD0h8g8DbRIFUXxoaMx2HGPyZOMOafufs
+{"status":"working","pollIntervalMs":5000.0}
+{"status":"completed","result":{"result":"TASKS WORK!"}}

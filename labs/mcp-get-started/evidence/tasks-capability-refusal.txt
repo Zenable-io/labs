@@ -1,0 +1,15 @@
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "error": {
+    "code": -32021,
+    "message": "This request targets the tasks extension (io.modelcontextprotocol/tasks); the client did not declare it for this request.",
+    "data": {
+      "requiredCapabilities": {
+        "extensions": {
+          "io.modelcontextprotocol/tasks": {}
+        }
+      }
+    }
+  }
+}

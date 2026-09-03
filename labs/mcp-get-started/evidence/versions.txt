@@ -1,4 +1,6 @@
-Docker version 29.7.2, build a7dcaa6
-FastMCP version:                                                           3.4.7
-MCP version:                                                              1.29.1
-pydocket version: 0.25.0
+Captured on the e2e harness (Rocky Linux 8, the sandbox image recipe).
+FastMCP version:                                                           4.0.2
+MCP version:                                                               2.1.1
+Python version:                                                          3.12.14
+Platform:             Linux-4.18.0-553.137.1.el8_10.x86_64-x86_64-with-glibc2.28
+goose version: 1.46.0

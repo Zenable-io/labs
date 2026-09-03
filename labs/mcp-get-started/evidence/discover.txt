@@ -1,0 +1,35 @@
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "_meta": {
+      "io.modelcontextprotocol/serverInfo": {
+        "name": "mcp-get-started",
+        "version": "4.0.2"
+      }
+    },
+    "ttlMs": 0,
+    "cacheScope": "private",
+    "supportedVersions": [
+      "2026-07-28"
+    ],
+    "capabilities": {
+      "logging": {},
+      "prompts": {
+        "listChanged": false
+      },
+      "resources": {
+        "subscribe": false,
+        "listChanged": false
+      },
+      "tools": {
+        "listChanged": false
+      },
+      "extensions": {
+        "io.modelcontextprotocol/ui": {},
+        "io.modelcontextprotocol/tasks": {}
+      }
+    },
+    "resultType": "complete"
+  }
+}
