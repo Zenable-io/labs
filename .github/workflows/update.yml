@@ -1,0 +1,173 @@
+---
+name: "Updates"
+
+on:
+  schedule:
+    # Every Tuesday at 03:16 UTC (Monday 11:16 PM EDT / 10:16 PM EST)
+    - cron: '16 3 * * 2'
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: 'bash --noprofile --norc -Eeuo pipefail {0}'
+
+permissions: {}
+
+jobs:
+  update-dependencies:
+    name: Update dependencies
+    runs-on: ubuntu-24.04
+    permissions:
+      # Required to push the update branch
+      contents: write
+      # Required to open the pull request
+      pull-requests: write
+    steps:
+      - name: Mint a Zenable Automation app token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.ZENABLE_AUTOMATION_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+      - name: Checkout the repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+      - name: Install uv
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          # The tooling's own dependencies resolve from its committed lock.
+          enable-cache: true
+      - name: Update every pinned dependency
+        env:
+          # The default token is enough: every GitHub call this makes is an
+          # unauthenticated-capable read, and it is used only to stay off the
+          # 60-requests-per-hour anonymous limit.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bash .github/scripts/update-pins.sh
+      - name: Create or update a pull request
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          title: 'chore(labs): automated dependency update'
+          branch: automated-update/dependencies
+          body: |
+            # Automated updates from the [Update workflow](https://github.com/Zenable-io/labs/actions/workflows/update.yml)
+
+            Container image tags and `uv.lock` files across every lab.
+
+            Every version here cleared a 7-day cooldown before being adopted, so a
+            compromised upstream release had a week to surface first. Versions
+            sourced from GitHub releases were additionally verified end to end:
+            the tag exists as a ref in the repository it claims to come from, and
+            the commit it resolves to is reachable from a branch there — which an
+            imposter commit pushed to a fork is not.
+
+            **Before merging:** check the run's annotations for
+            `doc-quotes-superseded-version`. Recorded terminal output in the
+            READMEs and `evidence/` is never rewritten by this automation, so an
+            image bump leaves those transcripts stale until someone re-runs the
+            lab and regenerates them.
+          commit-message: 'chore(labs): automated dependency update'
+          committer: 'Zenable Automation <automation@Zenable.io>'
+          author: 'Zenable Automation <automation@Zenable.io>'
+          labels: |-
+            Automatic update
+            batch-update
+          token: ${{ steps.app-token.outputs.token }}
+          delete-branch: true
+          signoff: true
+
+  # Separate from update-dependencies because this is the ONLY job whose token
+  # may rewrite .github/workflows/**. Keeping it alone means
+  # `permission-workflows: write` is requested in exactly one place in this repo,
+  # and every workflow-file edit the automation makes lands in its own PR.
+  update-github-actions:
+    name: Update GitHub Actions
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Mint a Zenable Automation app token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.ZENABLE_AUTOMATION_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+          # The one job that needs it: pinact rewrites `uses:` lines in
+          # .github/workflows/**, and GitHub rejects a push of those files from a
+          # token without this permission.
+          permission-workflows: write
+      - name: Checkout the repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+      - name: Install uv
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+      - name: Install pinact
+        env:
+          # Verified against the release's published checksums rather than
+          # trusted on download. A tool whose whole job is supply-chain pinning
+          # has no business installing itself unverified.
+          PINACT_VERSION: v4.1.1
+        run: |
+          os="$(uname -s | tr '[:upper:]' '[:lower:]')"
+          arch="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/aarch64/arm64/')"
+          archive="pinact_${os}_${arch}.tar.gz"
+          base="https://github.com/suzuki-shunsuke/pinact/releases/download/${PINACT_VERSION}"
+          workdir="$(mktemp -d)"
+          trap 'rm -rf "${workdir}"' EXIT
+          curl -sSfL -o "${workdir}/${archive}" "${base}/${archive}"
+          curl -sSfL -o "${workdir}/checksums.txt" \
+            "${base}/pinact_${PINACT_VERSION#v}_checksums.txt"
+          (cd "${workdir}" && grep " ${archive}\$" checksums.txt | sha256sum -c -)
+          sudo tar xz -C /usr/local/bin -f "${workdir}/${archive}" pinact
+      - name: Hash-pin and verify the GitHub Actions
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # `release/vN` is a branch, not a tag: pinning it would freeze a moving
+          # ref at whatever its head was that week, with no version comment to
+          # update from. Converting it to the newest stable tag gives it the same
+          # cooldown and update path as every other action.
+          pinact run -u --branch-to-tag '^release/v[0-9]+$'
+          # Re-resolve each `# vX.Y.Z` comment and confirm it still names the
+          # pinned SHA. Deliberately a second invocation in check mode: under
+          # --fix a mismatch REWRITES the comment to match the SHA, so a
+          # retargeted tag would be silently relabelled instead of failing.
+          pinact run --check --verify-comment
+          # pinact stops at "the comment matches the SHA"; it never asks whether
+          # the SHA belongs to that repo. A tag cut against a fork commit
+          # satisfies the check above and fails this one.
+          uv run --directory .github/scripts --frozen python verify_action_pins.py \
+            --path "${GITHUB_WORKSPACE}/.github/workflows"
+      - name: Create or update a pull request
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          title: 'chore(actions): automated update'
+          branch: automated-update/github-actions
+          body: |
+            # Automated updates from the [Update workflow](https://github.com/Zenable-io/labs/actions/workflows/update.yml)
+
+            Re-pins every GitHub Action to the newest release that has cleared its
+            7-day cooldown.
+
+            Each pin was then verified twice: `pinact run --check --verify-comment`
+            confirms the tag named in each version comment still resolves to the
+            pinned commit, and `verify_action_pins.py` confirms that commit is
+            reachable from a branch in the upstream repository — which an imposter
+            commit pushed to a fork is not. That second check also fails on any
+            `uses:` that is not SHA-pinned at all.
+          commit-message: 'chore(actions): automated update'
+          committer: 'Zenable Automation <automation@Zenable.io>'
+          author: 'Zenable Automation <automation@Zenable.io>'
+          labels: |-
+            Automatic update
+            batch-update
+          token: ${{ steps.app-token.outputs.token }}
+          delete-branch: true
+          signoff: true

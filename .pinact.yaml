@@ -1,0 +1,25 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/suzuki-shunsuke/pinact/main/json-schema/pinact.json
+---
+version: 3
+
+# Go's path/filepath#Glob, so no `**`. Both shapes are listed because a hash pin
+# is only worth anything if it covers every `uses:` in the repo — an unpinned
+# composite action is as exploitable as an unpinned workflow.
+files:
+  - pattern: .github/workflows/*.yml
+  - pattern: .github/workflows/*.yaml
+  - pattern: .github/actions/*/action.yml
+  - pattern: .github/actions/*/action.yaml
+
+# The same 7-day supply-chain cooldown update_file.py applies to every other pin
+# in this repo, so a compromised release has a week to surface before we adopt
+# it. `value` gates which tag `pinact run -u` adopts.
+#
+# `always` stays false: it would add a GetCommit call per pinned action on every
+# run, and it would buy little — the cooldown compares the commit's committer
+# date, which is attacker-controlled, so it is a staleness guard rather than a
+# tamper guard. The pin-actions job follows the update with
+# `pinact run --check --verify-comment` and verify_action_pins.py, which are.
+min_age:
+  value: 7
+  always: false
