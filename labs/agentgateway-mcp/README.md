@@ -1,7 +1,7 @@
 <!-- Generated from src/lib/labs/content/labs/agentgateway-mcp.mdx in Zenable-io/next-gen-governance
      by services/ui_frontend/scripts/export-lab-readme.js. Do not edit by hand. -->
 
-# agentgateway: Seeing and Governing MCP Traffic
+# Seeing and Governing MCP traffic with agentgateway
 
 Put a gateway between your agent and your MCP servers. Watch every tool call in access logs, metrics and traces, serve two servers from one endpoint, and refuse the calls you never wanted, all without touching a line of server code.
 

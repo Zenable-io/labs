@@ -9,7 +9,7 @@ Get hands-on with Enterprise-Managed Authorization (EMA) and the ID-JAG grant. S
 
 **Duration** 70 minutes · **Difficulty** Intermediate
 
-**Topics** `MCP` · `Authorization` · `OAuth` · `Identity` · `Governance` · `AI Agents`
+**Topics** `Agent Identity` · `MCP` · `Authorization` · `OAuth` · `Identity` · `Governance` · `AI Agents`
 
 **Prerequisites**
 

@@ -1,7 +1,7 @@
 <!-- Generated from src/lib/labs/content/labs/acp-agent-client.mdx in Zenable-io/next-gen-governance
      by services/ui_frontend/scripts/export-lab-readme.js. Do not edit by hand. -->
 
-# ACP: The Protocol Between Your Editor and Your Agent
+# Agent Client Protocol (ACP)
 
 Speak the Agent Client Protocol to a real agent by hand, then watch the agent reach back for your filesystem and your shell, and put a policy on the wire that refuses it.
 
