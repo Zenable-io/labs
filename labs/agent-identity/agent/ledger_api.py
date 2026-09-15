@@ -7,17 +7,16 @@ both, and the difference in outcome is the lab.
 """
 
 import json
+import secrets
 
-import httpx
 import jwt
 import uvicorn
+from dpop import ProofRejected, ReplayCache, verify_proof
+from sdjwt_verify import VerificationFailed, verify_presentation
 from starlette.applications import Starlette
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 from starlette.routing import Route
-
-from dpop import ProofRejected, ReplayCache, verify_proof
-from sdjwt_verify import VerificationFailed, verify_presentation
 from tokens import ISSUER, JWKS_URI
 
 AUDIENCE = "ledger-api"
@@ -33,7 +32,9 @@ def _deny(reason: str, status: int = 401) -> JSONResponse:
     # A real resource server says "invalid_token" and logs the detail: the
     # difference between "no proof" and "wrong key" is a free oracle telling
     # an attacker which half of the credential they are missing.
-    return JSONResponse({"error": "invalid_token", "reason": reason}, status_code=status)
+    return JSONResponse(
+        {"error": "invalid_token", "reason": reason}, status_code=status
+    )
 
 
 def _validate_access_token(token: str) -> dict:
@@ -159,8 +160,6 @@ app = Starlette(
 
 def issue_nonce() -> str:
     """Verifier-chosen nonce for a credential presentation."""
-    import secrets
-
     return secrets.token_urlsafe(16)
 
 

@@ -37,9 +37,13 @@ class Peer:
     def call(self, method: str, params: dict, timeout: float = 15.0) -> dict:
         self._next_id += 1
         req_id = self._next_id
-        self._write({"jsonrpc": "2.0", "id": req_id, "method": method, "params": params})
+        self._write(
+            {"jsonrpc": "2.0", "id": req_id, "method": method, "params": params}
+        )
         with self._arrived:
-            if not self._arrived.wait_for(lambda: req_id in self._pending, timeout=timeout):
+            if not self._arrived.wait_for(
+                lambda: req_id in self._pending, timeout=timeout
+            ):
                 return {"error": {"message": f"no answer within {timeout}s"}}
             return self._pending.pop(req_id)
 
