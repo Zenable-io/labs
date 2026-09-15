@@ -3,7 +3,6 @@
 import json
 
 import jwt
-
 from dpop import jkt, new_key, public_jwk
 from tokens import fetch_token
 

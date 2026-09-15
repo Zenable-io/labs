@@ -19,4 +19,3 @@ verifier cannot open: 7 digests
 --- presented to the incident responder, who needs to reach a human ---
 verifier sees:  ['cnf', 'deployment_env', 'iss', 'operator', 'operator_contact', 'sub']
 verifier cannot open: 6 digests
-

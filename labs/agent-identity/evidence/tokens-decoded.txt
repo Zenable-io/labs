@@ -17,4 +17,3 @@ aud: ["ledger-api", "account"]
 azp: "agent-bearer"
 scope: "email profile invoice:read"
 cnf: null
-

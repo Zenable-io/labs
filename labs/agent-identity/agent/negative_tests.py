@@ -5,6 +5,7 @@ A case that PASSES means the defence held. The bearer cases are here to fail
 on the lax endpoint on purpose -- that contrast is the whole argument.
 """
 
+import base64
 import json
 import secrets
 import time
@@ -12,10 +13,9 @@ import uuid
 
 import httpx
 import jwt
-from jwcrypto.jwk import JWK
-
 import sdjwt_verify as V
 from dpop import access_token_hash, make_proof, new_key, public_jwk
+from jwcrypto.jwk import JWK
 from sdjwt_issue import issue, present
 from tokens import fetch_token
 
@@ -60,8 +60,12 @@ def dpop_cases() -> None:
 
     # Baseline: the legitimate agent, holding its key, still works. A lab that
     # only shows attacks failing has not shown the control is usable.
-    response = call(STRICT, bound, proof=make_proof(agent_key, "POST", STRICT, access_token=bound))
-    record("legitimate agent with its key", response.status_code == 200, reason(response))
+    response = call(
+        STRICT, bound, proof=make_proof(agent_key, "POST", STRICT, access_token=bound)
+    )
+    record(
+        "legitimate agent with its key", response.status_code == 200, reason(response)
+    )
 
     print("\n  -- the same stolen token, against each endpoint --")
     response = call(LAX, plain, scheme="Bearer")
@@ -73,17 +77,33 @@ def dpop_cases() -> None:
     )
 
     response = call(STRICT, bound, scheme="Bearer")
-    record("stolen bound token, no proof, Bearer scheme", response.status_code != 200, reason(response))
+    record(
+        "stolen bound token, no proof, Bearer scheme",
+        response.status_code != 200,
+        reason(response),
+    )
 
     response = call(STRICT, bound)
-    record("stolen bound token, DPoP scheme, no proof", response.status_code != 200, reason(response))
+    record(
+        "stolen bound token, DPoP scheme, no proof",
+        response.status_code != 200,
+        reason(response),
+    )
 
     # The attacker has the token and mints their own proof with their own key.
     # This is the case that matters: exfiltrating a token from a log, a HAR
     # file, or a compromised proxy gives you the token and never the key.
     attacker_key = new_key()
-    response = call(STRICT, bound, proof=make_proof(attacker_key, "POST", STRICT, access_token=bound))
-    record("stolen token + attacker's own proof key", response.status_code != 200, reason(response))
+    response = call(
+        STRICT,
+        bound,
+        proof=make_proof(attacker_key, "POST", STRICT, access_token=bound),
+    )
+    record(
+        "stolen token + attacker's own proof key",
+        response.status_code != 200,
+        reason(response),
+    )
 
     # The attacker captured a full request -- token AND proof -- off the wire.
     captured = make_proof(agent_key, "POST", STRICT, access_token=bound)
@@ -98,15 +118,31 @@ def dpop_cases() -> None:
     # Proof captured for one endpoint, aimed at another.
     elsewhere = make_proof(agent_key, "POST", LAX, access_token=bound)
     response = call(STRICT, bound, proof=elsewhere)
-    record("proof minted for a different URL (htu)", response.status_code != 200, reason(response))
+    record(
+        "proof minted for a different URL (htu)",
+        response.status_code != 200,
+        reason(response),
+    )
 
-    response = call(STRICT, bound, proof=make_proof(agent_key, "GET", STRICT, access_token=bound))
-    record("proof minted for a different method (htm)", response.status_code != 200, reason(response))
+    response = call(
+        STRICT, bound, proof=make_proof(agent_key, "GET", STRICT, access_token=bound)
+    )
+    record(
+        "proof minted for a different method (htm)",
+        response.status_code != 200,
+        reason(response),
+    )
 
     # A proof harvested from an old session, outside the freshness window.
-    stale = make_proof(agent_key, "POST", STRICT, access_token=bound, iat=int(time.time()) - 3600)
+    stale = make_proof(
+        agent_key, "POST", STRICT, access_token=bound, iat=int(time.time()) - 3600
+    )
     response = call(STRICT, bound, proof=stale)
-    record("proof harvested an hour ago (iat window)", response.status_code != 200, reason(response))
+    record(
+        "proof harvested an hour ago (iat window)",
+        response.status_code != 200,
+        reason(response),
+    )
 
     # Proof is valid, fresh, and signed by the RIGHT key -- but it was minted
     # over a different access token. Reuse the same key deliberately: a
@@ -115,8 +151,11 @@ def dpop_cases() -> None:
     second_token = fetch_token("agent-bound", agent_key)["access_token"]
     mismatched = make_proof(agent_key, "POST", STRICT, access_token=second_token)
     response = call(STRICT, bound, proof=mismatched)
-    record("right key, proof minted over a different token (ath)",
-           response.status_code != 200, reason(response))
+    record(
+        "right key, proof minted over a different token (ath)",
+        response.status_code != 200,
+        reason(response),
+    )
 
     # The alg-confusion attack the allowlist exists for. The attacker reuses the
     # victim's public JWK in the header but names a symmetric alg and signs with
@@ -135,15 +174,28 @@ def dpop_cases() -> None:
             # allowlist doing its job and not PyJWT balking at a weak key.
             secrets.token_hex(32),
             algorithm=forged_alg,
-            headers={"typ": "dpop+jwt", "alg": forged_alg, "jwk": public_jwk(agent_key)},
+            headers={
+                "typ": "dpop+jwt",
+                "alg": forged_alg,
+                "jwk": public_jwk(agent_key),
+            },
         )
         response = call(STRICT, bound, proof=forged)
-        record(f"proof signed with symmetric {forged_alg} (alg confusion)",
-               response.status_code != 200, reason(response))
+        record(
+            f"proof signed with symmetric {forged_alg} (alg confusion)",
+            response.status_code != 200,
+            reason(response),
+        )
 
     # Downgrade: present an unbound token on the endpoint that demands binding.
-    response = call(STRICT, plain, proof=make_proof(new_key(), "POST", STRICT, access_token=plain))
-    record("unbound token on the strict endpoint (downgrade)", response.status_code != 200, reason(response))
+    response = call(
+        STRICT, plain, proof=make_proof(new_key(), "POST", STRICT, access_token=plain)
+    )
+    record(
+        "unbound token on the strict endpoint (downgrade)",
+        response.status_code != 200,
+        reason(response),
+    )
 
     print("\n  -- and the honest comparison --")
     response = call(LAX, bound, scheme="Bearer")
@@ -162,12 +214,27 @@ def sdjwt_cases() -> None:
     V.ISSUER_KEY_FILE.write_text(issuer_key.export_public())
     credential = issue(issuer_key, holder_key)
 
-    nonce = httpx.post(WHOAMI, json={}).headers.get("x-nonce") or secrets.token_urlsafe(16)
-    minimal = present(credential, ["operator", "capabilities"], nonce=nonce,
-                      audience=WHOAMI, holder_key=holder_key)
-    response = httpx.post(WHOAMI, json={"presentation": minimal, "nonce": nonce}, timeout=10)
+    nonce = httpx.post(WHOAMI, json={}).headers.get("x-nonce") or secrets.token_urlsafe(
+        16
+    )
+    minimal = present(
+        credential,
+        ["operator", "capabilities"],
+        nonce=nonce,
+        audience=WHOAMI,
+        holder_key=holder_key,
+    )
+    response = httpx.post(
+        WHOAMI, json={"presentation": minimal, "nonce": nonce}, timeout=10
+    )
     disclosed = response.json().get("claims", {})
-    withheld = {"cost_center", "owner_employee_id", "operator_contact", "model", "deployment_env"}
+    withheld = {
+        "cost_center",
+        "owner_employee_id",
+        "operator_contact",
+        "model",
+        "deployment_env",
+    }
     record(
         "verifier sees only the disclosed claims",
         response.status_code == 200 and not (withheld & disclosed.keys()),
@@ -182,14 +249,21 @@ def sdjwt_cases() -> None:
     # The verifier now holds a complete, signed presentation. Can it reuse it?
     other_verifier = "http://localhost:8081/whoami-other"
     try:
-        V.verify_presentation(minimal, expected_audience=other_verifier, expected_nonce=nonce)
-        held, detail = False, "presentation verified at a verifier it was not addressed to"
+        V.verify_presentation(
+            minimal, expected_audience=other_verifier, expected_nonce=nonce
+        )
+        held, detail = (
+            False,
+            "presentation verified at a verifier it was not addressed to",
+        )
     except V.VerificationFailed as exc:
         held, detail = True, f"rejected: {exc}"
     record("verifier replays the presentation elsewhere (aud)", held, detail)
 
     try:
-        V.verify_presentation(minimal, expected_audience=WHOAMI, expected_nonce=secrets.token_urlsafe(16))
+        V.verify_presentation(
+            minimal, expected_audience=WHOAMI, expected_nonce=secrets.token_urlsafe(16)
+        )
         held, detail = False, "presentation verified against a nonce it never signed"
     except V.VerificationFailed as exc:
         held, detail = True, f"rejected: {exc}"
@@ -197,13 +271,17 @@ def sdjwt_cases() -> None:
 
     # Tamper with a disclosure: change the operator name, keep everything else.
     parts = minimal.split("~")
-    import base64
     for index, part in enumerate(parts[1:-1], start=1):
         raw = json.loads(base64.urlsafe_b64decode(part + "=" * (-len(part) % 4)))
         if raw[1] == "operator":
             raw[2] = "Totally Legit Corp"
-            parts[index] = base64.urlsafe_b64encode(
-                json.dumps(raw, separators=(",", ":")).encode()).decode().rstrip("=")
+            parts[index] = (
+                base64.urlsafe_b64encode(
+                    json.dumps(raw, separators=(",", ":")).encode()
+                )
+                .decode()
+                .rstrip("=")
+            )
             break
     tampered = "~".join(parts)
     try:
@@ -214,9 +292,20 @@ def sdjwt_cases() -> None:
     record("holder edits a disclosed value (digest)", held, detail)
 
     # Present a claim the issuer never issued, by inventing a disclosure.
-    forged = base64.urlsafe_b64encode(
-        json.dumps([secrets.token_urlsafe(16), "capabilities", ["invoice:pay", "admin:all"]],
-                   separators=(",", ":")).encode()).decode().rstrip("=")
+    forged = (
+        base64.urlsafe_b64encode(
+            json.dumps(
+                [
+                    secrets.token_urlsafe(16),
+                    "capabilities",
+                    ["invoice:pay", "admin:all"],
+                ],
+                separators=(",", ":"),
+            ).encode()
+        )
+        .decode()
+        .rstrip("=")
+    )
     invented = "~".join([parts[0], forged, parts[-1]])
     try:
         V.verify_presentation(invented, expected_audience=WHOAMI, expected_nonce=nonce)

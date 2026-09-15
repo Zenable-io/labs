@@ -20,7 +20,7 @@ from mcp.client.streamable_http import streamable_http_client
 ENTERPRISE_ISSUER = "http://localhost:8480/realms/enterprise"
 MCP_URL = "http://localhost:9100/mcp"
 CLIENT_ID = "mcp-client"
-IDP_SECRET = "mcp-client-secret"          # secret at the enterprise IdP
+IDP_SECRET = "mcp-client-secret"  # secret at the enterprise IdP
 VENDOR_SECRET = "mcp-client-vendor-secret"  # secret at the vendor's resource AS
 
 ID_JAG_TYPE = "urn:ietf:params:oauth:token-type:id-jag"
@@ -67,7 +67,9 @@ def discover(http: httpx.Client, mcp_url: str) -> tuple[str, str, str]:
     ok(f"resource id  = {resource_id}")
     ok(f"resource AS  = {as_issuer}")
 
-    step("3", "Fetch Authorization Server Metadata (RFC 8414) and check for EMA support")
+    step(
+        "3", "Fetch Authorization Server Metadata (RFC 8414) and check for EMA support"
+    )
     meta = http.get(f"{as_issuer}/.well-known/openid-configuration").json()
     token_endpoint = meta["token_endpoint"]
     ok(f"token_endpoint = {token_endpoint}")
@@ -76,13 +78,18 @@ def discover(http: httpx.Client, mcp_url: str) -> tuple[str, str, str]:
         ok(f"AS advertises {ID_JAG_PROFILE}")
     else:
         warn("AS does NOT advertise authorization_grant_profiles_supported=[...id-jag]")
-        warn("Keycloak gap: a spec-strict client would fall back to the browser flow here.")
+        warn(
+            "Keycloak gap: a spec-strict client would fall back to the browser flow here."
+        )
         warn("Proceeding because we know out-of-band that this AS accepts ID-JAG.")
     return resource_id, as_issuer, token_endpoint
 
 
 def sso(http: httpx.Client, user: str) -> str:
-    step("4", f"Enterprise SSO as '{user}' (password grant stands in for the browser login)")
+    step(
+        "4",
+        f"Enterprise SSO as '{user}' (password grant stands in for the browser login)",
+    )
     r = http.post(
         f"{ENTERPRISE_ISSUER}/protocol/openid-connect/token",
         data={
@@ -101,7 +108,9 @@ def sso(http: httpx.Client, user: str) -> str:
     return id_token
 
 
-def leg1(http: httpx.Client, id_token: str, audience: str, resource_id: str, scope: str) -> str | None:
+def leg1(
+    http: httpx.Client, id_token: str, audience: str, resource_id: str, scope: str
+) -> str | None:
     step("5", "LEG 1 — token exchange at the ENTERPRISE IdP for an ID-JAG (RFC 8693)")
     print(f"      requested_token_type = {ID_JAG_TYPE}")
     print(f"      audience             = {audience}   (the resource AS)")
@@ -124,8 +133,12 @@ def leg1(http: httpx.Client, id_token: str, audience: str, resource_id: str, sco
     body = r.json()
     if "access_token" not in body:
         fail(f"IdP DENIED: {body.get('error')} — {body.get('error_description')}")
-        print("\n      \033[1mThis is EMA working as designed:\033[0m the request fell outside what")
-        print("      the enterprise admin authorized, so no assertion was minted and the")
+        print(
+            "\n      \033[1mThis is EMA working as designed:\033[0m the request fell outside what"
+        )
+        print(
+            "      the enterprise admin authorized, so no assertion was minted and the"
+        )
         print("      vendor was never contacted. The policy decision happened at the")
         print("      customer's IdP — the SaaS vendor has no say and no visibility.")
         return None
@@ -133,7 +146,9 @@ def leg1(http: httpx.Client, id_token: str, audience: str, resource_id: str, sco
     header, claims = decode(idjag)
     ok(f"issued_token_type = {body['issued_token_type']}")
     ok(f"token_type = {body['token_type']}  (not a bearer token — it is a grant)")
-    ok(f"granted scope = {body.get('scope')}   (admin policy may narrow what you asked for)")
+    ok(
+        f"granted scope = {body.get('scope')}   (admin policy may narrow what you asked for)"
+    )
     print(f"      header : {json.dumps(header)}")
     print("      payload:")
     print(textwrap.indent(json.dumps(claims, indent=2), "      "))
@@ -141,8 +156,13 @@ def leg1(http: httpx.Client, id_token: str, audience: str, resource_id: str, sco
     return idjag
 
 
-def leg2(http: httpx.Client, token_endpoint: str, idjag: str, resource_id: str, scope: str) -> str | None:
-    step("6", "LEG 2 — present the ID-JAG at the VENDOR's AS for an access token (RFC 7523)")
+def leg2(
+    http: httpx.Client, token_endpoint: str, idjag: str, resource_id: str, scope: str
+) -> str | None:
+    step(
+        "6",
+        "LEG 2 — present the ID-JAG at the VENDOR's AS for an access token (RFC 7523)",
+    )
     print("      grant_type = urn:ietf:params:oauth:grant-type:jwt-bearer")
     print("      assertion  = <the ID-JAG>")
     r = http.post(
@@ -157,7 +177,9 @@ def leg2(http: httpx.Client, token_endpoint: str, idjag: str, resource_id: str, 
     )
     body = r.json()
     if "access_token" not in body:
-        fail(f"vendor AS refused: {body.get('error')} — {body.get('error_description')}")
+        fail(
+            f"vendor AS refused: {body.get('error')} — {body.get('error_description')}"
+        )
         return None
     at = body["access_token"]
     _, claims = decode(at)
@@ -170,11 +192,19 @@ def leg2(http: httpx.Client, token_endpoint: str, idjag: str, resource_id: str, 
 
 async def call_mcp(access_token: str, mcp_url: str) -> None:
     step("7", "Open an MCP session with the access token and call tools")
-    http_client = httpx2.AsyncClient(headers={"Authorization": f"Bearer {access_token}"})
-    async with Client(streamable_http_client(mcp_url, http_client=http_client)) as client:
+    http_client = httpx2.AsyncClient(
+        headers={"Authorization": f"Bearer {access_token}"}
+    )
+    async with Client(
+        streamable_http_client(mcp_url, http_client=http_client)
+    ) as client:
         tools = await client.list_tools()
         ok(f"tools: {[t.name for t in tools.tools]}")
-        for name, args in (("whoami", {}), ("list_findings", {}), ("suppress_finding", {"finding_id": "F-1001"})):
+        for name, args in (
+            ("whoami", {}),
+            ("list_findings", {}),
+            ("suppress_finding", {"finding_id": "F-1001"}),
+        ):
             res = await client.call_tool(name, args)
             text = "\n".join(c.text for c in res.content if getattr(c, "text", None))
             marker = "\033[31m✗\033[0m" if res.is_error else "\033[32m✓\033[0m"
@@ -186,8 +216,14 @@ async def call_mcp(access_token: str, mcp_url: str) -> None:
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--user", default="alice")
-    ap.add_argument("--scope", default="findings.read", help="scope to request on leg 1")
-    ap.add_argument("--audience", default=None, help="override the AS audience to test a denied pair")
+    ap.add_argument(
+        "--scope", default="findings.read", help="scope to request on leg 1"
+    )
+    ap.add_argument(
+        "--audience",
+        default=None,
+        help="override the AS audience to test a denied pair",
+    )
     ap.add_argument("--mcp-url", default=MCP_URL)
     args = ap.parse_args()
 
@@ -195,14 +231,18 @@ def main() -> int:
     with httpx.Client(timeout=15.0) as http:
         resource_id, as_issuer, token_endpoint = discover(http, args.mcp_url)
         id_token = sso(http, args.user)
-        idjag = leg1(http, id_token, args.audience or as_issuer, resource_id, args.scope)
+        idjag = leg1(
+            http, id_token, args.audience or as_issuer, resource_id, args.scope
+        )
         if idjag is None:
             return 2
         access_token = leg2(http, token_endpoint, idjag, resource_id, args.scope)
         if access_token is None:
             return 3
     asyncio.run(call_mcp(access_token, args.mcp_url))
-    print("\n\033[1;32mDONE\033[0m — enterprise SSO -> ID-JAG -> vendor access token -> MCP tool call\n")
+    print(
+        "\n\033[1;32mDONE\033[0m — enterprise SSO -> ID-JAG -> vendor access token -> MCP tool call\n"
+    )
     return 0
 
 

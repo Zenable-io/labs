@@ -39,7 +39,9 @@ class Client:
 
     def send(self, method: str, params: dict) -> int:
         self._next_id += 1
-        self._write({"jsonrpc": "2.0", "id": self._next_id, "method": method, "params": params})
+        self._write(
+            {"jsonrpc": "2.0", "id": self._next_id, "method": method, "params": params}
+        )
         return self._next_id
 
     def _write(self, frame: dict) -> None:
@@ -83,13 +85,20 @@ class Client:
             return
         session_id = (frame.get("result") or {}).get("sessionId")
         if not session_id:
-            print("[client] session/new returned no sessionId", file=sys.stderr, flush=True)
+            print(
+                "[client] session/new returned no sessionId",
+                file=sys.stderr,
+                flush=True,
+            )
             return
         print(f"[client] prompting session {session_id}", file=sys.stderr, flush=True)
-        self.send("session/prompt", {
-            "sessionId": session_id,
-            "prompt": [{"type": "text", "text": self._prompt}],
-        })
+        self.send(
+            "session/prompt",
+            {
+                "sessionId": session_id,
+                "prompt": [{"type": "text", "text": self._prompt}],
+            },
+        )
 
     def _handle(self, req_id: object, method: str, params: dict) -> None:
         if method == "fs/write_text_file":
@@ -101,9 +110,15 @@ class Client:
             argv = [params["command"], *params.get("args", [])]
             done = subprocess.run(argv, capture_output=True, text=True, check=False)
             out = done.stdout.strip()
-            print(f"[client] ran {' '.join(argv)} -> {out}", file=sys.stderr, flush=True)
+            print(
+                f"[client] ran {' '.join(argv)} -> {out}", file=sys.stderr, flush=True
+            )
             self._write(
-                {"jsonrpc": "2.0", "id": req_id, "result": {"terminalId": "t1", "output": out}}
+                {
+                    "jsonrpc": "2.0",
+                    "id": req_id,
+                    "result": {"terminalId": "t1", "output": out},
+                }
             )
         else:
             self._write({"jsonrpc": "2.0", "id": req_id, "result": {}})

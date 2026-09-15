@@ -1,0 +1,11 @@
+# The upstream agentgateway image is distroless: no shell, no curl, no probe of
+# any kind, so `docker compose up --wait` has nothing to health-check the gateway
+# with and a restart returns before the new config is actually serving. Copy one
+# static busybox in and point a HEALTHCHECK at the gateway's own admin API, so
+# bring-up and restart both block on the gateway serving config instead of a lab
+# step guessing with a sleep. The admin port is separate from the MCP proxy, so
+# these probes never appear in the access log, metrics, or traces the lab shows.
+FROM ghcr.io/agentgateway/agentgateway:v1.4.1
+COPY --from=busybox:1.36.1-uclibc /bin/busybox /usr/bin/busybox
+HEALTHCHECK --interval=2s --timeout=3s --retries=20 --start-period=2s \
+  CMD ["/usr/bin/busybox", "wget", "-q", "-O", "-", "http://127.0.0.1:15000/api/config"]

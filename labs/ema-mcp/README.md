@@ -9,7 +9,7 @@ Get hands-on with Enterprise-Managed Authorization (EMA) and the ID-JAG grant. S
 
 **Duration** 70 minutes · **Difficulty** Intermediate
 
-**Topics** `MCP` · `Authorization` · `OAuth` · `Identity` · `Governance` · `AI Agents`
+**Topics** `Agent Identity` · `MCP` · `Authorization` · `OAuth` · `Identity` · `Governance` · `AI Agents`
 
 **Prerequisites**
 
@@ -39,6 +39,13 @@ That brings up a Keycloak with two realms, installs the Python dependencies, and
 When it finishes you should see:
 
 ```console
+$ git clone https://github.com/Zenable-io/labs.git ~/zenable-labs 2>/dev/null \
+>   || git -C ~/zenable-labs pull --ff-only
+$ cd ~/zenable-labs/labs/ema-mcp
+$ ./run.sh up
+==> starting Keycloak (ceposta/keycloak:id-jag)
+    up after 38s
+==> configuring realms (enterprise IdP + vendor resource AS)
 ================ TOPOLOGY READY ================
  enterprise IdP : http://localhost:8480/realms/enterprise
    users        : alice/alice, bob/bob
@@ -49,6 +56,9 @@ When it finishes you should see:
    trusts       : http://localhost:8480/realms/enterprise (JWKS pinned)
    token aud    : http://localhost:9100/mcp
 ================================================
+==> installing python deps
+==> starting MCP server on :9100
+    up after 4s
 ```
 
 Two realms in one Keycloak: `enterprise` issues ID-JAGs and owns admin policy, and `vendor` is the MCP vendor's resource authorization server that consumes them. Success! The topology is up.
@@ -72,7 +82,7 @@ curl -s -i -X POST http://localhost:9100/mcp \
 
 ```console
 HTTP/1.1 401 Unauthorized
-date: Wed, 26 Aug 2026 01:39:18 GMT
+date: Mon, 14 Sep 2026 21:28:22 GMT
 server: uvicorn
 content-type: application/json
 content-length: 74
@@ -177,6 +187,21 @@ jq '{issued_token_type, token_type, scope, expires_in}' /tmp/idjag.json
 ```
 
 ```console
+$ S=http://localhost:8480
+$ ENT="$S/realms/enterprise/protocol/openid-connect/token"
+$ ID_TOKEN=$(curl -s -X POST "$ENT" \
+>   -d grant_type=password -d client_id=mcp-client -d client_secret=mcp-client-secret \
+>   -d username=alice -d password=alice -d scope=openid | jq -r .id_token)
+$ curl -s -X POST "$ENT" \
+>   -d grant_type=urn:ietf:params:oauth:grant-type:token-exchange \
+>   -d client_id=mcp-client -d client_secret=mcp-client-secret \
+>   --data-urlencode "subject_token=$ID_TOKEN" \
+>   -d subject_token_type=urn:ietf:params:oauth:token-type:id_token \
+>   -d requested_token_type=urn:ietf:params:oauth:token-type:id-jag \
+>   -d audience="$S/realms/vendor" \
+>   -d resource=http://localhost:9100/mcp \
+>   -d scope=findings.read > /tmp/idjag.json
+$ jq '{issued_token_type, token_type, scope, expires_in}' /tmp/idjag.json
 {
   "issued_token_type": "urn:ietf:params:oauth:token-type:id-jag",
   "token_type": "N_A",
@@ -196,14 +221,14 @@ jq -r .access_token /tmp/idjag.json \
 
 ```console
 {
-  "exp": 1787831085,
-  "iat": 1787830785,
-  "jti": "f1e710d0-4e00-89a2-cf65-d0a3b024d250",
+  "exp": 1789421624,
+  "iat": 1789421324,
+  "jti": "d089485c-ee2d-a3a3-e93b-849f90f09266",
   "iss": "http://localhost:8480/realms/enterprise",
   "aud": "http://localhost:8480/realms/vendor",
-  "sub": "c2812727-549a-4e31-9437-e620a7ab6cb5",
+  "sub": "675684ac-10c0-427f-b51c-4ac132b52565",
   "typ": "IDJAG",
-  "sid": "1314s5a6kuaKD6yj2J2veOJa",
+  "sid": "dns0xNfuJot-Wo-8w-vNdYKM",
   "scope": "findings.read",
   "client_id": "mcp-client"
 }
@@ -230,7 +255,7 @@ jq -r .access_token /tmp/idjag.json \
 {
   "alg": "RS256",
   "typ": "oauth-id-jag+jwt",
-  "kid": "-W49ahgKWXOpb-q1Ivj6UEVE4b4T5M6_n18ncWUPA-o"
+  "kid": "DCpsr0xsxAXrCbICZ6rTmWgcoPfoE6xSw2e_gg7hovw"
 }
 ```
 
@@ -274,9 +299,29 @@ jq '{token_type, scope, expires_in}' /tmp/access.json
 ```
 
 ```console
+$ S=http://localhost:8480
+$ ENT="$S/realms/enterprise/protocol/openid-connect/token"
+$ VEN="$S/realms/vendor/protocol/openid-connect/token"
+$ ID_TOKEN=$(curl -s -X POST "$ENT" \
+>   -d grant_type=password -d client_id=mcp-client -d client_secret=mcp-client-secret \
+>   -d username=alice -d password=alice -d scope=openid | jq -r .id_token)
+$ IDJAG=$(curl -s -X POST "$ENT" \
+>   -d grant_type=urn:ietf:params:oauth:grant-type:token-exchange \
+>   -d client_id=mcp-client -d client_secret=mcp-client-secret \
+>   --data-urlencode "subject_token=$ID_TOKEN" \
+>   -d subject_token_type=urn:ietf:params:oauth:token-type:id_token \
+>   -d requested_token_type=urn:ietf:params:oauth:token-type:id-jag \
+>   -d audience="$S/realms/vendor" -d resource=http://localhost:9100/mcp \
+>   -d scope=findings.read | jq -r .access_token)
+$ curl -s -X POST "$VEN" \
+>   -d grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer \
+>   -d client_id=mcp-client -d client_secret=mcp-client-vendor-secret \
+>   --data-urlencode "assertion=$IDJAG" \
+>   -d scope=findings.read > /tmp/access.json
+$ jq '{token_type, scope, expires_in}' /tmp/access.json
 {
   "token_type": "Bearer",
-  "scope": "findings.read profile email",
+  "scope": "profile findings.read email",
   "expires_in": 300
 }
 ```
@@ -290,23 +335,23 @@ jq -r .access_token /tmp/access.json \
 
 ```console
 {
-  "exp": 1787831097,
-  "iat": 1787830797,
-  "jti": "trrtag:40fbaf9f-cc6a-5c5e-d9a7-4909708b84ae",
+  "exp": 1789421646,
+  "iat": 1789421346,
+  "jti": "trrtag:474f7144-2992-dad0-f975-80dfada7ee96",
   "iss": "http://localhost:8480/realms/vendor",
   "aud": [
     "http://localhost:9100/mcp",
     "account"
   ],
-  "sub": "a66f09e5-9088-4297-8ec3-1591532b650b",
+  "sub": "2900e1a1-ffac-4376-826d-f843ec8868c3",
   "typ": "Bearer",
   "azp": "mcp-client",
   "acr": "1",
   "realm_access": {
     "roles": [
       "offline_access",
-      "uma_authorization",
-      "default-roles-vendor"
+      "default-roles-vendor",
+      "uma_authorization"
     ]
   },
   "resource_access": {
@@ -318,7 +363,7 @@ jq -r .access_token /tmp/access.json \
       ]
     }
   },
-  "scope": "findings.read profile email",
+  "scope": "profile findings.read email",
   "email_verified": false,
   "preferred_username": "alice",
   "email": "alice@acme.example"
@@ -348,15 +393,76 @@ Everything so far has been OAuth plumbing, so let's actually use it. The repo sh
 uv run python ema_client.py --user alice --scope findings.read
 ```
 
-The tail of the output:
+The output walks every step; the part we care about is step 7 at the end:
 
 ```console
+=== MCP Enterprise-Managed Authorization (EMA) end-to-end ===
+
+[1] Call the MCP server with no token, expect a challenge
+      HTTP 401
+      WWW-Authenticate: Bearer error="invalid_token", error_description="Authentication required", resource_metadata="http://localhost...
+      ✓ resource_metadata -> http://localhost:9100/.well-known/oauth-protected-resource/mcp
+
+[2] Fetch Protected Resource Metadata (RFC 9728)
+      {
+        "resource": "http://localhost:9100/mcp",
+        "authorization_servers": [
+          "http://localhost:8480/realms/vendor"
+        ],
+        "bearer_methods_supported": [
+          "header"
+        ]
+      }
+      ✓ resource id  = http://localhost:9100/mcp
+      ✓ resource AS  = http://localhost:8480/realms/vendor
+
+[3] Fetch Authorization Server Metadata (RFC 8414) and check for EMA support
+      ✓ token_endpoint = http://localhost:8480/realms/vendor/protocol/openid-connect/token
+      ! AS does NOT advertise authorization_grant_profiles_supported=[...id-jag]
+      ! Keycloak gap: a spec-strict client would fall back to the browser flow here.
+      ! Proceeding because we know out-of-band that this AS accepts ID-JAG.
+
+[4] Enterprise SSO as 'alice' (password grant stands in for the browser login)
+      ✓ id_token for sub=675684ac... (alice)
+
+[5] LEG 1 — token exchange at the ENTERPRISE IdP for an ID-JAG (RFC 8693)
+      requested_token_type = urn:ietf:params:oauth:token-type:id-jag
+      audience             = http://localhost:8480/realms/vendor   (the resource AS)
+      resource             = http://localhost:9100/mcp   (the MCP server)
+      scope                = findings.read
+      ✓ issued_token_type = urn:ietf:params:oauth:token-type:id-jag
+      ✓ token_type = N_A  (not a bearer token — it is a grant)
+      ✓ granted scope = findings.read   (admin policy may narrow what you asked for)
+      header : {"alg": "RS256", "typ": "oauth-id-jag+jwt", "kid": "DCpsr0xsxAXrCbICZ6rTmWgcoPfoE6xSw2e_gg7hovw"}
+      payload:
+      {
+        "exp": 1789421659,
+        "iat": 1789421359,
+        "jti": "ec63c3f3-e320-49a8-ed3a-5574af8c7c54",
+        "iss": "http://localhost:8480/realms/enterprise",
+        "aud": "http://localhost:8480/realms/vendor",
+        "sub": "675684ac-10c0-427f-b51c-4ac132b52565",
+        "typ": "IDJAG",
+        "sid": "ARfvrjFWoPBBvod8TJTwMr1l",
+        "scope": "findings.read",
+        "client_id": "mcp-client"
+      }
+
+[6] LEG 2 — present the ID-JAG at the VENDOR's AS for an access token (RFC 7523)
+      grant_type = urn:ietf:params:oauth:grant-type:jwt-bearer
+      assertion  = <the ID-JAG>
+      ✓ access token issued, scope = profile findings.read email
+      ✓ aud = ['http://localhost:9100/mcp', 'account']   (audience-restricted to the MCP server)
+      ✓ iss = http://localhost:8480/realms/vendor   (the VENDOR, not the enterprise)
+      ✓ no browser redirect and no consent screen was shown at any point
+
 [7] Open an MCP session with the access token and call tools
       ✓ tools: ['whoami', 'list_findings', 'suppress_finding']
 
       ✓ whoami():
           {
             "user": "alice",
+            "email": "alice@acme.example",
             "token_issuer": "http://localhost:8480/realms/vendor",
             "token_audience": [
               "http://localhost:9100/mcp",
@@ -369,10 +475,25 @@ The tail of the output:
           }
 
       ✓ list_findings():
-          [ ... two findings ... ]
+          [
+            {
+              "id": "F-1001",
+              "rule": "no-public-s3",
+              "severity": "high",
+              "mode": "enforced"
+            },
+            {
+              "id": "F-1002",
+              "rule": "require-mfa",
+              "severity": "medium",
+              "mode": "warning"
+            }
+          ]
 
       ✗ suppress_finding():
-          Error executing tool suppress_finding: insufficient_scope: findings.write required
+          Error executing tool suppress_finding
+
+DONE — enterprise SSO -> ID-JAG -> vendor access token -> MCP tool call
 ```
 
 Read that last line carefully. Alice reached the server without ever seeing a browser, and the server still refused an operation she wasn't scoped for. Federated access didn't mean unlimited access.
@@ -384,8 +505,105 @@ uv run python ema_client.py --user alice --scope "findings.read findings.write"
 ```
 
 ```console
-✓ suppress_finding():
-    suppressed F-1001
+=== MCP Enterprise-Managed Authorization (EMA) end-to-end ===
+
+[1] Call the MCP server with no token, expect a challenge
+      HTTP 401
+      WWW-Authenticate: Bearer error="invalid_token", error_description="Authentication required", resource_metadata="http://localhost...
+      ✓ resource_metadata -> http://localhost:9100/.well-known/oauth-protected-resource/mcp
+
+[2] Fetch Protected Resource Metadata (RFC 9728)
+      {
+        "resource": "http://localhost:9100/mcp",
+        "authorization_servers": [
+          "http://localhost:8480/realms/vendor"
+        ],
+        "bearer_methods_supported": [
+          "header"
+        ]
+      }
+      ✓ resource id  = http://localhost:9100/mcp
+      ✓ resource AS  = http://localhost:8480/realms/vendor
+
+[3] Fetch Authorization Server Metadata (RFC 8414) and check for EMA support
+      ✓ token_endpoint = http://localhost:8480/realms/vendor/protocol/openid-connect/token
+      ! AS does NOT advertise authorization_grant_profiles_supported=[...id-jag]
+      ! Keycloak gap: a spec-strict client would fall back to the browser flow here.
+      ! Proceeding because we know out-of-band that this AS accepts ID-JAG.
+
+[4] Enterprise SSO as 'alice' (password grant stands in for the browser login)
+      ✓ id_token for sub=675684ac... (alice)
+
+[5] LEG 1 — token exchange at the ENTERPRISE IdP for an ID-JAG (RFC 8693)
+      requested_token_type = urn:ietf:params:oauth:token-type:id-jag
+      audience             = http://localhost:8480/realms/vendor   (the resource AS)
+      resource             = http://localhost:9100/mcp   (the MCP server)
+      scope                = findings.read findings.write
+      ✓ issued_token_type = urn:ietf:params:oauth:token-type:id-jag
+      ✓ token_type = N_A  (not a bearer token — it is a grant)
+      ✓ granted scope = findings.read findings.write   (admin policy may narrow what you asked for)
+      header : {"alg": "RS256", "typ": "oauth-id-jag+jwt", "kid": "DCpsr0xsxAXrCbICZ6rTmWgcoPfoE6xSw2e_gg7hovw"}
+      payload:
+      {
+        "exp": 1789421666,
+        "iat": 1789421366,
+        "jti": "53a56c2c-38bb-9f1c-5e3b-e8873063de62",
+        "iss": "http://localhost:8480/realms/enterprise",
+        "aud": "http://localhost:8480/realms/vendor",
+        "sub": "675684ac-10c0-427f-b51c-4ac132b52565",
+        "typ": "IDJAG",
+        "sid": "EzE1XaBjUooRdxbmH78kCkJs",
+        "scope": "findings.read findings.write",
+        "client_id": "mcp-client"
+      }
+
+[6] LEG 2 — present the ID-JAG at the VENDOR's AS for an access token (RFC 7523)
+      grant_type = urn:ietf:params:oauth:grant-type:jwt-bearer
+      assertion  = <the ID-JAG>
+      ✓ access token issued, scope = profile findings.read email findings.write
+      ✓ aud = ['http://localhost:9100/mcp', 'account']   (audience-restricted to the MCP server)
+      ✓ iss = http://localhost:8480/realms/vendor   (the VENDOR, not the enterprise)
+      ✓ no browser redirect and no consent screen was shown at any point
+
+[7] Open an MCP session with the access token and call tools
+      ✓ tools: ['whoami', 'list_findings', 'suppress_finding']
+
+      ✓ whoami():
+          {
+            "user": "alice",
+            "email": "alice@acme.example",
+            "token_issuer": "http://localhost:8480/realms/vendor",
+            "token_audience": [
+              "http://localhost:9100/mcp",
+              "account"
+            ],
+            "granted_scopes": [
+              "findings.read",
+              "findings.write"
+            ],
+            "authorized_by": "enterprise IdP via ID-JAG (no per-server consent screen)"
+          }
+
+      ✓ list_findings():
+          [
+            {
+              "id": "F-1001",
+              "rule": "no-public-s3",
+              "severity": "high",
+              "mode": "enforced"
+            },
+            {
+              "id": "F-1002",
+              "rule": "require-mfa",
+              "severity": "medium",
+              "mode": "warning"
+            }
+          ]
+
+      ✓ suppress_finding():
+          suppressed F-1001
+
+DONE — enterprise SSO -> ID-JAG -> vendor access token -> MCP tool call
 ```
 
 Same user, same client, same server. The only thing that changed is what the enterprise was willing to assert. Success!
@@ -465,6 +683,23 @@ curl -s -o /dev/null -w '%{http_code}\n' -X POST http://localhost:9100/mcp \
 ```
 
 ```console
+$ S=http://localhost:8480
+$ ENT="$S/realms/enterprise/protocol/openid-connect/token"
+$ ID_TOKEN=$(curl -s -X POST "$ENT" \
+>   -d grant_type=password -d client_id=mcp-client -d client_secret=mcp-client-secret \
+>   -d username=alice -d password=alice -d scope=openid | jq -r .id_token)
+$ IDJAG=$(curl -s -X POST "$ENT" \
+>   -d grant_type=urn:ietf:params:oauth:grant-type:token-exchange \
+>   -d client_id=mcp-client -d client_secret=mcp-client-secret \
+>   --data-urlencode "subject_token=$ID_TOKEN" \
+>   -d subject_token_type=urn:ietf:params:oauth:token-type:id_token \
+>   -d requested_token_type=urn:ietf:params:oauth:token-type:id-jag \
+>   -d audience="$S/realms/vendor" -d resource=http://localhost:9100/mcp \
+>   -d scope=findings.read | jq -r .access_token)
+$ curl -s -o /dev/null -w '%{http_code}\n' -X POST http://localhost:9100/mcp \
+>   -H "authorization: Bearer $IDJAG" \
+>   -H 'content-type: application/json' \
+>   -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
 401
 ```
 
@@ -490,12 +725,46 @@ uv run python ema_client.py --audience https://unapproved-vendor.example
 ```
 
 ```console
+=== MCP Enterprise-Managed Authorization (EMA) end-to-end ===
+
+[1] Call the MCP server with no token, expect a challenge
+      HTTP 401
+      WWW-Authenticate: Bearer error="invalid_token", error_description="Authentication required", resource_metadata="http://localhost...
+      ✓ resource_metadata -> http://localhost:9100/.well-known/oauth-protected-resource/mcp
+
+[2] Fetch Protected Resource Metadata (RFC 9728)
+      {
+        "resource": "http://localhost:9100/mcp",
+        "authorization_servers": [
+          "http://localhost:8480/realms/vendor"
+        ],
+        "bearer_methods_supported": [
+          "header"
+        ]
+      }
+      ✓ resource id  = http://localhost:9100/mcp
+      ✓ resource AS  = http://localhost:8480/realms/vendor
+
+[3] Fetch Authorization Server Metadata (RFC 8414) and check for EMA support
+      ✓ token_endpoint = http://localhost:8480/realms/vendor/protocol/openid-connect/token
+      ! AS does NOT advertise authorization_grant_profiles_supported=[...id-jag]
+      ! Keycloak gap: a spec-strict client would fall back to the browser flow here.
+      ! Proceeding because we know out-of-band that this AS accepts ID-JAG.
+
+[4] Enterprise SSO as 'alice' (password grant stands in for the browser login)
+      ✓ id_token for sub=675684ac... (alice)
+
 [5] LEG 1 — token exchange at the ENTERPRISE IdP for an ID-JAG (RFC 8693)
       requested_token_type = urn:ietf:params:oauth:token-type:id-jag
       audience             = https://unapproved-vendor.example   (the resource AS)
       resource             = http://localhost:9100/mcp   (the MCP server)
       scope                = findings.read
       ✗ IdP DENIED: invalid_request — Client not found for audience identifier: https://unapproved-vendor.example
+
+      This is EMA working as designed: the request fell outside what
+      the enterprise admin authorized, so no assertion was minted and the
+      vendor was never contacted. The policy decision happened at the
+      customer's IdP — the SaaS vendor has no say and no visibility.
 ```
 
 No assertion exists, so there's nothing to present anywhere. The unapproved vendor never receives a request and never learns anyone tried. Success! The deny happened inside your perimeter, before any traffic left it.
@@ -546,6 +815,8 @@ cd ~/zenable-labs/labs/ema-mcp && ./run.sh down
 ```
 
 ```console
+$ rm -f /tmp/idjag.json /tmp/access.json
+$ cd ~/zenable-labs/labs/ema-mcp && ./run.sh down
 torn down
 ```
 

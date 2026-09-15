@@ -1,7 +1,7 @@
 <!-- Generated from src/lib/labs/content/labs/acp-agent-client.mdx in Zenable-io/next-gen-governance
      by services/ui_frontend/scripts/export-lab-readme.js. Do not edit by hand. -->
 
-# ACP: The Protocol Between Your Editor and Your Agent
+# Agent Client Protocol (ACP)
 
 Speak the Agent Client Protocol to a real agent by hand, then watch the agent reach back for your filesystem and your shell, and put a policy on the wire that refuses it.
 
@@ -37,7 +37,24 @@ goose --version
 ```
 
 ```console
-goose 1.46.0
+$ if ! command -v bzip2 >/dev/null 2>&1; then
+>   sudo apt-get update -qq && sudo apt-get install -y -qq bzip2
+> fi
+$ curl -fsSL https://github.com/aaif-goose/goose/releases/download/stable/download_cli.sh | CONFIGURE=false GOOSE_VERSION=v1.46.0 bash
+WINDIR: <not set>
+OSTYPE: linux-gnu
+uname -s: Linux
+uname -m: x86_64
+PWD: /home/rocky/lab
+Detected OS: linux with ARCH x86_64
+Downloading v1.46.0 release: goose-x86_64-unknown-linux-gnu.tar.bz2...
+Extracting goose-x86_64-unknown-linux-gnu.tar.bz2 to temporary directory...
+Creating directory: /home/rocky/.local/bin
+Moving goose to /home/rocky/.local/bin/goose
+Skipping 'goose configure', you may need to run this manually later
+$ export PATH="$HOME/.local/bin:$PATH"
+$ goose --version
+ 1.46.0
 ```
 
 > [!TIP]
@@ -53,12 +70,15 @@ ls
 ```
 
 ```console
+$ git clone https://github.com/Zenable-io/labs.git ~/zenable-labs 2>/dev/null \
+>   || git -C ~/zenable-labs pull --ff-only
+$ cd ~/zenable-labs/labs/acp-goose
+$ ls
 acp_handshake.py
 acp_policy_proxy.py
 demanding_agent.py
-evidence
+goose
 permissive_client.py
-README.md
 ```
 
 Four Python files, standard library only, plus `evidence/` holding captured output from a known-good run so you can `diff` your results against ours.

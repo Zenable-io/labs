@@ -56,8 +56,9 @@ def issue(issuer_key: JWK, holder_key: JWK) -> str:
     return issued.sd_jwt_issuance
 
 
-def present(credential: str, disclose: list[str], *, nonce: str, audience: str,
-            holder_key: JWK) -> str:
+def present(
+    credential: str, disclose: list[str], *, nonce: str, audience: str, holder_key: JWK
+) -> str:
     """Build a presentation revealing only `disclose`, plus a KB-JWT.
 
     The key-binding JWT is what makes a presentation non-transferable: it is

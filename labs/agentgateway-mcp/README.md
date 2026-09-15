@@ -1,13 +1,13 @@
 <!-- Generated from src/lib/labs/content/labs/agentgateway-mcp.mdx in Zenable-io/next-gen-governance
      by services/ui_frontend/scripts/export-lab-readme.js. Do not edit by hand. -->
 
-# agentgateway: Seeing and Governing MCP Traffic
+# Seeing and Governing MCP traffic with agentgateway
 
 Put a gateway between your agent and your MCP servers. Watch every tool call in access logs, metrics and traces, serve two servers from one endpoint, and refuse the calls you never wanted, all without touching a line of server code.
 
 **[▶ Take this lab on the Zenable Learning Hub](https://www.zenable.app/learn?lab=agentgateway-mcp&utm_source=github&utm_medium=labs_repo&utm_campaign=agentgateway-mcp_readme)** — fully hosted sandbox environment, progress tracking, and a full-featured lab workspace.
 
-**Duration** 73 minutes · **Difficulty** Advanced
+**Duration** 73 minutes · **Difficulty** Intermediate
 
 **Topics** `MCP` · `agentgateway` · `Observability` · `OpenTelemetry` · `Governance` · `Rate Limiting` · `goose` · `Docker` · `Open Source`
 
@@ -32,24 +32,24 @@ git clone https://github.com/Zenable-io/labs.git ~/zenable-labs 2>/dev/null \
   || git -C ~/zenable-labs pull --ff-only
 cd ~/zenable-labs/labs/agentgateway-mcp
 cp 01-passthrough.yaml config.yaml
-docker compose up -d --build
+docker compose up -d --build --wait
 ```
 
-That builds two MCP servers, starts a Jaeger instance for later, and brings up the gateway. Give the build a couple of minutes the first time. When it settles:
+That builds two MCP servers, starts a Jaeger instance for later, and brings up the gateway. The first build takes a couple of minutes. `--wait` holds the command until every container reports healthy, so when it returns the stack is ready and nothing later races a server that is still starting. Let's look at what's running:
 
 ```bash
 docker compose ps
 ```
 
 ```console
-NAME              IMAGE                                      COMMAND                  SERVICE           CREATED         STATUS         PORTS
-agentgateway      ghcr.io/agentgateway/agentgateway:v1.4.1   "/app/agentgateway -…"   agentgateway      9 seconds ago   Up 7 seconds   127.0.0.1:3000->3000/tcp, 127.0.0.1:15000->15000/tcp, 127.0.0.1:15020->15020/tcp
-jaeger            jaegertracing/all-in-one:1.68.0            "/go/bin/all-in-one-…"   jaeger            9 seconds ago   Up 8 seconds   4317-4318/tcp, 9411/tcp, 14250/tcp, 14268/tcp, 127.0.0.1:16686->16686/tcp
-mcp-get-started   agentgateway-mcp-mcp-get-started           "fastmcp run server.…"   mcp-get-started   9 seconds ago   Up 8 seconds   8000/tcp
-tickets           agentgateway-mcp-tickets                   "fastmcp run tickets…"   tickets           9 seconds ago   Up 8 seconds   8000/tcp
+NAME              IMAGE                              COMMAND                  SERVICE           CREATED          STATUS                    PORTS
+agentgateway      agentgateway-mcp-agentgateway      "/app/agentgateway -…"   agentgateway      17 seconds ago   Up 11 seconds (healthy)   127.0.0.1:3000->3000/tcp, 127.0.0.1:15000->15000/tcp, 127.0.0.1:15020->15020/tcp
+jaeger            jaegertracing/all-in-one:1.68.0    "/go/bin/all-in-one-…"   jaeger            17 seconds ago   Up 16 seconds (healthy)   4317-4318/tcp, 9411/tcp, 14250/tcp, 14268/tcp, 127.0.0.1:16686->16686/tcp
+mcp-get-started   agentgateway-mcp-mcp-get-started   "fastmcp run server.…"   mcp-get-started   17 seconds ago   Up 16 seconds (healthy)   8000/tcp
+tickets           agentgateway-mcp-tickets           "fastmcp run tickets…"   tickets           17 seconds ago   Up 16 seconds (healthy)   8000/tcp
 ```
 
-Look at the two highlighted lines. `mcp-get-started` and `tickets` show `8000/tcp` with no address in front, so neither publishes a port to your machine. The gateway is the only way in, which is how you'd run this anywhere that matters.
+Look at the two highlighted lines. `mcp-get-started` and `tickets` show `8000/tcp` with no address in front, so neither is accessible via a port on your machine. The gateway is the only way in.
 
 Here's the config we copied into place:
 
@@ -66,7 +66,7 @@ binds:
               host: http://mcp-get-started:8000/mcp
 ```
 
-Bind, listener, route, backend, target, in that order. Now point a client at the gateway:
+Now let's point a client at the gateway:
 
 ```bash
 uv run python client.py
@@ -78,7 +78,7 @@ tools at http://127.0.0.1:3000/mcp:
   shout
 ```
 
-The server's two tools, reached through the gateway rather than directly. Call one:
+We see both of the server's tools are accessible via the gateway. Let's call one of them:
 
 ```bash
 uv run python client.py add '{"a":20260825,"b":101}'
@@ -88,7 +88,7 @@ uv run python client.py add '{"a":20260825,"b":101}'
 add -> 20260926
 ```
 
-Success! `server.py` is an ordinary MCP server with no proxy awareness in it, and `client.py` never mentions a gateway. Both ends are talking MCP to something that speaks MCP.
+Great; we can see that even when `server.py` isn't proxy aware, and `client.py` never mentions a gateway it still works.
 
 Question: the client asked for `add`, and the gateway has never seen our server's code. How did it know `add` existed? Have a guess before opening the answer.
 
@@ -97,15 +97,15 @@ Question: the client asked for `add`, and the gateway has never seen our server'
 
 It asked, the same way our client did.
 
-When the first client connects, the gateway opens its own MCP session to each target, sends `initialize` and `tools/list`, and merges what comes back. Discovery is in the protocol, so a proxy that speaks MCP needs no configuration describing the tools, and picks up a tool you add tomorrow with no config change at all.
+When the first client connects, the gateway opens its own MCP session to each target, sends `initialize` and `tools/list`, and merges what comes back. Discovery is built into MCP, so the gateway knows that if it calls `tools/list` for any MCP server that it should get a well formed answer, and then uses it to relay that information to its clients.
 
 </details>
 
-## What the gateway saw
+## What the gateway can see
 
 _~13 min · Hands-on_
 
-Now for the reason we're here. Ask the gateway what just happened:
+Now, let's see what information the gateway has about what just happened:
 
 ```bash
 docker compose logs --no-log-prefix agentgateway | grep '"mcp.method.name":"tools/call"' | jq .
@@ -114,12 +114,12 @@ docker compose logs --no-log-prefix agentgateway | grep '"mcp.method.name":"tool
 ```console
 {
   "level": "info",
-  "time": "2026-08-27T00:22:00.789058Z",
+  "time": "2026-09-14T21:07:02.190973Z",
   "scope": "request",
   "gateway": "default/default",
   "listener": "listener0",
   "route": "default/route0",
-  "src.addr": "172.18.0.1:56642",
+  "src.addr": "172.18.0.1:33122",
   "http.method": "POST",
   "http.host": "127.0.0.1",
   "http.path": "/mcp",
@@ -130,22 +130,14 @@ docker compose logs --no-log-prefix agentgateway | grep '"mcp.method.name":"tool
   "mcp.target": "get-started",
   "mcp.resource.type": "tool",
   "gen_ai.tool.name": "add",
-  "mcp.session.id": "eyJ0IjoibWNwIiwicyI6W3sidCI6ImdldC1zdGFydGVkIiwicyI6ImQ1NWUxYzI5OTUzYTRkMTlhMjc4OGE2ZmVkZjdmOTBmIn1dfQ",
-  "duration": "4ms"
+  "mcp.session.id": "eyJ0IjoibWNwIiwicyI6W3sidCI6ImdldC1zdGFydGVkIiwicyI6IjUwNTMxMzc3NWRjNTQ3NzM4NzY4NzVhNTA0YjMxZWE5In1dfQ",
+  "duration": "6ms"
 }
 ```
 
-That single record answers the question security asked. Which tool (`gen_ai.tool.name`), on which server (`mcp.target`), from where (`src.addr`), in which session, how long it took, and whether it worked.
+Perfect. We can see the usage details are available via the gateway, including which tool was used (`gen_ai.tool.name`), on which server (`mcp.target`), from where (`src.addr`), in which session, how long it took, and whether or not it worked.
 
-One line of config made that JSON rather than `key=value` text, and JSON is what turns an access log into something you can query:
-
-```yaml
-config:
-  logging:
-    format: json
-```
-
-So the audit trail is a `jq` filter away:
+Since there's so much detail in the logs, you can filter them down to get exactly what you want with something like this:
 
 ```bash
 docker compose logs --no-log-prefix agentgateway | grep '^{' \
@@ -154,15 +146,15 @@ docker compose logs --no-log-prefix agentgateway | grep '^{' \
 ```
 
 ```console
-{"tool":"add","target":"get-started","status":200,"ms":"4ms"}
+{"tool":"add","target":"get-started","status":200,"ms":"6ms"}
 ```
 
-Success! Every tool call any agent makes, in one place, in a shape a log pipeline already understands. Ship that to whatever you use and "which tools ran last week" stops being a research project.
+Great! Now we have all of the tool calls our agent makes, documented in one place.
 
 > [!NOTE]
-> agentgateway can also write requests to a SQLite or Postgres database (`config.logging.database`), and the built-in UI has a Logs tab that reads it. It stays empty here. Upstream restricts that store to LLM traffic, in [log.rs](https://github.com/agentgateway/agentgateway/blob/main/crates/agentgateway/src/telemetry/log.rs): "For now we only enable this log for LLM requests to keep cost/performance appropriate." For MCP, the access log above is the durable record.
+> agentgateway can also write requests to a SQLite or Postgres database (`config.logging.database`), and the built-in UI has a Logs tab that reads it.
 
-The same traffic is already counted, too:
+You can also look at the [Prometheus](https://prometheus.io/) metrics endpoint to get some data about what has happened recently:
 
 ```bash
 curl -s http://127.0.0.1:15020/metrics | grep '^agentgateway_mcp_requests_total' | sort
@@ -175,7 +167,7 @@ agentgateway_mcp_requests_total{method="tools/call",resource_type="tool",server=
 agentgateway_mcp_requests_total{method="tools/list",resource_type="unknown",server="unknown",resource="unknown",bind="bind/3000",gateway="default/default",listener="listener0",route="default/route0",route_rule="unknown"} 2
 ```
 
-This is a [Prometheus](https://prometheus.io/) metrics endpoint, showing data with `server` and `resource` as labels. Since we've done two client runs so far, we see two handshakes and a tool call. The `sort` is there because Prometheus makes no promise about line order, and it changes from one scrape to the next.
+Since we've done two client runs so far, we see two handshakes and a tool call.
 
 Now, let's configure tracing using `02-observed.yaml`:
 
@@ -191,24 +183,30 @@ Put it in place:
 ```bash
 cp 02-observed.yaml config.yaml
 docker compose restart agentgateway
+# the tracing change needs a restart; --wait blocks on the gateway's healthcheck
+# so the next command never hits it mid-restart
+docker compose up -d --wait agentgateway
 ```
 
-> [!WARNING]
-> Traces not showing up? Make sure you ran the gateway restart in the previous command, and that your `config.yaml` matches `02-observed.yaml`.
-
-Drive some traffic and look at what Jaeger received:
+And drive some traffic and see what [Jaeger](https://www.jaegertracing.io/) (an open source, distributed tracing platform that we're running in this lab) received:
 
 ```bash
 uv run python client.py add '{"a":7,"b":35}'
 uv run python client.py shout '{"text":"observability first"}'
-sleep 10
+# wait until those spans have reached Jaeger, rather than guessing with a sleep
+until curl -s "http://127.0.0.1:16686/api/traces?service=agentgateway&limit=1" | jq -e '.data | length > 0' >/dev/null 2>&1; do sleep 1; done
 curl -s "http://127.0.0.1:16686/api/traces?service=agentgateway&limit=30" \
   | jq -r '[.data[].spans[].operationName] | unique | .[]'
 ```
 
 ```console
+$ uv run python client.py add '{"a":7,"b":35}'
 add -> 42
+$ uv run python client.py shout '{"text":"observability first"}'
 shout -> OBSERVABILITY FIRST!
+$ until curl -s "http://127.0.0.1:16686/api/traces?service=agentgateway&limit=1" | jq -e '.data | length > 0' >/dev/null 2>&1; do sleep 1; done
+$ curl -s "http://127.0.0.1:16686/api/traces?service=agentgateway&limit=30" \
+>   | jq -r '[.data[].spans[].operationName] | unique | .[]'
 DELETE /*
 GET /*
 POST /*
@@ -220,23 +218,30 @@ tools/call get-started
 tools/list
 ```
 
-Every MCP method is a span, and a tool call names the target it landed on. The access log now carries `trace.id` and `span.id` as well, so a line in the log and a trace in Jaeger are the same event seen twice.
+Every call to the MCP server is a span in Jaeger, and spans are grouped together into traces. The same `trace.id` and `span.id` also appear in agentgateway's access log, so you can connect a log line there to the timing and details in Jaeger. These identifiers and relationships become powerful once you have significant usage and you're trying to identify patterns.
 
-Now open **http://localhost:16686** in the sandbox browser. Pick `agentgateway` in the Service dropdown, hit Find Traces, and click a `POST /*` row to see the parent span with its `tools/call` child nested underneath. Every field we grepped for is on the span detail panel.
+<details>
+<summary>What's a span?</summary>
 
-The page is reading one API call, which is worth seeing on its own:
+A span is a single timed piece of work. It has a name, a start and end time, a set of key-value attributes, and usually a parent. A trace is a tree of spans that share one `trace.id`. Here the `POST /*` span is the HTTP request the client made, and `tools/call get-started` is the child span for the MCP call the gateway forwarded inside it.
+
+</details>
+
+Now open Chromium from the sandbox desktop and go to **http://localhost:16686**. Pick `agentgateway` in the Service dropdown, hit Find Traces, and click a `POST /*` row to see the parent span with its `tools/call` child nested underneath. Every field we grepped for is on the span detail panel.
+
+The page is reading one API call:
 
 ```bash
 curl -s http://127.0.0.1:16686/api/services | jq -c .data
 ```
 
 ```console
-["agentgateway","jaeger-all-in-one"]
+["jaeger-all-in-one","agentgateway"]
 ```
 
-Jaeger traces itself as well, which is why it shows up beside the gateway. Success! Three views of one tool call, and the server still doesn't know we're here.
+Jaeger traces itself as well, which is why it shows up beside the gateway. So, we've been able to see our tool call from earlier three different ways using our observability stack, which is a huge win for monitoring, security, and data-driven decision making.
 
-agentgateway ships its own UI as well, on the admin port. Open **http://localhost:15000/ui** and you get the live configuration: the bind on 3000, the route, and the MCP targets behind it. Same data, from the same process, over the API the page calls:
+agentgateway ships its own UI as well, on the admin port. Open **http://localhost:15000/ui** and you get the live configuration: the bind on 3000, the route, and the MCP targets behind it. If you're not a huge fan of the UI, you can directly call the API to do the same thing:
 
 ```bash
 curl -s http://127.0.0.1:15000/api/config \
@@ -254,28 +259,34 @@ curl -s http://127.0.0.1:15000/api/config \
 ]
 ```
 
-Keep that tab open. We change this config three more times, and the page follows along.
+> [!WARNING]
+> Traces not showing up? Make sure you ran the gateway restart in the previous command, and that your `config.yaml` matches `02-observed.yaml`.
 
 <details>
-<summary><strong>Look closer: what a span carries</strong></summary>
+<summary><strong>Look closer: what's in a span?</strong></summary>
 
 Pull the tags off a `tools/call` trace:
 
 ```bash
 curl -s "http://127.0.0.1:16686/api/traces?service=agentgateway&limit=30" \
   | jq -r '[.data[] | select([.spans[].tags[]?|select(.key=="mcp.method.name")|.value] | index("tools/call"))][0]
-           | .spans[] | "\(.operationName)\t\(.duration)us\t"
-             + ([.tags[]|select(.key|test("^(mcp\\.|gen_ai\\.)"))|"\(.key)=\(.value)"]|join(" "))'
+           | .spans[] | "\(.operationName) (\(.duration)us)",
+             (.tags[] | select(.key|test("^(mcp\\.|gen_ai\\.)")) | "  \(.key): \(.value)")'
 ```
 
 ```console
-tools/call get-started	979us
-POST /*	2960us	gen_ai.tool.name=add mcp.method.name=tools/call mcp.resource.type=tool mcp.session.id=eyJ0IjoibWNwIiwicyI6W3sidCI6ImdldC1zdGFydGVkIiwicyI6IjRkZTBhMTAyZjdjZjRjMDI4MjkzNTlmMmY3Mzc1MjRmIn1dfQ mcp.target=get-started
+tools/call get-started (1147us)
+POST /* (3253us)
+  gen_ai.tool.name: add
+  mcp.method.name: tools/call
+  mcp.resource.type: tool
+  mcp.session.id: eyJ0IjoibWNwIiwicyI6W3sidCI6ImdldC1zdGFydGVkIiwicyI6IjQ4MmM2ZjEyMjVlNDQ4ZTI5MTFkMzk2YmU0ODk2MTI5In1dfQ
+  mcp.target: get-started
 ```
 
 The two spans come back in whichever order Jaeger stored them, so yours may show the parent first.
 
-`gen_ai.tool.name` is from OpenTelemetry's [generative AI semantic conventions](https://github.com/open-telemetry/semantic-conventions-genai/tree/main/docs), which is why the same attribute name turns up in the access log. Whatever you already point at OTLP can read these without being taught anything MCP-specific.
+`gen_ai.tool.name` is from OpenTelemetry's [generative AI semantic conventions](https://github.com/open-telemetry/semantic-conventions-genai/blob/0c87594975195608dc91b3f702e250a7b240c151/docs/registry/attributes/gen-ai.md#gen-ai-tool-name), which is why the same attribute name turns up in the access log. Since it's OpenTelemetry-native, tools that accept OTLP (the OpenTelemetry Protocol) support them with no MCP-specific setup.
 
 </details>
 
@@ -295,11 +306,15 @@ This one is a route change, so no restart is needed:
 
 ```bash
 cp 03-multiplexed.yaml config.yaml
-sleep 5
+# the gateway hot-reloads the watched dir; ask its admin API until the new target is live
+until curl -s http://127.0.0.1:15000/api/config | grep -q '"name":"tickets"'; do sleep 0.2; done
 uv run python client.py
 ```
 
 ```console
+$ cp 03-multiplexed.yaml config.yaml
+$ until curl -s http://127.0.0.1:15000/api/config | grep -q '"name":"tickets"'; do sleep 0.2; done
+$ uv run python client.py
 tools at http://127.0.0.1:3000/mcp:
   get-started_add
   get-started_shout
@@ -307,18 +322,20 @@ tools at http://127.0.0.1:3000/mcp:
   tickets_list_tickets
 ```
 
-Two things happened. The client now sees four tools from one endpoint, and every name gained a `<target>_` prefix.
+Two things happened. The client now sees four tools from one endpoint, and every tool gained a prefix of the MCP server name, like `get-started_` or `tickets_`.
 
-Question: both of our servers could ship a tool called `search`. What does the client see, and which server gets the call? Have a guess before opening the answer.
+Question: both of our servers could ship a tool called `search`. What do you think would happen then?
 
 <details>
 <summary>Answer</summary>
 
-The client sees two tools, `get-started_search` and `tickets_search`, and the prefix decides where each call goes.
+The client sees two tools, `get-started_search` and `tickets_search`, and the prefix decides where each call goes. The two tools are still told apart by the descriptions and schemas each server publishes, but it's very possible an agent picks the wrong one when the names are that close.
 
 The gateway strips the prefix again before it forwards, so each server receives a plain `search` and neither one has to rename anything.
 
 </details>
+
+If you want to call the tickets MCP server's `list_tickets` tool, you just call `tickets_list_tickets`:
 
 ```bash
 uv run python client.py tickets_list_tickets
@@ -328,9 +345,7 @@ uv run python client.py tickets_list_tickets
 tickets_list_tickets -> [{'id': 'T-1001', 'title': 'Rotate the staging API key', 'state': 'open'}, {'id': 'T-1002', 'title': 'Agent retried a failed tool 400 times', 'state': 'open'}]
 ```
 
-Success! One URL to configure in every agent, however many servers you end up running.
-
-Refresh **http://localhost:15000/ui** and the second target is there, with no restart behind it. The API the page reads agrees:
+Refresh **http://localhost:15000/ui** and the second target is there, with no restart behind it. Alternatively, you can use the CLI again to check via the API:
 
 ```bash
 curl -s http://127.0.0.1:15000/api/config \
@@ -354,10 +369,7 @@ agentgateway_mcp_requests_total{method="tools/call",resource_type="tool",server=
 agentgateway_mcp_requests_total{method="tools/call",resource_type="tool",server="tickets",resource="list_tickets" -> 1
 ```
 
-> [!TIP]
-> **Pro tip: every tool you expose costs context on every turn.** A model given eighty tools picks worse than one given eight. Multiplexing makes it easy to expose everything through one URL, which makes it easy to spend that budget without noticing.
-
-## Teaching it to say no
+## Blocking unwanted tool calls
 
 _~14 min · Hands-on_
 
@@ -376,11 +388,15 @@ policies:
 
 ```bash
 cp 04-controlled.yaml config.yaml
-sleep 5
+# wait until the gateway is serving the allow list before we test it
+until curl -s http://127.0.0.1:15000/api/config | grep -q mcpAuthorization; do sleep 0.2; done
 uv run python client.py
 ```
 
 ```console
+$ cp 04-controlled.yaml config.yaml
+$ until curl -s http://127.0.0.1:15000/api/config | grep -q mcpAuthorization; do sleep 0.2; done
+$ uv run python client.py
 tools at http://127.0.0.1:3000/mcp:
   get-started_add
   get-started_shout
@@ -389,7 +405,7 @@ tools at http://127.0.0.1:3000/mcp:
 
 `tickets_close_ticket` is gone from the listing. The gateway filters `tools/list`, so the model never learns the tool exists and never spends a token deciding whether to call it.
 
-A client that knows the name anyway gets nowhere:
+Even if the client knows the specific tool name, they can't use it:
 
 ```bash
 uv run python client.py tickets_close_ticket '{"ticket_id":"T-1001"}'
@@ -410,21 +426,15 @@ uv run python client.py tickets_list_tickets
 tickets_list_tickets -> [{'id': 'T-1001', 'title': 'Rotate the staging API key', 'state': 'open'}, {'id': 'T-1002', 'title': 'Agent retried a failed tool 400 times', 'state': 'open'}]
 ```
 
-Success! Read access to the ticket system, no write access, and the ticket server was never asked its opinion.
-
 > [!WARNING]
 > The rules say `list_tickets`, and the client sees `tickets_list_tickets`. `mcp.tool.name` is [documented](https://agentgateway.dev/docs/) as the resolved name sent to the upstream target, and the target has never heard of the prefix the gateway added. Write the prefixed name in a rule and it matches nothing, which fails as a silently empty tool list.
 
-Question: we removed `close_ticket` from every agent's reach. Is the ticket server now safe from being written to? Think about what else can open a socket.
+Question: we removed `close_ticket` from every agent's reach. Does that block all usage of this tool?
 
 <details>
 <summary>Answer</summary>
 
-No. It's safe from anything that goes through the gateway.
-
-Our compose file publishes no port for the ticket server, so on this machine the gateway really is the only route in. That's a property of the network, arranged separately, and the gateway has no way to enforce it. Somewhere with a flat network and a reachable server, `close_ticket` is one direct HTTP call away.
-
-So the policy only applies where the network actually forces traffic through the gateway.
+No. It's safe from anything that goes through the gateway, but if clients can directly hit the MCP server, they could still use the `close_ticket` tool.
 
 </details>
 
@@ -437,9 +447,17 @@ localRateLimit:
   fillInterval: 6s
 ```
 
+Unlike a route or an allow list, a rate-limit bucket carries state, and a hot reload keeps whatever was left in it. So the counts stay predictable, restart the gateway for a fresh bucket; `--wait` blocks on its healthcheck so it's serving before we count:
+
 ```bash
 cp 05-ratelimited.yaml config.yaml
-sleep 6
+docker compose restart agentgateway
+docker compose up -d --wait agentgateway
+```
+
+Now spend the budget:
+
+```bash
 for i in $(seq 1 13); do
   printf 'request %2d -> ' "$i"
   curl -s -o /dev/null -w '%{http_code}\n' -X POST http://127.0.0.1:3000/mcp \
@@ -450,6 +468,13 @@ done
 ```
 
 ```console
+$ for i in $(seq 1 13); do
+>   printf 'request %2d -> ' "$i"
+>   curl -s -o /dev/null -w '%{http_code}\n' -X POST http://127.0.0.1:3000/mcp \
+>     -H 'content-type: application/json' \
+>     -H 'accept: application/json, text/event-stream' \
+>     -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"lab","version":"1"}}}'
+> done
 request  1 -> 200
 request  2 -> 200
 request  3 -> 200
@@ -471,7 +496,8 @@ Put the un-limited config back before the next section, since a goose session op
 
 ```bash
 cp 04-controlled.yaml config.yaml
-sleep 5
+# wait until the rate limit is gone again before goose opens its session
+until ! curl -s http://127.0.0.1:15000/api/config | grep -q localRateLimit; do sleep 0.2; done
 ```
 
 ## Point goose at the gateway
@@ -490,7 +516,22 @@ goose --version
 ```
 
 ```console
-1.46.0
+$ curl -fsSL https://github.com/aaif-goose/goose/releases/download/stable/download_cli.sh \
+>   | CONFIGURE=false GOOSE_VERSION=v1.46.0 bash
+WINDIR: <not set>
+OSTYPE: linux-gnu
+uname -s: Linux
+uname -m: x86_64
+PWD: /home/rocky/zenable-labs/labs/agentgateway-mcp
+Detected OS: linux with ARCH x86_64
+Downloading v1.46.0 release: goose-x86_64-unknown-linux-gnu.tar.bz2...
+Extracting goose-x86_64-unknown-linux-gnu.tar.bz2 to temporary directory...
+Creating directory: /home/rocky/.local/bin
+Moving goose to /home/rocky/.local/bin/goose
+Skipping 'goose configure', you may need to run this manually later
+$ export PATH="$HOME/.local/bin:$PATH"
+$ goose --version
+ 1.46.0
 ```
 
 goose is a full host, so it needs a model to drive tool calls. Your sandbox already runs [Ollama](https://ollama.com/) with `qwen3:1.7b`, a 1.7B model quantized to 1.4 GB that can call tools, which is the only capability this section needs. It needs no API key and no account, and costs nothing to run.
@@ -644,16 +685,13 @@ docker compose logs --no-log-prefix agentgateway | grep '^{' \
 ```console
 {"tool":"close_ticket","target":"tickets","status":400,"ms":"0ms"}
 {"tool":"list_tickets","target":"tickets","status":200,"ms":"3ms"}
-{"tool":"list_tickets","target":"tickets","status":200,"ms":"6ms"}
-{"tool":"add","target":"get-started","status":200,"ms":"4ms"}
+{"tool":"list_tickets","target":"tickets","status":200,"ms":"67ms"}
+{"tool":"add","target":"get-started","status":200,"ms":"34ms"}
 ```
 
 The last two lines are goose. It asked for both tools in one turn, so they land in whichever order they finish, and yours may show `add` first. Above them sit our own refused `close_ticket` and the `list_tickets` that followed it, still in the same log, because the gateway doesn't know or care which client made a call.
 
 Success! 🎉 goose drove a local model through the gateway, and every tool call it made is one JSON record in one place.
-
-> [!WARNING]
-> Two CPU cores are still two CPU cores. With thinking off, a turn that calls two tools takes about a minute on the sandbox, so expect a wait after you send a message.
 
 > [!NOTE]
 > A model this small sometimes misses a tool call, or lists the tickets without repeating the sum. Ask again, or name the tool more insistently. Each call goose makes prints a `▸ <tool> agentgateway` line, so those lines are what to check when you're unsure whether the model reached the gateway at all. If it reaches for a tool you have never heard of, check that `GOOSE_PATH_ROOT` is set in the shell you started goose from.
@@ -668,16 +706,18 @@ docker compose down
 ```
 
 ```console
-Container agentgateway Stopped
-Container agentgateway Removing
-Container agentgateway Removed
-Container jaeger Stopped
-Container mcp-get-started Stopped
-Container tickets Stopped
-Container jaeger Removed
-Container mcp-get-started Removed
-Container tickets Removed
-Network agentgateway-mcp_default Removed
+$ cd ~/zenable-labs/labs/agentgateway-mcp
+$ docker compose down
+ Container agentgateway Stopped
+ Container agentgateway Removing
+ Container agentgateway Removed
+ Container jaeger Stopped
+ Container mcp-get-started Stopped
+ Container tickets Stopped
+ Container jaeger Removed
+ Container mcp-get-started Removed
+ Container tickets Removed
+ Network agentgateway-mcp_default Removed
 ```
 
 The derived model and goose's session files outlive the containers, so drop them too:

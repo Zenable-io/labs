@@ -1,5 +1,6 @@
 """Verify an SD-JWT presentation. The verifier half of the credential story."""
 
+import base64
 import json
 from pathlib import Path
 
@@ -21,8 +22,9 @@ def issuer_public_key() -> JWK:
     return JWK.from_json(ISSUER_KEY_FILE.read_text())
 
 
-def verify_presentation(presentation: str, *, expected_audience: str,
-                        expected_nonce: str) -> dict:
+def verify_presentation(
+    presentation: str, *, expected_audience: str, expected_nonce: str
+) -> dict:
     """Return only the claims the holder chose to disclose.
 
     The audience and nonce are not optional niceties: pass None for either and
@@ -58,8 +60,6 @@ def undisclosed_digest_count(presentation: str) -> int:
     Useful for showing that selective disclosure hides content, not the
     existence of further claims -- which is exactly what decoy digests blur.
     """
-    import base64
-
     body = presentation.split("~")[0].split(".")[1]
     payload = json.loads(base64.urlsafe_b64decode(body + "=" * (-len(body) % 4)))
     total = len(payload.get("_sd", []))

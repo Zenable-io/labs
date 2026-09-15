@@ -106,8 +106,18 @@ def list_findings() -> str:
     _require("findings.read")
     return json.dumps(
         [
-            {"id": "F-1001", "rule": "no-public-s3", "severity": "high", "mode": "enforced"},
-            {"id": "F-1002", "rule": "require-mfa", "severity": "medium", "mode": "warning"},
+            {
+                "id": "F-1001",
+                "rule": "no-public-s3",
+                "severity": "high",
+                "mode": "enforced",
+            },
+            {
+                "id": "F-1002",
+                "rule": "require-mfa",
+                "severity": "medium",
+                "mode": "warning",
+            },
         ],
         indent=2,
     )
@@ -122,4 +132,6 @@ def suppress_finding(finding_id: str) -> str:
 
 if __name__ == "__main__":
     print(f"MCP server  resource={RESOURCE_ID}  trusting AS={VENDOR_ISSUER}")
-    uvicorn.run(mcp.streamable_http_app(), host="127.0.0.1", port=9100, log_level="warning")
+    uvicorn.run(
+        mcp.streamable_http_app(), host="127.0.0.1", port=9100, log_level="warning"
+    )
