@@ -1,7 +1,6 @@
 """Fetch access tokens from the local Keycloak, with and without DPoP."""
 
 import httpx
-
 from dpop import make_proof
 
 ISSUER = "http://localhost:8080/realms/agent-identity"
@@ -38,7 +37,11 @@ def fetch_token(client_id: str, key=None, *, scope: str = "invoice:read") -> dic
     # Gated on `key`, not just on the challenge: an unbound request has no key
     # to sign a fresh proof with, so retrying would crash on a None key instead
     # of surfacing whatever the 400 actually said.
-    if key is not None and response.status_code == 400 and "use_dpop_nonce" in response.text:
+    if (
+        key is not None
+        and response.status_code == 400
+        and "use_dpop_nonce" in response.text
+    ):
         response = post(nonce=response.headers.get("DPoP-Nonce"))
 
     response.raise_for_status()

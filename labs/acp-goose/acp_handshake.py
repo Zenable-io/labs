@@ -35,7 +35,12 @@ class AcpConnection:
 
     def request(self, method: str, params: dict, timeout: float = 30.0) -> dict:
         self._next_id += 1
-        frame = {"jsonrpc": "2.0", "id": self._next_id, "method": method, "params": params}
+        frame = {
+            "jsonrpc": "2.0",
+            "id": self._next_id,
+            "method": method,
+            "params": params,
+        }
         assert self._proc.stdin is not None
         self._proc.stdin.write(json.dumps(frame) + "\n")
         self._proc.stdin.flush()
@@ -69,7 +74,9 @@ def describe(result: dict) -> None:
     prompt = caps.get("promptCapabilities", {})
     mcp = caps.get("mcpCapabilities", {})
 
-    print(f"agent                {info.get('name', '?')} {info.get('version', '')}".rstrip())
+    print(
+        f"agent                {info.get('name', '?')} {info.get('version', '')}".rstrip()
+    )
     print(f"protocolVersion      {result.get('protocolVersion')}")
     print(f"loadSession          {caps.get('loadSession', False)}")
     print(f"prompt content       {_enabled(prompt)}")
@@ -103,7 +110,9 @@ def main() -> int:
                 "protocolVersion": PROTOCOL_VERSION,
                 # Claiming a capability is a promise the agent may call back on.
                 # We claim fs so the agent will offer to read and write files.
-                "clientCapabilities": {"fs": {"readTextFile": True, "writeTextFile": True}},
+                "clientCapabilities": {
+                    "fs": {"readTextFile": True, "writeTextFile": True}
+                },
             },
         )
     except Exception as exc:  # noqa: BLE001 -- the lab wants the reason, not a trace

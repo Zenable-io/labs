@@ -56,7 +56,18 @@ class RequireOIDCScope:
         self.jwks = PyJWKClient(JWKS_URL, cache_keys=True)
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
-        if scope["type"] != "http" or scope["path"] in self.public_paths:
+        # Only the lifespan protocol skips the check. Letting every non-HTTP
+        # scope through would hand a websocket to the app unauthenticated, so
+        # anything else this agent does not speak is refused, not passed.
+        if scope["type"] == "lifespan":
+            await self.app(scope, receive, send)
+            return
+        if scope["type"] == "websocket":
+            await send({"type": "websocket.close", "code": 1008})
+            return
+        if scope["type"] != "http":
+            raise RuntimeError(f"unsupported ASGI scope type: {scope['type']}")
+        if scope["path"] in self.public_paths:
             await self.app(scope, receive, send)
             return
 

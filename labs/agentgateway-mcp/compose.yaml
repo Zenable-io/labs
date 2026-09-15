@@ -10,12 +10,24 @@ services:
   # install` in these Dockerfiles fails with what reads as a DNS error, while
   # the host resolves the same name fine through DNS64/NAT64. Pulls are
   # unaffected -- the daemon runs on the host stack -- so only builds need it.
+  #
+  # The healthchecks are what `docker compose up --wait` blocks on, so a lab
+  # step never races a server that has not finished binding. The MCP images are
+  # python with no curl, so the probe is a socket connect from python itself;
+  # the gateway image is distroless with no probe binary at all, so its
+  # readiness is checked from the host against its admin API instead.
   mcp-get-started:
     build:
       context: .
       dockerfile: Dockerfile.get-started
       network: host
     container_name: mcp-get-started
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; socket.create_connection(('127.0.0.1', 8000), 2)"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+      start_period: 2s
 
   tickets:
     build:
@@ -23,9 +35,15 @@ services:
       dockerfile: Dockerfile.tickets
       network: host
     container_name: tickets
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; socket.create_connection(('127.0.0.1', 8000), 2)"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+      start_period: 2s
 
   jaeger:
-    image: jaegertracing/all-in-one:1.76.0
+    image: jaegertracing/all-in-one:1.68.0
     container_name: jaeger
     environment:
       # Jaeger accepts OTLP directly with this set, so the stack needs no
@@ -33,9 +51,22 @@ services:
       - COLLECTOR_OTLP_ENABLED=true
     ports:
       - "127.0.0.1:16686:16686"
+    healthcheck:
+      # busybox wget is present in the image; the query UI answering means the
+      # trace store is up, which is all a lab step waits on.
+      test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1:16686/ >/dev/null 2>&1 || exit 1"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+      start_period: 2s
 
   agentgateway:
-    image: ghcr.io/agentgateway/agentgateway:v1.5.0
+    # Built from the upstream distroless image with a busybox added purely so it
+    # can carry a HEALTHCHECK; see Dockerfile.gateway. That is what lets
+    # `docker compose up --wait` gate on the gateway actually serving.
+    build:
+      context: .
+      dockerfile: Dockerfile.gateway
     container_name: agentgateway
     command: ["-f", "/cfg/config.yaml"]
     volumes:
@@ -49,6 +80,11 @@ services:
       - "127.0.0.1:15000:15000"
       - "127.0.0.1:15020:15020"
     depends_on:
-      - mcp-get-started
-      - tickets
-      - jaeger
+      # Start only once the servers it proxies are actually accepting
+      # connections, so the gateway's first reload has real backends behind it.
+      mcp-get-started:
+        condition: service_healthy
+      tickets:
+        condition: service_healthy
+      jaeger:
+        condition: service_healthy

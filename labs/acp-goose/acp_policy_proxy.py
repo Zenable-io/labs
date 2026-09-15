@@ -69,7 +69,9 @@ def pump_client_to_agent(agent_stdin, auditor: Auditor) -> None:
         agent_stdin.flush()
 
 
-def pump_agent_to_client(agent_stdout, agent_stdin, denied: set[str], auditor: Auditor) -> None:
+def pump_agent_to_client(
+    agent_stdout, agent_stdin, denied: set[str], auditor: Auditor
+) -> None:
     """Agent -> client. A request here is the agent asking to touch the machine."""
     for line in agent_stdout:
         if not line.strip():
