@@ -1,7 +1,7 @@
 <!-- Generated from src/lib/labs/content/labs/agent-identity-dpop-sdjwt.mdx in Zenable-io/next-gen-governance
      by services/ui_frontend/scripts/export-lab-readme.js. Do not edit by hand. -->
 
-# Agent Identity: DPoP Token Binding and SD-JWT Selective Disclosure
+# DPoP Token Binding and SD-JWT Selective Disclosure
 
 Bind an agent's access tokens to a key it holds (DPoP, RFC 9449) and give it a credential that reveals only what each verifier needs (SD-JWT, RFC 9901). Steal the tokens yourself and watch both hold.
 

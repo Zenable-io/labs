@@ -1,7 +1,7 @@
 <!-- Generated from src/lib/labs/content/labs/a2a-agent-interop.mdx in Zenable-io/next-gen-governance
      by services/ui_frontend/scripts/export-lab-readme.js. Do not edit by hand. -->
 
-# A2A: Agents That Talk to Each Other
+# Hands-on with Agent to Agent (A2A)
 
 Build two agents that discover and call each other over the A2A protocol, with Keycloak issuing every credential. Deep dives on agent cards and agent identity.
 
