@@ -42,10 +42,10 @@ docker compose ps
 
 ```console
 NAME              IMAGE                              COMMAND                  SERVICE           CREATED          STATUS                    PORTS
-agentgateway      agentgateway-mcp-agentgateway      "/app/agentgateway -…"   agentgateway      17 seconds ago   Up 11 seconds (healthy)   127.0.0.1:3000->3000/tcp, 127.0.0.1:15000->15000/tcp, 127.0.0.1:15020->15020/tcp
-jaeger            jaegertracing/all-in-one:1.68.0    "/go/bin/all-in-one-…"   jaeger            17 seconds ago   Up 16 seconds (healthy)   4317-4318/tcp, 9411/tcp, 14250/tcp, 14268/tcp, 127.0.0.1:16686->16686/tcp
-mcp-get-started   agentgateway-mcp-mcp-get-started   "fastmcp run server.…"   mcp-get-started   17 seconds ago   Up 16 seconds (healthy)   8000/tcp
-tickets           agentgateway-mcp-tickets           "fastmcp run tickets…"   tickets           17 seconds ago   Up 16 seconds (healthy)   8000/tcp
+agentgateway      agentgateway-mcp-agentgateway      "/app/agentgateway -…"   agentgateway      13 seconds ago   Up 7 seconds (healthy)    127.0.0.1:3000->3000/tcp, 127.0.0.1:15000->15000/tcp, 127.0.0.1:15020->15020/tcp
+jaeger            jaegertracing/all-in-one:1.76.0    "/go/bin/all-in-one-…"   jaeger            13 seconds ago   Up 12 seconds (healthy)   4317-4318/tcp, 9411/tcp, 14250/tcp, 14268/tcp, 127.0.0.1:16686->16686/tcp
+mcp-get-started   agentgateway-mcp-mcp-get-started   "fastmcp run server.…"   mcp-get-started   13 seconds ago   Up 12 seconds (healthy)   8000/tcp
+tickets           agentgateway-mcp-tickets           "fastmcp run tickets…"   tickets           13 seconds ago   Up 12 seconds (healthy)   8000/tcp
 ```
 
 Look at the two highlighted lines. `mcp-get-started` and `tickets` show `8000/tcp` with no address in front, so neither is accessible via a port on your machine. The gateway is the only way in.
@@ -274,13 +274,13 @@ curl -s "http://127.0.0.1:16686/api/traces?service=agentgateway&limit=30" \
 ```
 
 ```console
-tools/call get-started (1147us)
-POST /* (3253us)
-  gen_ai.tool.name: add
+POST /* (4419us)
+  gen_ai.tool.name: shout
   mcp.method.name: tools/call
   mcp.resource.type: tool
-  mcp.session.id: eyJ0IjoibWNwIiwicyI6W3sidCI6ImdldC1zdGFydGVkIiwicyI6IjQ4MmM2ZjEyMjVlNDQ4ZTI5MTFkMzk2YmU0ODk2MTI5In1dfQ
+  mcp.session.id: eyJ0IjoibWNwIiwicyI6W3sidCI6ImdldC1zdGFydGVkIiwicyI6ImRiY2FkYWY5NDI5YTQwODg5NzM3NzkxYjBjOGQ3YzdlIn1dfQ
   mcp.target: get-started
+tools/call get-started (1007us)
 ```
 
 The two spans come back in whichever order Jaeger stored them, so yours may show the parent first.

@@ -18,4 +18,4 @@ iss=rogue-realm                    HTTP 401  {"error":"invalid_token","error_des
 not-a-jwt                          HTTP 401  {"error":"invalid_token","error_description":"Token failed verification"}
 
 === Control: the request that SHOULD work ===
-aud+scope correct                  HTTP 200  {"result":{"message":{"messageId":"73a156f3-8039-44ee-960c-dfac7662de1d","role":"ROLE_AGENT","parts":[{"text":"Lisbon: C
+aud+scope correct                  HTTP 200  {"result":{"message":{"messageId":"298ee707-7012-49ce-9b51-2406cd2161a2","role":"ROLE_AGENT","parts":[{"text":"Lisbon: C

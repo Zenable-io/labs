@@ -143,7 +143,7 @@ expires_in: 300
 iss: "http://localhost:8080/realms/agent-identity"
 aud: ["ledger-api", "account"]
 azp: "agent-bound"
-scope: "invoice:read email profile"
+scope: "profile email invoice:read"
 cnf: {"jkt": "vXNg5qax2nM5ETxrcu37wZiqSmDhXU_cH1hzK54EvS4", "kc-jkt-type": "DPoP"}
 
 --- agent-bearer ---
@@ -152,7 +152,7 @@ expires_in: 300
 iss: "http://localhost:8080/realms/agent-identity"
 aud: ["ledger-api", "account"]
 azp: "agent-bearer"
-scope: "invoice:read email profile"
+scope: "profile email invoice:read"
 cnf: null
 ```
 

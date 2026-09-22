@@ -271,7 +271,7 @@ $ ./scripts/get-token.sh agent-b-planner agent-b-secret | ./scripts/decode-jwt.p
         ]
       }
     },
-    "scope": "profile forecast:read email",
+    "scope": "forecast:read email profile",
     "email_verified": false,
     "clientHost": "172.18.0.1",
     "preferred_username": "service-account-agent-b-planner",
