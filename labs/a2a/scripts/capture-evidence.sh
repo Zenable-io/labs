@@ -4,8 +4,11 @@
 set -uo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-EV="${HERE}/evidence"
-mkdir -p "${EV}"
+# Default is the public layout, where evidence/ sits inside the lab directory.
+# In the authoring repo it is a sibling of rig/, so the updater passes
+# EVIDENCE_DIR=../evidence.
+mkdir -p "${EVIDENCE_DIR:-${HERE}/evidence}"
+EV="$(cd "${EVIDENCE_DIR:-${HERE}/evidence}" && pwd)"
 cd "${HERE}/agents" || exit 1
 
 echo "==> versions"

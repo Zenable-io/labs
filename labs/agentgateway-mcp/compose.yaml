@@ -43,7 +43,7 @@ services:
       start_period: 2s
 
   jaeger:
-    image: jaegertracing/all-in-one:1.68.0
+    image: jaegertracing/all-in-one:1.76.0
     container_name: jaeger
     environment:
       # Jaeger accepts OTLP directly with this set, so the stack needs no

@@ -6,7 +6,11 @@
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
-mkdir -p evidence
+# Default is the public layout, where evidence/ sits inside the lab directory.
+# In the authoring repo it is a sibling of rig/, so the updater passes
+# EVIDENCE_DIR=../evidence.
+mkdir -p "${EVIDENCE_DIR:-evidence}"
+EV="$(cd "${EVIDENCE_DIR:-evidence}" && pwd)"
 
 echo "==> versions"
 {
@@ -17,23 +21,23 @@ import importlib.metadata as m
 for pkg in ('pyjwt', 'sd-jwt', 'jwcrypto', 'cryptography', 'httpx'):
     print(f'{pkg}: {m.version(pkg)}')
 import sys; print(f'python: {sys.version.split()[0]}')")
-} > evidence/versions.txt
+} > "$EV"/versions.txt
 
 echo "==> discovery + jwks"
 curl -fsS http://localhost:8080/realms/agent-identity/.well-known/openid-configuration \
-  | python3 -m json.tool > evidence/discovery.json
+  | python3 -m json.tool > "$EV"/discovery.json
 curl -fsS http://localhost:8080/realms/agent-identity/protocol/openid-connect/certs \
-  | python3 -m json.tool > evidence/jwks.json
+  | python3 -m json.tool > "$EV"/jwks.json
 
 echo "==> tokens (bound vs bearer)"
-(cd agent && uv run python dump_tokens.py) > evidence/tokens-decoded.txt
+(cd agent && uv run python dump_tokens.py) > "$EV"/tokens-decoded.txt
 
 echo "==> credential (issued, presented, verified)"
-(cd agent && uv run python dump_credential.py) > evidence/sdjwt-walkthrough.txt
+(cd agent && uv run python dump_credential.py) > "$EV"/sdjwt-walkthrough.txt
 
 echo "==> negative tests"
-(cd agent && uv run python negative_tests.py) > evidence/negative-tests.txt
+(cd agent && uv run python negative_tests.py) > "$EV"/negative-tests.txt
 
 echo
-echo "evidence/ regenerated:"
-ls -la evidence/
+echo "$EV regenerated:"
+ls -la "$EV"

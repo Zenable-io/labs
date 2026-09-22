@@ -62,7 +62,7 @@ uv run fastmcp version
 
 ```console
 FastMCP version:                                                           4.0.3
-MCP version:                                                               2.1.1
+MCP version:                                                               2.2.0
 Python version:                                                          3.12.14
 Platform:             Linux-4.18.0-553.137.1.el8_10.x86_64-x86_64-with-glibc2.28
 FastMCP root path: /home/rocky/zenable-labs/labs/mcp-get-started/.venv/lib/pyth…
