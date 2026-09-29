@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Copyright (c) 2026 Zenable, Inc.
 #
 # Security properties EMA is supposed to give you. Each of these MUST fail.
 set -uo pipefail

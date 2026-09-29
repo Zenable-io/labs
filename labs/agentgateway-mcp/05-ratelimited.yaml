@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Zenable, Inc.
 # yaml-language-server: $schema=https://agentgateway.dev/schema/config
 # Step 5: step 4's rules, plus a cap on how fast anyone may call through.
 # The limit is per route and counts every MCP request, handshake included.

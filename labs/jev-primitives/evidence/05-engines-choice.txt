@@ -1,0 +1,10 @@
+requirement: money-as-minor-units   shape: one Choice per engine
+
+engine         choice   full  partial   none  include  guidance
+semgrep       partial   0.01     0.99   0.00      yes       yes
+eslint        partial   0.04     0.95   0.01      yes       yes
+checkov          none   0.00     0.04   0.96       no        no
+sqlfluff      partial   0.01     0.65   0.34      yes       yes
+gitleaks         none   0.00     0.02   0.98       no        no
+
+include when p(full) + p(partial) >= 0.30; guidance when p(partial) > p(full)

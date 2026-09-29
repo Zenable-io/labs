@@ -1,4 +1,4 @@
-# goose profile for this lab. Point goose at it with
+# Copyright (c) 2026 Zenable, Inc. goose profile for this lab. Point goose at it with
 #   export GOOSE_PATH_ROOT="$PWD/goose"
 # and goose reads this file instead of ~/.config/goose/config.yaml, and keeps
 # its sessions and logs under goose/data and goose/state here, so nothing in
