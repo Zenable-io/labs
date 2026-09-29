@@ -1,0 +1,21 @@
+{
+  "meta": {
+    "name": "agent",
+    "description": "goose, confined to the lab checkout and its local model"
+  },
+  "filesystem": {
+    "read": ["$HOME/.local/bin"],
+    "read_file": ["$HOME/zenable-labs/labs/agent-runtime-enforcement/run-agent.sh"],
+    "allow": [
+      "$HOME/zenable-labs/labs/agent-runtime-enforcement/workspace",
+      "$HOME/zenable-labs/labs/agent-runtime-enforcement/goose"
+    ]
+  },
+  "network": {
+    "block": true,
+    "open_port": [11434]
+  },
+  "environment": {
+    "allow_vars": ["HOME", "PATH", "LANG", "TERM"]
+  }
+}

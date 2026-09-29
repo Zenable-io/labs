@@ -1,0 +1,8 @@
+$ docker compose stop jev-router
+ Container jev-router Stopping
+ Container jev-router Stopped
+$ curl -sS -o /dev/null -w 'http=%{http_code}  total=%{time_total}s\n' http://127.0.0.1:4000/v1/chat/completions -H 'Content-Type: application/json' -d @deliberative.json
+http=200  total=10.107756s
+$ docker compose start jev-router
+ Container jev-router Starting
+ Container jev-router Started

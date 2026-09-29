@@ -1,0 +1,10 @@
+reading: quality
+
+dimension      position  score 0-10   distribution
+testability        0.21        0.60   0:0.80 1:0.20 2:0.00 3:0.00 4:0.00
+specificity        0.61        1.83   0:0.39 1:0.61 2:0.00 3:0.00 4:0.00
+scope              0.45        1.32   0:0.63 1:0.31 2:0.03 3:0.03 4:0.00
+
+mean of the three 0-10 scores: 1.25
+`position` is where the answer sits on the level number line, 0 to 4
+`score 0-10` re-weights the same distribution over the anchors

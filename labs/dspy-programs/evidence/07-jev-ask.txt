@@ -1,0 +1,42 @@
+answer: docs
+
+type         probability
+docs               0.980
+chore              0.020
+refactor           0.000
+fix                0.000
+perf               0.000
+test               0.000
+build              0.000
+feat               0.000
+
+the body DSPy posts to https://openrouter.ai/api/v1/systemone:
+
+{
+  "model": "jev-latest",
+  "state": {
+    "instructions": "Give the Conventional Commits type of a git commit subject line.",
+    "input_fields": "1. `subject` (str): the subject line of one commit",
+    "inputs": {
+      "subject": "note the new environment variable in the README"
+    }
+  },
+  "questions": {
+    "commit_type": {
+      "instructions": "the type this commit belongs to",
+      "type": "choice",
+      "criteria": {
+        "feat": null,
+        "fix": null,
+        "docs": null,
+        "refactor": null,
+        "test": null,
+        "chore": null,
+        "perf": null,
+        "build": null
+      }
+    }
+  }
+}
+
+1 answers from Jev, 0 from the cache

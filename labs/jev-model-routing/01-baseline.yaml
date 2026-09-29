@@ -1,0 +1,57 @@
+# Copyright (c) 2026 Zenable, Inc.
+# yaml-language-server: $schema=https://agentgateway.dev/schema/config
+# Two models behind one gateway, and nothing choosing between them.
+# `auto` resolves to the cheap model unconditionally -- the same answer the
+# gateway gives when the router is switched on but unreachable.
+config:
+  modelCatalog:
+  - inline:
+      providers:
+        typesafe:
+          models:
+            # USD per million tokens: https://docs.typesafe.ai/models
+            jev-latest:
+              rates: { input: "0.042", output: "0" }
+gateways:
+  default:
+    port: 4000
+llm:
+  models:
+  # Ollama serves an OpenAI-compatible API, so the built-in openAI provider
+  # reaches it with only a baseUrl change. Both entries are one model each; the
+  # names here are what a client asks for and what the router rewrites to.
+  - name: qwen-small
+    provider: openAI
+    params:
+      model: qwen3:0.6b
+      baseUrl: http://host.docker.internal:11434/v1
+      apiKey: unused
+  - name: qwen-large
+    provider: openAI
+    params:
+      model: qwen3:1.7b
+      baseUrl: http://host.docker.internal:11434/v1
+      apiKey: unused
+  - name: jev-latest
+    provider:
+      custom:
+        providerOverride: typesafe
+        # `formats: []` is what upstream's examples/llm-guardrail-jev ships and
+        # every released image rejects it: "custom provider for model jev-latest
+        # must specify at least one format". Jev has no format of its own in the
+        # enum, so declare the one it is closest to and point it at the real
+        # path; `passthrough: detect` means nothing is converted either way.
+        formats:
+        - type: completions
+          path: /v1/systemone
+    # Jev speaks its own /v1/systemone API, not a chat completion API.
+    passthrough: detect
+    params:
+      baseUrl: https://api.typesafe.ai
+      apiKey: $TYPESAFE_API_KEY
+  virtualModels:
+  - name: auto
+    routing:
+      conditional:
+        targets:
+        - model: qwen-small

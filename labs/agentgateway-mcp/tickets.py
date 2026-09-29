@@ -1,4 +1,4 @@
-"""A second MCP server, so the gateway has more than one thing to route to."""
+"""Copyright (c) 2026 Zenable, Inc. A second MCP server, so the gateway has more than one thing to route to."""
 
 from fastmcp import FastMCP
 

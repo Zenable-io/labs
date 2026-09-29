@@ -1,0 +1,7 @@
+corpus: deliberative 90, mechanical 110
+
+stream zipf: 200 requests over 45 distinct messages
+
+cache           keys    hit%  jev calls
+exact             45   77.5%         45
+exact+bucket      12   94.0%         12

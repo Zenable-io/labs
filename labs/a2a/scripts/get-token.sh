@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Fetch a client_credentials access token for one agent. Prints the raw JWT.
+# Copyright (c) 2026 Zenable, Inc. Fetch a client_credentials access token for one agent. Prints the raw JWT.
 #
 #   ./scripts/get-token.sh agent-b-planner agent-b-secret
 set -euo pipefail

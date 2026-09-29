@@ -1,0 +1,28 @@
+# Copyright (c) 2026 Zenable, Inc.
+[project]
+name = "dspylab"
+version = "0.1.0"
+description = "A DSPy program over a small local model, and the optimisers that rewrite it."
+requires-python = ">=3.11"
+dependencies = [
+    "dspy[typesafe]>=3.4.0",
+    "pydantic>=2.10.0",
+    "python-dotenv>=1.0.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.0",
+]
+
+[tool.uv]
+package = false
+exclude-newer = "7 days"
+# TEMPORARY https://github.com/Zenable-io/next-gen-governance/pull/6893
+# dspy 3.4.0 (2026-09-25 04:04 UTC) is inside the cooldown until
+# 2026-10-02 00:05 ET. Delete the next line and re-lock after then.
+exclude-newer-package = { dspy = false }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["unit: deterministic tests without external services"]

@@ -1,0 +1,14 @@
+pass 1: retries-carry-idempotency > money-as-minor-units > structured-logs
+pass 2: money-as-minor-units > retries-carry-idempotency > structured-logs
+pass 3: retries-carry-idempotency > money-as-minor-units > structured-logs
+
+top 3 set identical on all 3 passes:   True
+top 3 order identical on all 3 passes: False
+
+requirement                    governs range   spread
+retries-carry-idempotency        0.95-0.96       0.01
+money-as-minor-units             0.95-0.95       0.00
+structured-logs                  0.91-0.94       0.03
+jsonb-not-json                   0.11-0.13       0.02
+no-literal-credentials           0.09-0.11       0.02
+docs-links-carry-utm             0.03-0.03       0.00

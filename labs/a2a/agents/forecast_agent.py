@@ -1,4 +1,4 @@
-"""Agent A -- the forecast agent.
+"""Copyright (c) 2026 Zenable, Inc. Agent A -- the forecast agent.
 
 Serves one public skill (`forecast.lookup`) behind a Keycloak-issued token,
 and calls Agent B when it produces a severe forecast. That callback is the

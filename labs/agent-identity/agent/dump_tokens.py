@@ -1,4 +1,4 @@
-"""Print both tokens side by side, decoded. The `cnf` line is the lab."""
+"""Copyright (c) 2026 Zenable, Inc. Print both tokens side by side, decoded. The `cnf` line is the lab."""
 
 import json
 
