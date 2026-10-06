@@ -1,0 +1,56 @@
+# Copyright (c) 2026 Zenable, Inc. The observe policy with two actions added: kill a process in the agent's
+# tree that reads the credential file, and kill one that connects anywhere
+# but loopback. Loopback stays open because the agent's model lives there.
+apiVersion: cilium.io/v1alpha1
+kind: TracingPolicy
+metadata:
+  name: agent-enforce
+spec:
+  kprobes:
+  - call: security_file_permission
+    syscall: false
+    return: true
+    args:
+    - index: 0
+      type: file
+    - index: 1
+      type: int
+    returnArg:
+      index: 0
+      type: int
+    selectors:
+    - matchBinaries:
+      - operator: In
+        followChildren: true
+        values:
+        - "${GOOSE_BIN}"
+      matchArgs:
+      - index: 0
+        operator: Postfix
+        values:
+        - "/.aws/credentials"
+      - index: 1
+        operator: Equal
+        values:
+        - "4"
+      matchActions:
+      - action: Sigkill
+  - call: tcp_connect
+    syscall: false
+    args:
+    - index: 0
+      type: sock
+    selectors:
+    - matchBinaries:
+      - operator: In
+        followChildren: true
+        values:
+        - "${GOOSE_BIN}"
+      matchArgs:
+      - index: 0
+        operator: NotDAddr
+        values:
+        - 127.0.0.0/8
+        - ::1/128
+      matchActions:
+      - action: Sigkill

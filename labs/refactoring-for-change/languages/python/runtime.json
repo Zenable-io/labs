@@ -1,0 +1,6 @@
+{
+  "run": ["{python}", "-m", "expenses"],
+  "checks": ["{python}", "-m", "pytest", "-q", "-p", "no:cacheprovider", "tests"],
+  "pythonpath": "src",
+  "metrics": ["src/expenses/history.py", "src/expenses/service.py", "src/expenses/policies.py"]
+}

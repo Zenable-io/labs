@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Zenable, Inc.
 ---
 # Keycloak in dev mode: in-memory H2, HTTP only, no TLS. Correct for a
 # workshop, wrong for anything else — dev mode disables the hostname and

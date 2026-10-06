@@ -1,0 +1,11 @@
+anchor: file
+rank  requirement                   governs  breaks
+   1* money-as-minor-units             0.94    0.65
+   2* structured-logs                  0.92    0.56
+   3* retries-carry-idempotency        0.90    0.94
+   4  no-literal-credentials           0.28    0.04
+   5  jsonb-not-json                   0.15    0.04
+   6  docs-links-carry-utm             0.04    0.04
+
+top 3 by rank: money-as-minor-units, structured-logs, retries-carry-idempotency
+a 0.50 floor on `governs` would have kept 3 of 6

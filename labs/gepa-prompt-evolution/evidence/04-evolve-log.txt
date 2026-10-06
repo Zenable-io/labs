@@ -1,0 +1,46 @@
+Iteration 0: Base program full valset score: 0.5 over 12 / 12 examples
+Iteration 1: Selected program 0 score: 0.5
+Iteration 1: Proposed new text for current_candidate:
+Iteration 1: New subsample score 3.0 is not better than old score 4.0, skipping
+Iteration 2: Selected program 0 score: 0.5
+Iteration 2: Proposed new text for current_candidate: (?:(?:req_id|rid|request-id)\s*[:=]\s*["']?|"(?:request_id|requestId)"\s*:\s*"|(?:INFO|WARN|ERROR|DEBUG|TRACE)\s+\[)(?P<id>[\w-]+)
+Iteration 3: Selected program 1 score: 0.9166666666666666
+Iteration 3: Proposed new text for current_candidate: (?:(?:req_id|rid|request-id)\s*[:=]\s*["']?|"(?:request_id|requestId)"\s*:\s*"|(?:INFO|WARN|ERROR|DEBUG|TRACE)\s+\(req\s+|(?:INFO|WARN|ERROR|DEBUG|TRACE)\s+\[)(?P<id>[\w-]+)
+Iteration 4: Selected program 2 score: 1.0
+Iteration 4: Proposed new text for current_candidate: (?i)(?:\b(?:req_id|rid|request-id)\s*[:=]\s*['"]?|['"](?:request_id|requestId)['"]\s*:\s*['"]?|\b(?:INFO|WARN|ERROR|DEBUG|TRACE)\s+\(req\s+|\b(?:INFO|WARN|ERROR|DEBUG|TRACE)\s+\[)(?P<id>[\w.-]+)
+Iteration 4: New subsample score 8.0 is not better than old score 8.0, skipping
+Iteration 5: Selected program 2 score: 1.0
+Iteration 5: Proposed new text for current_candidate: (?:\b(?:req_id|rid|request-id)\b\s*[:=]\s*['"]?|['"]?(?:request_id|requestId)['"]?\s*:\s*['"]?|\b(?:INFO|WARN|ERROR|DEBUG|TRACE)\b\s+\(req\s+|\b(?:INFO|WARN|ERROR|DEBUG|TRACE)\b\s+\[)(?P<id>[\w.-]+)
+Iteration 5: New subsample score 8.0 is not better than old score 8.0, skipping
+Iteration 6: Selected program 2 score: 1.0
+Iteration 6: Proposed new text for current_candidate: (?:\b(?:req_id|rid|request[-_]?id)\b\s*[:=]\s*['"]?|['"](?:request_id|requestId)['"]\s*:\s*['"]?|(?:INFO|WARN|ERROR|DEBUG|TRACE)\s+\(req\s+|(?:INFO|WARN|ERROR|DEBUG|TRACE)\s+\[)(?P<id>[\w.-]+)
+Iteration 6: New subsample score 8.0 is not better than old score 8.0, skipping
+Iteration 7: Selected program 2 score: 1.0
+Iteration 7: Proposed new text for current_candidate:
+Iteration 7: New subsample score 2.0 is not better than old score 8.0, skipping
+Iteration 8: Selected program 2 score: 1.0
+Iteration 8: Proposed new text for current_candidate: (?i)(?:(?<![\w-])(?:req_id|rid|request-id)\s*[
+Iteration 8: New subsample score 0.0 is not better than old score 8.0, skipping
+Iteration 9: Selected program 2 score: 1.0
+Iteration 9: Proposed new text for current_candidate:
+Iteration 9: New subsample score 0.0 is not better than old score 8.0, skipping
+Iteration 10: Selected program 2 score: 1.0
+Iteration 10: Proposed new text for current_candidate:
+Iteration 10: New subsample score 0.0 is not better than old score 8.0, skipping
+Iteration 11: Selected program 2 score: 1.0
+Iteration 11: Proposed new text for current_candidate: (?:
+Iteration 11: New subsample score 2.0 is not better than old score 8.0, skipping
+Iteration 12: Selected program 2 score: 1.0
+Iteration 12: Proposed new text for current_candidate:
+Iteration 12: New subsample score 4.0 is not better than old score 8.0, skipping
+Iteration 13: Selected program 2 score: 1.0
+Iteration 13: Proposed new text for current_candidate:
+Iteration 13: New subsample score 2.0 is not better than old score 8.0, skipping
+Iteration 14: Selected program 2 score: 1.0
+Iteration 14: Proposed new text for current_candidate:
+Iteration 14: New subsample score 2.0 is not better than old score 8.0, skipping
+Iteration 15: Selected program 2 score: 1.0
+Iteration 16: Selected program 2 score: 1.0
+Iteration 17: Selected program 2 score: 1.0
+Iteration 18: Selected program 2 score: 1.0
+Iteration 19: Selected program 2 score: 1.0

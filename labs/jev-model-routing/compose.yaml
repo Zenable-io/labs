@@ -1,0 +1,76 @@
+# Copyright (c) 2026 Zenable, Inc.
+name: jev-routing
+
+# `network: host` on the router build, because the Zenable sandbox has IPv6-only
+# egress and Docker's build network is IPv4-only. Without it `uv sync` fails
+# resolving PyPI and reads as a DNS bug while the host resolves the same name
+# fine through DNS64/NAT64. Runtime egress uses the IPv6 bridge below; pulls
+# use the host stack through the daemon.
+#
+# Nothing publishes 8000: the AppStream agent already holds it on the sandbox.
+# Ollama is on the host, not in the stack, because the sandbox image already
+# ships it with weights baked in.
+
+services:
+  jev-router:
+    build:
+      context: .
+      dockerfile: Dockerfile.router
+      network: host
+    container_name: jev-router
+    env_file:
+      # The knobs the exercises turn. Optional, because a run that turns none of
+      # them writes no file, and every default lives in `config.py` rather than
+      # being spelled a second time here.
+      - path: ./router.env
+        required: false
+    environment:
+      # The key reaches compose from the learner's own `~/.env`, by way of the
+      # shell that every login exports it into, so no file here holds a copy.
+      - TYPESAFE_API_KEY=${TYPESAFE_API_KEY:-}
+      - TYPESAFE_BASE_URL=${TYPESAFE_BASE_URL:-}
+    extra_hosts:
+      # Only used when JEV_BASE_URL points at a stand-in running on the host.
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      # The image has no grpc_health_probe, and the router answers no HTTP, so
+      # the probe is a socket connect from the python already in the image.
+      test: ["CMD", "python", "-c", "import socket; socket.create_connection(('127.0.0.1', 9090), 2)"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+      start_period: 2s
+
+  agentgateway:
+    build:
+      context: .
+      dockerfile: Dockerfile.gateway
+    container_name: agentgateway
+    command: ["-f", "/cfg/config.yaml"]
+    environment:
+      - TYPESAFE_API_KEY=${TYPESAFE_API_KEY:-}
+    volumes:
+      # The DIRECTORY, not the file. agentgateway watches the config path and
+      # reloads on change, and a bind-mounted single file does not deliver the
+      # event that `cp` over it produces.
+      - ./:/cfg:ro
+    extra_hosts:
+      # Ollama runs on the host. Docker Desktop resolves this name already;
+      # Linux needs the mapping spelled out.
+      - "host.docker.internal:host-gateway"
+    ports:
+      # Only the LLM proxy. The admin API on 15000 binds to loopback inside the
+      # container, so publishing it gets an empty reply; reach it with
+      # `docker compose exec` instead.
+      - "127.0.0.1:4000:4000"
+    depends_on:
+      jev-router:
+        condition: service_healthy
+
+networks:
+  default:
+    enable_ipv6: true
+    # Docker 26 needs an explicit ULA subnet; automatic IPv6 pools came later.
+    ipam:
+      config:
+        - subnet: fd8b:8af6:9c26:1::/64

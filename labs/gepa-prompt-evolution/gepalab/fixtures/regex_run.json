@@ -1,0 +1,32 @@
+{
+  "best_candidate": "(?:(?:req_id|rid|request-id)\\s*[:=]\\s*[\"']?|\"(?:request_id|requestId)\"\\s*:\\s*\"|(?:INFO|WARN|ERROR|DEBUG|TRACE)\\s+\\(req\\s+|(?:INFO|WARN|ERROR|DEBUG|TRACE)\\s+\\[)(?P<id>[\\w-]+)",
+  "evaluations": 300,
+  "frontier_size": 3,
+  "lineage": [
+    {
+      "text": "req_id=(\\w+)",
+      "validation": 0.5
+    },
+    {
+      "text": "(?:(?:req_id|rid|request-id)\\s*[:=]\\s*[\"']?|\"(?:request_id|requestId)\"\\s*:\\s*\"|(?:INFO|WARN|ERROR|DEBUG|TRACE)\\s+\\[)(?P<id>[\\w-]+)",
+      "validation": 0.9166666666666666
+    },
+    {
+      "text": "(?:(?:req_id|rid|request-id)\\s*[:=]\\s*[\"']?|\"(?:request_id|requestId)\"\\s*:\\s*\"|(?:INFO|WARN|ERROR|DEBUG|TRACE)\\s+\\(req\\s+|(?:INFO|WARN|ERROR|DEBUG|TRACE)\\s+\\[)(?P<id>[\\w-]+)",
+      "validation": 1.0
+    }
+  ],
+  "model": "bedrock/us.anthropic.claude-sonnet-5",
+  "name": "regex",
+  "scores": {
+    "held-out": 1.0,
+    "train": 1.0,
+    "validation": 1.0
+  },
+  "seed": "req_id=(\\w+)",
+  "seed_scores": {
+    "held-out": 0.25,
+    "train": 0.45,
+    "validation": 0.5
+  }
+}

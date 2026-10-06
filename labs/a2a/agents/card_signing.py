@@ -1,4 +1,4 @@
-"""Agent card signing and verification.
+"""Copyright (c) 2026 Zenable, Inc. Agent card signing and verification.
 
 The card is the document that tells a caller where to send data and what
 credential to attach. Trusting an unsigned one means trusting whoever

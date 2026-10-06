@@ -1,0 +1,64 @@
+# Copyright (c) 2026 Zenable, Inc.
+# Step 1: identity-based access on both resources. A request signed with an
+# agent token the Person Server issued is enough; no person, no consent.
+listen:
+  grpc: ":7070"
+  http: ":8090"
+
+jwks_cache:
+  # Short, so a re-registered agent is verifiable without waiting out a cache.
+  success_ttl: 5s
+  error_ttl: 5s
+  max_entries: 100
+
+resources:
+  - id: relay
+    issuer: "http://127.0.0.1:3000"
+    client_name: Relay
+    hosts:
+      - 127.0.0.1:3000
+      - localhost:3000
+    signing_key:
+      kid: rsk-relay
+      alg: EdDSA
+      private_key_file: /app/resource_key.pem
+    signature_window: 60s
+    allow_pseudonymous: false
+    access:
+      require: identity
+    agent_servers:
+      - issuer: "http://127.0.0.1:8765"
+        jwks_uri: "http://127.0.0.1:8765/.well-known/jwks.json"
+    allowed_signature_key_schemes:
+      - jwt
+    allowed_jwt_types:
+      - aa-agent+jwt
+    # Everything here is plain http on one machine. Production keeps this false.
+    allow_insecure_jwt_issuer: true
+    policy:
+      name: default
+  - id: echo
+    issuer: "http://127.0.0.1:3001"
+    client_name: Echo
+    hosts:
+      - 127.0.0.1:3001
+      - localhost:3001
+    signing_key:
+      kid: rsk-echo
+      alg: EdDSA
+      private_key_file: /app/resource_key.pem
+    signature_window: 60s
+    allow_pseudonymous: false
+    access:
+      require: identity
+    agent_servers:
+      - issuer: "http://127.0.0.1:8765"
+        jwks_uri: "http://127.0.0.1:8765/.well-known/jwks.json"
+    allowed_signature_key_schemes:
+      - jwt
+    allowed_jwt_types:
+      - aa-agent+jwt
+    # Everything here is plain http on one machine. Production keeps this false.
+    allow_insecure_jwt_issuer: true
+    policy:
+      name: default

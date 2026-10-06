@@ -1,0 +1,11 @@
+# Copyright (c) 2026 Zenable, Inc.
+services:
+  collector:
+    image: otel/opentelemetry-collector-contrib:0.149.0
+    command: ["--config=/etc/otelcol/config.yaml"]
+    volumes:
+      - ./collector.yaml:/etc/otelcol/config.yaml:ro
+    # 4318 is OTLP/HTTP; published on localhost only. 8000 is taken on the
+    # sandbox, so never publish there.
+    ports:
+      - "127.0.0.1:4318:4318"

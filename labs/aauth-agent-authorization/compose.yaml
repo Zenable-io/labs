@@ -1,0 +1,160 @@
+# Copyright (c) 2026 Zenable, Inc.
+name: aauth-agent-authorization
+
+# Every party of the protocol on one machine. All services share the host's
+# network namespace: the Person Server verifies resource tokens by fetching
+# the resource's metadata from the issuer URL inside the token, the resource
+# fetches the Person Server's JWKS from the issuer it pins, and the agent on
+# the host talks to both. One address space, 127.0.0.1, keeps every one of
+# those URLs the same wherever it is read from.
+#
+# Host ports: 16686 Jaeger UI, 4317/4318 OTLP; 8765 Person Server; 7070 and
+# 8090 the AAuth resource service (ext_authz and metadata); 3000 and 3001 the
+# two resources on agentgateway (relay, echo), 15000 its admin API; 9100 the
+# relay and 9099 the echo backend behind it.
+services:
+  jaeger:
+    image: jaegertracing/all-in-one:1.76.0
+    container_name: jaeger
+    network_mode: host
+    environment:
+      # Jaeger accepts OTLP directly with this set, so the stack needs no
+      # separate collector.
+      - COLLECTOR_OTLP_ENABLED=true
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1:16686/ >/dev/null 2>&1 || exit 1"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+      start_period: 2s
+
+  person-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.person-server
+      network: host
+    container_name: person-server
+    network_mode: host
+    environment:
+      - AAUTH_DATABASE_URL=sqlite:////data/aauth.db
+      - AAUTH_PS_SIGNING_KEY_PATH=/data/ps-signing-key.pem
+      - AAUTH_AS_SIGNING_KEY_PATH=/data/as-signing-key.pem
+      - AAUTH_PS_PUBLIC_ORIGIN=http://127.0.0.1:8765
+      - AAUTH_AS_PUBLIC_ORIGIN=http://127.0.0.1:8765
+      - AAUTH_AS_ISSUER=http://127.0.0.1:8765
+      # The portal login and the token that approves registrations and
+      # consent from the shell. A lab secret, shared on purpose.
+      - AAUTH_PS_ADMIN_TOKEN=lab
+      - AAUTH_AS_PERSON_TOKEN=lab
+      # Secure mode: every agent request carries a real HTTP message
+      # signature, and consent runs whenever a resource token asks for it.
+      - AAUTH_PS_INSECURE_DEV=false
+      - AAUTH_AS_INSECURE_DEV=false
+      - OTEL_SERVICE_NAME=person-server
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://127.0.0.1:4317
+      - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+      - OTEL_METRICS_EXPORTER=none
+      - OTEL_LOGS_EXPORTER=none
+    volumes:
+      - person-server-data:/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8765/.well-known/aauth-person.json', timeout=2)"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+      start_period: 3s
+    depends_on:
+      jaeger:
+        condition: service_healthy
+
+  aauth-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.aauth-service
+      network: host
+    container_name: aauth-service
+    network_mode: host
+    environment:
+      - AAUTH_CONFIG=/cfg/aauth-config.yaml
+    volumes:
+      # The directory, so a `cp` over aauth-config.yaml lands in the container;
+      # the service reads it once at start, hence the restart in the lab.
+      - ./:/cfg:ro
+    healthcheck:
+      # Its metadata routes need the resource's Host header; /metrics does not.
+      test: ["CMD", "/usr/bin/busybox", "wget", "-q", "-O", "-", "http://127.0.0.1:8090/metrics"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+      start_period: 2s
+    depends_on:
+      person-server:
+        condition: service_healthy
+
+  echo:
+    # The protected backend: answers with the request it received, headers
+    # included, so the x-aauth-* headers the resource adds are visible.
+    image: mendhak/http-https-echo:37
+    container_name: echo
+    network_mode: host
+    environment:
+      - HTTP_PORT=9099
+      - HTTPS_PORT=9443
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1:9099/ >/dev/null 2>&1 || exit 1"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+      start_period: 2s
+
+  relay:
+    # A resource that is also an agent: it answers on 3000 behind the gateway
+    # and calls echo on 3001 as itself, chaining the caller's authorization.
+    build:
+      context: .
+      dockerfile: Dockerfile.relay
+      network: host
+    container_name: relay
+    network_mode: host
+    environment:
+      - PERSON_SERVER=http://127.0.0.1:8765
+      - DOWNSTREAM=http://127.0.0.1:3001/echo
+      - AGENT_NAME=relay
+      - OTEL_SERVICE_NAME=relay
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://127.0.0.1:4317
+      - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+      - OTEL_METRICS_EXPORTER=none
+      - OTEL_LOGS_EXPORTER=none
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:9100/healthz', timeout=2)"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+      start_period: 3s
+    depends_on:
+      person-server:
+        condition: service_healthy
+
+  agentgateway:
+    # Built from the upstream distroless image with a busybox added purely so it
+    # can carry a HEALTHCHECK; see Dockerfile.gateway.
+    build:
+      context: .
+      dockerfile: Dockerfile.gateway
+    container_name: agentgateway
+    network_mode: host
+    command: ["-f", "/cfg/gateway.yaml"]
+    volumes:
+      - ./:/cfg:ro
+    depends_on:
+      aauth-service:
+        condition: service_healthy
+      echo:
+        condition: service_healthy
+      relay:
+        condition: service_healthy
+      jaeger:
+        condition: service_healthy
+
+volumes:
+  person-server-data:

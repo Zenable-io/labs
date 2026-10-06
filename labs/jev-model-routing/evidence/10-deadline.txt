@@ -1,0 +1,14 @@
+$ sed -i '/JEV_DEADLINE_SECONDS/d' router.env
+$ echo 'JEV_DEADLINE_SECONDS=1.5' >> router.env
+$ docker compose up -d --force-recreate --wait jev-router
+ Container jev-router Recreate
+ Container jev-router Recreated
+ Container jev-router Starting
+ Container jev-router Started
+ Container jev-router Waiting
+ Container jev-router Healthy
+$ curl -sS -o /dev/null -w 'http=%{http_code}  total=%{time_total}s\n' http://127.0.0.1:4000/v1/chat/completions -H 'Content-Type: application/json' -d @deliberative.json
+http=200  total=1.607945s
+$ docker compose logs jev-router --no-log-prefix | tail -2
+15:04:36 WARNING jev_router.decide jev call failed, routing to qwen-small: TimeoutError
+15:04:36 INFO    jev_router.server route -> qwen-small  src=fallback conf=0.00

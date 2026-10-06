@@ -1,0 +1,10 @@
+$ echo 'ROUTER_CACHE_BUCKET=1' >> router.env
+$ docker compose up -d --force-recreate --wait jev-router
+ Container jev-router Recreate
+ Container jev-router Recreated
+ Container jev-router Starting
+ Container jev-router Started
+ Container jev-router Waiting
+ Container jev-router Healthy
+$ docker compose logs jev-router --no-log-prefix | grep 'ext_proc listening' | tail -1
+15:04:40 INFO    jev_router.server ext_proc listening on 0.0.0.0:9090 | jev=jev-latest | deadline=1.5s | cache exact=True bucket=True ttl=900s | policy=6ecdbc563f806f13
