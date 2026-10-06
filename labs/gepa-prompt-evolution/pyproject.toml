@@ -1,0 +1,29 @@
+# Copyright (c) 2026 Zenable, Inc.
+[project]
+name = "gepalab"
+version = "0.1.0"
+description = "Evolving text artifacts with GEPA: a regex nobody wants to write, and a prompt for a small local model."
+requires-python = ">=3.11"
+dependencies = [
+    # `gepa` itself declares no dependencies. `gepa[full]` would bring
+    # datasets, mlflow and wandb, which are gigabytes this lab never reads, so
+    # the two pieces the reflection path actually needs are named here instead.
+    "gepa>=0.1.4",
+    "litellm>=1.83.0,<1.92",
+    "httpx>=0.28.0",
+    "pydantic>=2.10.0",
+    "python-dotenv>=1.0.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.0",
+]
+
+[tool.uv]
+package = false
+exclude-newer = "7 days"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["unit: deterministic tests without external services"]

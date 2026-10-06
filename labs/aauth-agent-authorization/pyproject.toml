@@ -1,0 +1,19 @@
+# Copyright (c) 2026 Zenable, Inc.
+[project]
+name = "aauth-agent-authorization"
+version = "0.1.0"
+description = "An AAuth agent: enrol with a Person Server, sign requests, get authorized"
+requires-python = ">=3.11"
+dependencies = [
+    # Christian Posta's AAuth implementation: signing, Signature-Key, tokens.
+    "aauth==0.3.2",
+    "httpx>=0.28,<1",
+    "pyjwt>=2.10,<3",
+    "opentelemetry-sdk>=1.41,<2",
+    "opentelemetry-exporter-otlp-proto-http>=1.41,<2",
+    "opentelemetry-instrumentation-httpx>=0.62b0,<1",
+]
+
+[tool.uv]
+package = false
+exclude-newer = "7 days"

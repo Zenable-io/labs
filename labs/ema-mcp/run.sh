@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Copyright (c) 2026 Zenable, Inc.
 #
 # One command: bring up the whole EMA topology from nothing and run the demo.
 #   ./run.sh          full demo (happy path + deny paths + security negatives)

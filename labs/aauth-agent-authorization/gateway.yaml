@@ -1,0 +1,82 @@
+# Copyright (c) 2026 Zenable, Inc.
+# yaml-language-server: $schema=https://agentgateway.dev/schema/config
+# agentgateway in front of two resources: the relay on :3000 and echo on
+# :3001. Every request is handed to the AAuth resource service over ext_authz
+# before it reaches its backend; each resource's metadata and token endpoint
+# go to the service's HTTP API with no check, because an agent has to read
+# them before it can sign anything.
+config:
+  adminAddr: 0.0.0.0:15000
+  logging:
+    format: json
+  tracing:
+    otlpEndpoint: http://127.0.0.1:4317
+    # Every request, because a lab that samples 1% shows the reader nothing.
+    randomSampling: "true"
+binds:
+- port: 3000
+  listeners:
+  - routes:
+    - name: relay-metadata
+      matches:
+      - path:
+          pathPrefix: /.well-known/
+      policies:
+        urlRewrite:
+          authority:
+            full: 127.0.0.1:3000
+      backends:
+      - host: 127.0.0.1:8090
+    - name: relay-resource-token
+      matches:
+      - path:
+          pathPrefix: /resource/
+      policies:
+        urlRewrite:
+          authority:
+            full: 127.0.0.1:3000
+      backends:
+      - host: 127.0.0.1:8090
+    - name: relay
+      policies:
+        extAuthz:
+          host: 127.0.0.1:7070
+          protocol:
+            grpc:
+              context:
+                aauth_resource_id: relay
+      backends:
+      - host: 127.0.0.1:9100
+- port: 3001
+  listeners:
+  - routes:
+    - name: echo-metadata
+      matches:
+      - path:
+          pathPrefix: /.well-known/
+      policies:
+        urlRewrite:
+          authority:
+            full: 127.0.0.1:3001
+      backends:
+      - host: 127.0.0.1:8090
+    - name: echo-resource-token
+      matches:
+      - path:
+          pathPrefix: /resource/
+      policies:
+        urlRewrite:
+          authority:
+            full: 127.0.0.1:3001
+      backends:
+      - host: 127.0.0.1:8090
+    - name: echo
+      policies:
+        extAuthz:
+          host: 127.0.0.1:7070
+          protocol:
+            grpc:
+              context:
+                aauth_resource_id: echo
+      backends:
+      - host: 127.0.0.1:9099

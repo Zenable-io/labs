@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# Copyright (c) 2026 Zenable, Inc.
+set -euo pipefail
+
+cd "$(dirname "$0")"
+action="${1:-help}"
+if [[ $# -gt 0 ]]; then shift; fi
+
+case "$action" in
+  build)
+    docker build --network=host --quiet --tag zenable-refactoring-lab . >/dev/null
+    echo 'Lab image built.'
+    ;;
+  run|metrics|test)
+    language="${1:?Choose a programming language.}"
+    shift
+    case "$action" in
+      run) command=(python -m workshop "$language" "$@") ;;
+      metrics) command=(python -m workshop.metrics "$language") ;;
+      test) command=(python -m pytest -q -p no:cacheprovider tests --language "$language" --implementation "${1:-design}") ;;
+    esac
+    docker run --rm --network=none --user "$(id -u):$(id -g)" \
+      --mount "type=bind,source=$PWD,target=/work,readonly" \
+      zenable-refactoring-lab "${command[@]}"
+    ;;
+  *)
+    echo 'Usage: ./lab build | run LANGUAGE history|design SCENARIO [--check] | metrics LANGUAGE | test LANGUAGE [history|design]'
+    exit 2
+    ;;
+esac

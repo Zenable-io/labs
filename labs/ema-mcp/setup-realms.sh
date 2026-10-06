@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Copyright (c) 2026 Zenable, Inc.
 #
 # Two-realm EMA topology in one Keycloak:
 #

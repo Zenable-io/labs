@@ -1,0 +1,31 @@
+# Copyright (c) 2026 Zenable, Inc.
+[project]
+name = "syscalls-seccomp"
+version = "0"
+description = "A seccomp sandbox written from scratch, for the Syscalls and seccomp workshop"
+requires-python = ">=3.12"
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "jupyter>=1.1",
+    "pytest>=8.3",
+]
+
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+py-modules = ["profile_from_strace", "seccomp_sandbox", "syscalls"]
+
+[tool.uv]
+exclude-newer = "7 days"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = ["--import-mode=importlib"]
+markers = [
+    "unit: fast tests with no kernel involvement",
+    "integration: portable subprocess checks without kernel enforcement",
+]

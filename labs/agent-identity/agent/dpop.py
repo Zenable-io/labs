@@ -1,4 +1,4 @@
-"""DPoP (RFC 9449) proof minting and verification, written out longhand.
+"""Copyright (c) 2026 Zenable, Inc. DPoP (RFC 9449) proof minting and verification, written out longhand.
 
 A library would hide the four fields that make DPoP work. Every rule the
 verifier enforces here is one line in RFC 9449 section 4.3, and the negative

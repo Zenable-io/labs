@@ -1,0 +1,20 @@
+# Copyright (c) 2026 Zenable, Inc. The smallest useful collector: take OTLP over HTTP, print every record.
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  batch: {}
+
+exporters:
+  debug:
+    verbosity: detailed
+
+service:
+  pipelines:
+    logs:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [debug]

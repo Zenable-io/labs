@@ -1,0 +1,55 @@
+# Copyright (c) 2026 Zenable, Inc.
+services:
+  tetragon:
+    image: quay.io/cilium/tetragon:v1.7.1
+    # Tetragon attaches to the host kernel, so it needs the host's pid and
+    # cgroup namespaces and the privileges to load BPF. The BTF mount is how
+    # it learns this kernel's struct layouts (CO-RE, same as the last lab).
+    pid: host
+    cgroup: host
+    privileged: true
+    volumes:
+      - /sys/kernel/btf/vmlinux:/var/lib/tetragon/btf:ro
+      - ./policies/rendered:/policies:ro
+      - tetragon-export:/var/log/tetragon
+    command:
+      # Only the observe policy at start; the enforce one is added live later
+      # in the lab with `tetra tracingpolicy add`.
+      - --tracing-policy=/policies/10-observe.yaml
+      - --export-filename=/var/log/tetragon/tetragon.log
+      - --export-file-max-size-mb=50
+      - --export-file-max-backups=1
+      - --enable-process-cred
+
+  collector:
+    image: otel/opentelemetry-collector-contrib:0.149.0
+    command: ["--config=/etc/otelcol/config.yaml"]
+    # Tetragon writes its export as root with mode 0600; the collector image
+    # runs unprivileged by default and could not open it.
+    user: "0:0"
+    volumes:
+      - ./otel/collector.yaml:/etc/otelcol/config.yaml:ro
+      - tetragon-export:/var/log/tetragon:ro
+    # 4318 is OTLP/HTTP; published on localhost only. 8000 is taken on the
+    # sandbox, so never publish there.
+    ports:
+      - "127.0.0.1:4318:4318"
+      - "127.0.0.1:4317:4317"
+
+  # Optional: OpenTelemetry eBPF Instrumentation, tracing goose's HTTP calls to
+  # Ollama with no code change. `docker compose --profile obi up`.
+  obi:
+    image: otel/ebpf-instrument:v0.13.0
+    profiles: [obi]
+    pid: host
+    privileged: true
+    environment:
+      OTEL_EBPF_AUTO_TARGET_EXE: "*/goose"
+      OTEL_EBPF_TRACE_PRINTER: text
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://collector:4318
+      OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
+    depends_on:
+      - collector
+
+volumes:
+  tetragon-export: {}

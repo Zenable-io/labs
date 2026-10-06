@@ -1,0 +1,47 @@
+answer: feat
+
+the request DSPy built, in full:
+
+
+
+
+
+[2026-09-27T21:23:57.406080]
+
+System message:
+
+Your input fields are:
+1. `subject` (str): the subject line of one commit
+Your output fields are:
+1. `commit_type` (Literal['feat', 'fix', 'docs', 'refactor', 'test', 'chore', 'perf', 'build']): the type this commit belongs to
+All interactions will be structured in the following way, with the appropriate values filled in.
+
+Inputs will have the following structure:
+
+[[ ## subject ## ]]
+{subject}
+
+Outputs will be a JSON object with the following fields.
+
+{
+  "commit_type": "{commit_type}        # note: the value you produce must exactly match (no extra characters) one of: feat; fix; docs; refactor; test; chore; perf; build"
+}
+In adhering to this structure, your objective is:
+        Give the Conventional Commits type of a git commit subject line.
+
+
+User message:
+
+[[ ## subject ## ]]
+note the new environment variable in the README
+
+Respond with a JSON object in the following order of fields: `commit_type` (must be formatted as a valid Python Literal['feat', 'fix', 'docs', 'refactor', 'test', 'chore', 'perf', 'build']).
+
+
+Response:
+
+```json
+{
+  "commit_type": "feat"
+}
+```

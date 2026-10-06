@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Zenable, Inc.
 # yaml-language-server: $schema=https://agentgateway.dev/schema/config
 # Step 1: the gateway forwards and nothing else. The client sees the same
 # tools it saw when it talked to the server directly.

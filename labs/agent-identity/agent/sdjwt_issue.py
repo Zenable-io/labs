@@ -1,4 +1,4 @@
-"""Issue an SD-JWT agent credential, and present a subset of it.
+"""Copyright (c) 2026 Zenable, Inc. Issue an SD-JWT agent credential, and present a subset of it.
 
 The credential answers "what is this agent, and who stands behind it". That
 is a different question from the access token's "may this caller do X", and

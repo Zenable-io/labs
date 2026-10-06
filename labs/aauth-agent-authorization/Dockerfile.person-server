@@ -1,0 +1,27 @@
+# Copyright (c) 2026 Zenable, Inc.
+# Christian Posta's reference AAuth Person Server and Agent Server, served as
+# one portal. Pinned to a commit: the project has no releases and its wire
+# behaviour moves between commits, so the lab's transcripts hold only at one.
+FROM python:3.12-slim-bookworm
+ARG PERSON_SERVER_COMMIT=18d9558307240f8fece8c35119548c3f59489672
+RUN apt-get update && apt-get install -y --no-install-recommends git \
+  && rm -rf /var/lib/apt/lists/*
+WORKDIR /app
+RUN git clone --quiet https://github.com/christian-posta/aauth-person-server.git . \
+  && git checkout --quiet "${PERSON_SERVER_COMMIT}"
+# Call chaining (SPEC §9.4.5): the reference issuer writes act as the
+# requesting agent alone. The patch nests the upstream token's act inside it,
+# which is the chain this lab is about.
+COPY person-server-act-chain.patch /tmp/
+RUN git apply /tmp/person-server-act-chain.patch && rm -rf .git
+# The OpenTelemetry distro instruments FastAPI and httpx at import time, so the
+# Person Server's own hops (verifying a resource token means fetching the
+# resource's metadata) land in Jaeger with no change to its code.
+RUN pip install --no-cache-dir . \
+  && pip install --no-cache-dir \
+    opentelemetry-distro==0.66b0 \
+    opentelemetry-exporter-otlp-proto-grpc==1.45.0 \
+    opentelemetry-instrumentation-fastapi==0.66b0 \
+    opentelemetry-instrumentation-httpx==0.66b0
+RUN mkdir -p /data
+CMD ["opentelemetry-instrument", "uvicorn", "portal.http.app:app", "--host", "0.0.0.0", "--port", "8765"]
