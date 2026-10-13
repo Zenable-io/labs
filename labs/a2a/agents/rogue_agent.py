@@ -1,4 +1,4 @@
-"""A hostile agent that serves a card impersonating the forecast agent.
+"""Copyright (c) 2026 Zenable, Inc. A hostile agent that serves a card impersonating the forecast agent.
 
 Nothing here is clever. It publishes a card with the real agent's name and
 skills, its own URL, and no security requirements at all -- then prints

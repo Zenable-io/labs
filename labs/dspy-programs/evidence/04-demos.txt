@@ -1,0 +1,9 @@
+compiled.json: 4 demonstrations
+
+instruction:
+  Give the Conventional Commits type of a git commit subject line.
+
+ 1. fix       bootstrapped  escape the regex before compiling the user filter
+ 2. docs      bootstrapped  add an architecture diagram to the design notes
+ 3. refactor  bootstrapped  replace the hand-rolled parser with the shared one
+ 4. test      bootstrapped  assert the migration is idempotent when re-run

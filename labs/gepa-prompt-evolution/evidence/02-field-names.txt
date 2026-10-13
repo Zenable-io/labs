@@ -1,0 +1,14 @@
+pattern: (?:req_id|request_id|requestId|request-id|rid)\s*[:=]\s*(?P<id>[A-Za-z0-9_-]+)
+
+exact-match score by split
+  train        60.0%  (20 lines)
+  validation   83.3%  (12 lines)
+  held-out     50.0%  (8 lines)
+
+14 lines are still wrong, the first 3:
+  [2026-03-04 10:15:23] WARN  (req 8f21ad) upstream took 4.2s
+    expected '8f21ad', captured '(nothing)'
+  [2026-03-04 10:17:05] INFO  (req 8f21e2) cache warm, 118 keys
+    expected '8f21e2', captured '(nothing)'
+  {"ts":"2026-03-04T10:15:24Z","level":"error","request_id":"8f21ae","msg":"upstream reset"}
+    expected '8f21ae', captured '(nothing)'

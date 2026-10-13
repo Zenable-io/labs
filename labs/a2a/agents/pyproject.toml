@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Zenable, Inc.
 [project]
 name = "a2a-workshop-agents"
 version = "0"

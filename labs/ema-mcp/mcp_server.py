@@ -1,4 +1,4 @@
-"""MCP server acting as an OAuth 2.1 protected resource for the EMA demo.
+"""Copyright (c) 2026 Zenable, Inc. MCP server acting as an OAuth 2.1 protected resource for the EMA demo.
 
 Uses the MCP SDK 2.0 auth stack, so Protected Resource Metadata (RFC 9728) and the 401
 `WWW-Authenticate` challenge are produced by the SDK rather than hand-rolled. All this

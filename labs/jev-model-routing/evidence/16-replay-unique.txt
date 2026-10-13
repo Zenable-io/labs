@@ -1,0 +1,16 @@
+corpus: deliberative 36, mechanical 30
+
+stream unique: 66 requests over 66 distinct messages
+graded against one fresh answer per distinct message
+
+cache           keys    hit%  jev calls  agree on hits
+exact             66    0.0%         66              -
+exact+bucket      13   80.3%         13          71.7%
+
+5 buckets held requests that route two different ways:
+  other|xs|prose|none|first    {'qwen-small': 11, 'qwen-large': 4}
+  read|xs|prose|none|first     {'qwen-small': 5, 'qwen-large': 5}
+  write|xs|prose|none|first    {'qwen-small': 3, 'qwen-large': 3}
+  edit|s|prose|none|first      {'qwen-small': 2, 'qwen-large': 2}
+  reason|s|prose|none|first    {'qwen-small': 1, 'qwen-large': 1}
+whichever request lands first owns the bucket until the entry expires

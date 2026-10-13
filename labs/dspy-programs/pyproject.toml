@@ -1,0 +1,24 @@
+# Copyright (c) 2026 Zenable, Inc.
+[project]
+name = "dspylab"
+version = "0.1.0"
+description = "A DSPy program over a small local model, and the optimisers that rewrite it."
+requires-python = ">=3.11"
+dependencies = [
+    "dspy[typesafe]>=3.4.0",
+    "pydantic>=2.10.0",
+    "python-dotenv>=1.0.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.0",
+]
+
+[tool.uv]
+package = false
+exclude-newer = "7 days"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["unit: deterministic tests without external services"]

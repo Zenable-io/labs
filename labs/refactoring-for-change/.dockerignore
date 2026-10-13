@@ -1,0 +1,5 @@
+# Copyright (c) 2026 Zenable, Inc.
+*
+!Dockerfile
+!pyproject.toml
+!uv.lock

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Reruns every step of the lab and writes the raw output to evidence/.
+# Copyright (c) 2026 Zenable, Inc. Reruns every step of the lab and writes the raw output to evidence/.
 # Everything quoted in the published lab comes from these files.
 set -uo pipefail
 

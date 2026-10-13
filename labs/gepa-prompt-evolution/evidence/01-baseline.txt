@@ -1,0 +1,20 @@
+pattern: req_id=(\w+)
+
+exact-match score by split
+  train        45.0%  (20 lines)
+  validation   50.0%  (12 lines)
+  held-out     25.0%  (8 lines)
+
+23 lines are still wrong, the first 6:
+  [2026-03-04 10:15:23] WARN  (req 8f21ad) upstream took 4.2s
+    expected '8f21ad', captured '(nothing)'
+  [2026-03-04 10:17:05] INFO  (req 8f21e2) cache warm, 118 keys
+    expected '8f21e2', captured '(nothing)'
+  trace=3b1d02 span=9c02 request-id: 8f21b0 svc=billing
+    expected '8f21b0', captured '(nothing)'
+  trace=3b1d55 span=9c19 request-id: 8f21f6 svc=search
+    expected '8f21f6', captured '(nothing)'
+  {"ts":"2026-03-04T10:15:24Z","level":"error","request_id":"8f21ae","msg":"upstream reset"}
+    expected '8f21ae', captured '(nothing)'
+  {"ts":"2026-03-04T10:18:11Z","level":"info","request_id":"8f2201","msg":"lease renewed"}
+    expected '8f2201', captured '(nothing)'

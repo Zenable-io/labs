@@ -1,4 +1,4 @@
-"""Client helper: resolve a peer's card, then call it the way the card says.
+"""Copyright (c) 2026 Zenable, Inc. Client helper: resolve a peer's card, then call it the way the card says.
 
 The important property is that nothing here hardcodes how to authenticate.
 `StaticTokenCredentials.get_credentials` is handed the security-scheme *name

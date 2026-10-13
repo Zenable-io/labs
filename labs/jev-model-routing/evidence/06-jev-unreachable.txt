@@ -1,0 +1,13 @@
+$ echo 'JEV_BASE_URL=http://host.docker.internal:9099' >> router.env
+$ docker compose up -d --force-recreate --wait jev-router
+ Container jev-router Recreate
+ Container jev-router Recreated
+ Container jev-router Starting
+ Container jev-router Started
+ Container jev-router Waiting
+ Container jev-router Healthy
+$ curl -sS -o /dev/null -w 'http=%{http_code}  total=%{time_total}s\n' http://127.0.0.1:4000/v1/chat/completions -H 'Content-Type: application/json' -d @deliberative.json
+http=200  total=0.085234s
+$ docker compose logs jev-router --no-log-prefix | tail -2
+15:03:15 WARNING jev_router.decide jev call failed, routing to qwen-small: All connection attempts failed
+15:03:15 INFO    jev_router.server route -> qwen-small  src=fallback conf=0.00

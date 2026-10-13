@@ -1,4 +1,4 @@
-"""Speak the ACP handshake to a real agent and report what it negotiated.
+"""Copyright (c) 2026 Zenable, Inc. Speak the ACP handshake to a real agent and report what it negotiated.
 
 Standard library only. No model, no API key, no network -- `initialize` is
 answered before an agent ever resolves a provider, which is what makes the

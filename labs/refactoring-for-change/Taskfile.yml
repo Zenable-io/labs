@@ -1,0 +1,14 @@
+# Copyright (c) 2026 Zenable, Inc.
+version: "3"
+silent: true
+tasks:
+  unit-test:
+    cmds:
+      - uv run --locked python -m pytest -q tests --language '{{.LANGUAGE | default "all"}}' --implementation '{{.IMPLEMENTATION | default "design"}}'
+  test:
+    cmds:
+      - ./lab build
+      - ./lab test '{{.LANGUAGE | default "all"}}' '{{.IMPLEMENTATION | default "design"}}'
+  run:
+    cmds:
+      - uv run --locked python -m workshop {{.CLI_ARGS}}
