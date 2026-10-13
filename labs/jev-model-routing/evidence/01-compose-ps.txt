@@ -1,0 +1,3 @@
+NAME           IMAGE                      COMMAND                  SERVICE        CREATED         STATUS                   PORTS
+agentgateway   jev-routing-agentgateway   "/app/agentgateway -…"   agentgateway   5 seconds ago   Up 2 seconds (healthy)   127.0.0.1:4000->4000/tcp
+jev-router     jev-routing-jev-router     "uv run --no-sync py…"   jev-router     5 seconds ago   Up 4 seconds (healthy)   9090/tcp

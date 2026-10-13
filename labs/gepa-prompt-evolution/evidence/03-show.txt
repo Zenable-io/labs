@@ -1,0 +1,23 @@
+run regex, reflected with bedrock/us.anthropic.claude-sonnet-5
+300 evaluations, 3 candidates kept
+
+seed
+  train        45.0%  (20 lines)
+  validation   50.0%  (12 lines)
+  held-out     25.0%  (8 lines)
+
+best candidate
+  train       100.0%  (20 lines)
+  validation  100.0%  (12 lines)
+  held-out    100.0%  (8 lines)
+
+seed:
+  req_id=(\w+)
+
+best candidate:
+  (?:(?:req_id|rid|request-id)\s*[:=]\s*["']?|"(?:request_id|requestId)"\s*:\s*"|(?:INFO|WARN|ERROR|DEBUG|TRACE)\s+\(req\s+|(?:INFO|WARN|ERROR|DEBUG|TRACE)\s+\[)(?P<id>[\w-]+)
+
+what the search kept, in the order it found them:
+  0. [50.0%] req_id=(\w+)
+  1. [91.7%] (?:(?:req_id|rid|request-id)\s*[:=]\s*["']?|"(?:request_id|requestId)"\s*:\s*"|(?:INFO|WARN|ERROR|DEBUG|TRACE)\s+\[)(?P<id>[\w-]+)
+  2. [100.0%] (?:(?:req_id|rid|request-id)\s*[:=]\s*["']?|"(?:request_id|requestId)"\s*:\s*"|(?:INFO|WARN|ERROR|DEBUG|TRACE)\s+\(req\s+|(?:INFO|WARN|ERROR|DEBUG|TRACE)\s+\[)(?P<id>[\w-]+)

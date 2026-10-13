@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Zenable, Inc.
 # yaml-language-server: $schema=https://agentgateway.dev/schema/config
 # Step 2: same forwarding, now with traces going to Jaeger. Access logs and
 # Prometheus metrics need no configuration at all -- they are already on.

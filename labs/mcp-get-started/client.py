@@ -1,4 +1,4 @@
-"""Scripted MCP client. Pass a file path for stdio, a URL for Streamable HTTP."""
+"""Copyright (c) 2026 Zenable, Inc. Scripted MCP client. Pass a file path for stdio, a URL for Streamable HTTP."""
 
 import asyncio
 import sys

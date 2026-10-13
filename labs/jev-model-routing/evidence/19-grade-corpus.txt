@@ -1,0 +1,8 @@
+policy 6ecdbc563f806f13, 66 messages graded by hand
+
+kind            agrees   of      rate
+deliberative        36   36   100.0%
+mechanical          30   30   100.0%
+overall             66   66   100.0%
+
+every request went where the label says it should

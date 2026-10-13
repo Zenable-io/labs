@@ -1,0 +1,16 @@
+# Copyright (c) 2026 Zenable, Inc.
+.venv/
+__pycache__/
+.env
+/router.env
+/config.yaml
+/router/oracle.json
+/mechanical.json
+/deliberative.json
+/standin.log
+/nohup.out
+/router/mixed-oracle.json
+/router/mixed-aligned.json
+/router/pool.csv
+/router/jeva-run.sh
+/router/.jev-align/

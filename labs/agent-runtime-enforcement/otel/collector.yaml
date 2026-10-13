@@ -1,0 +1,47 @@
+# Copyright (c) 2026 Zenable, Inc. Two doors in, one door out. Tetragon writes newline-delimited JSON to a file
+# the collector tails; OBI (optional) speaks OTLP directly. Both print.
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4318
+      grpc:
+        endpoint: 0.0.0.0:4317
+  file_log/tetragon:
+    include: [/var/log/tetragon/tetragon.log]
+    start_at: beginning
+    operators:
+      - type: json_parser
+        parse_to: attributes
+        # Every Tetragon record carries exactly one top-level event key; the
+        # rest of the record is process context. The key names the event.
+      - type: add
+        field: attributes.tetragon.event
+        value: 'EXPR(keys(attributes)[0])'
+
+processors:
+  batch: {}
+  resource/tetragon:
+    attributes:
+      - key: service.name
+        value: tetragon
+        action: upsert
+
+exporters:
+  debug:
+    verbosity: detailed
+
+service:
+  pipelines:
+    logs/tetragon:
+      receivers: [file_log/tetragon]
+      processors: [resource/tetragon, batch]
+      exporters: [debug]
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [debug]
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [debug]

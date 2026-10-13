@@ -1,0 +1,34 @@
+# Copyright (c) 2026 Zenable, Inc.
+[project]
+name = "agent-runtime-enforcement"
+version = "0"
+description = "Tetragon policies, an OpenTelemetry pipeline and a nono sandbox, for the Runtime enforcement for agents workshop"
+requires-python = ">=3.12"
+dependencies = [
+    "nono-py==0.16.0",
+    "pyyaml>=6.0",
+]
+
+[dependency-groups]
+dev = [
+    "jupyter>=1.1",
+    "pytest>=8.3",
+]
+
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+py-modules = ["nono_agent"]
+
+[tool.uv]
+exclude-newer = "7 days"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = ["--import-mode=importlib"]
+markers = [
+    "unit: fast tests with no kernel involvement",
+    "integration: portable subprocess checks without kernel enforcement",
+]

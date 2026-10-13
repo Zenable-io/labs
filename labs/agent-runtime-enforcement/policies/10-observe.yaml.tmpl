@@ -1,0 +1,47 @@
+# Copyright (c) 2026 Zenable, Inc. Observe the agent's process tree: every credential read and every TCP
+# connection, reported and nothing more. `${GOOSE_BIN}` is rendered by
+# scripts/render-policies.sh, because Tetragon matches binaries by absolute
+# path and goose lives under each learner's home.
+apiVersion: cilium.io/v1alpha1
+kind: TracingPolicy
+metadata:
+  name: agent-observe
+spec:
+  kprobes:
+  - call: security_file_permission
+    syscall: false
+    return: true
+    args:
+    - index: 0
+      type: file
+    - index: 1
+      type: int   # 0x04 is MAY_READ, 0x02 is MAY_WRITE
+    returnArg:
+      index: 0
+      type: int
+    selectors:
+    - matchBinaries:
+      - operator: In
+        followChildren: true
+        values:
+        - "${GOOSE_BIN}"
+      matchArgs:
+      - index: 0
+        operator: Postfix
+        values:
+        - "/.aws/credentials"
+      - index: 1
+        operator: Equal
+        values:
+        - "4"
+  - call: tcp_connect
+    syscall: false
+    args:
+    - index: 0
+      type: sock
+    selectors:
+    - matchBinaries:
+      - operator: In
+        followChildren: true
+        values:
+        - "${GOOSE_BIN}"

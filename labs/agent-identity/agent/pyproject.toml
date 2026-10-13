@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Zenable, Inc.
 [project]
 name = "agent-identity-workshop"
 version = "0"

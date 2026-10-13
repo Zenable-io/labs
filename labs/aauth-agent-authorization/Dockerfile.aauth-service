@@ -1,0 +1,20 @@
+# Copyright (c) 2026 Zenable, Inc.
+# Christian Posta's AAuth resource-side ext_authz service, built from the
+# commit behind its v0.0.1 release. The resource's Ed25519 signing key is
+# generated at build time: it signs resource tokens for this stack only, so a
+# fresh key per image is the point rather than a problem.
+FROM golang:1.24-bookworm AS build
+ARG AAUTH_SERVICE_COMMIT=4bf2fba9d7602d6ef7d70be74f0907e49f9b468e
+WORKDIR /src
+RUN git clone --quiet https://github.com/christian-posta/extauth-aauth-resource.git . \
+  && git checkout --quiet "${AAUTH_SERVICE_COMMIT}"
+RUN CGO_ENABLED=0 go build -o /out/aauth-service ./cmd/server \
+  && go build -o /out/generate-key ./cmd/generate-key \
+  && cd /out && ./generate-key && rm generate-key
+
+FROM gcr.io/distroless/static-debian12:nonroot
+COPY --from=busybox:1.36.1-uclibc /bin/busybox /usr/bin/busybox
+COPY --from=build /out/aauth-service /app/aauth-service
+COPY --from=build /out/resource_key.pem /app/resource_key.pem
+WORKDIR /app
+ENTRYPOINT ["/app/aauth-service"]

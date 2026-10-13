@@ -1,0 +1,20 @@
+
+development: 25.0% exact match over 16 lines
+
+type          right   of
+build             0    2
+chore             0    2
+docs              0    2
+feat              2    2
+fix               0    2
+perf              0    2
+refactor          1    2
+test              1    2
+
+12 wrong, the first 6:
+  fix       answered chore     correct an off-by-one in the pagination cursor
+  fix       answered (nothing) close the file handle when the upload is rejected
+  docs      answered feat      note the new environment variable in the README
+  docs      answered fix       fix the broken link in the contributing guide
+  refactor  answered feat      extract the retry helper into its own module
+  test      answered fix       add fixtures for a tenant with no integrations

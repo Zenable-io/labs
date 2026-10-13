@@ -1,0 +1,5 @@
+# Copyright (c) 2026 Zenable, Inc.
+.venv/
+__pycache__/
+.pytest_cache/
+*.class

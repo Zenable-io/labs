@@ -1,0 +1,12 @@
+# Copyright (c) 2026 Zenable, Inc.
+.venv/
+__pycache__/
+.pytest_cache/
+.ipynb_checkpoints/
+*.egg-info/
+build/
+dist/
+bpf/vmlinux.h
+bpf/*.bpf.o
+goose/data/
+goose/state/
