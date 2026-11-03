@@ -1,0 +1,17 @@
+# Copyright (c) 2026 Zenable, Inc.
+version: "3"
+
+tasks:
+  unit-test:
+    desc: Run portable Python tests against the committed lock
+    cmds:
+      - uv run --locked pytest -q tests
+
+  test:
+    desc: Run portable tests and notebook; KERNEL=true also tests live Linux enforcement
+    vars:
+      KERNEL: '{{.KERNEL | default "false"}}'
+    cmds:
+      - task: unit-test
+      - '{{if eq .KERNEL "true"}}make && uv run --locked pytest -q tests -m kernel{{end}}'
+      - uv run --locked jupyter execute tests/smoke.ipynb

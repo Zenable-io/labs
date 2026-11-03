@@ -6,9 +6,9 @@
     "account"
   ],
   "azp": "agent-a-forecast",
-  "scope": "email trip:plan profile",
+  "scope": "profile trip:plan email",
   "typ": "Bearer",
-  "exp": 1789512081
+  "exp": 1791640740
 }
 --- agent-b-planner
 {
@@ -18,9 +18,9 @@
     "account"
   ],
   "azp": "agent-b-planner",
-  "scope": "forecast:read email profile",
+  "scope": "forecast:read profile email",
   "typ": "Bearer",
-  "exp": 1789512081
+  "exp": 1791640740
 }
 --- workshop-cli
 {
@@ -30,9 +30,9 @@
     "account"
   ],
   "azp": "workshop-cli",
-  "scope": "email trip:plan profile",
+  "scope": "profile trip:plan email",
   "typ": "Bearer",
-  "exp": 1789512081
+  "exp": 1791640740
 }
 --- agent-c-stranger
 {
@@ -42,7 +42,7 @@
     "account"
   ],
   "azp": "agent-c-stranger",
-  "scope": "email profile forecast:write",
+  "scope": "profile forecast:write email",
   "typ": "Bearer",
-  "exp": 1789512081
+  "exp": 1791640740
 }

@@ -1,4 +1,4 @@
-"""A minimal ACP agent that does nothing except ask to touch your machine.
+"""Copyright (c) 2026 Zenable, Inc. A minimal ACP agent that does nothing except ask to touch your machine.
 
 Real agents reach back into the client only when a model decides to. That makes
 the trust boundary awkward to demonstrate and impossible to test -- the

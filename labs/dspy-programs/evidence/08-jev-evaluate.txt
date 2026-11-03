@@ -1,0 +1,22 @@
+2026/09/27 16:36:04 INFO dspy.evaluate.evaluate: Average Metric: 12.0 / 16 (75.0%)
+weights: every type at 1.0
+
+development: 75.0% exact match over 16 lines
+
+type          right   of
+build             0    2
+chore             2    2
+docs              1    2
+feat              2    2
+fix               2    2
+perf              1    2
+refactor          2    2
+test              2    2
+
+4 wrong, the first 4:
+  docs      answered fix       fix the broken link in the contributing guide
+  build     answered chore     bump actions/checkout to v5
+  build     answered feat      cache the uv download between workflow jobs
+  perf      answered feat      stream the export instead of buffering the whole file
+
+15 answers from Jev, 1 from the cache

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Six ways to be refused. Each isolates ONE rule, so a rejection can only be
+# Copyright (c) 2026 Zenable, Inc. Six ways to be refused. Each isolates ONE rule, so a rejection can only be
 # explained by the rule under test.
 #
 # Run with both agents up:  ./scripts/negative-tests.sh

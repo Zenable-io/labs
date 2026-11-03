@@ -1,0 +1,17 @@
+scoring with openrouter/anthropic/claude-haiku-5.5
+
+prompt:
+  Classify this log line as page, ticket, or ignore.
+
+exact-match score by split
+  train        70.0%  (20 lines)
+  validation   66.7%  (12 lines)
+  held-out     50.0%  (8 lines)
+
+14 lines are still wrong, the first 2:
+  CRITICAL staging db-primary replication halted, replica lag 1840s and climbing
+    expected ignore, answered page: Staging never reaches on-call; the staging owners watch their own dashboard.
+  ERROR canary checkout-api 503 on 40% of canary requests, canary auto-rolled back
+    expected ignore, answered page: Canary failures roll themselves back and never reach on-call.
+
+40 model calls

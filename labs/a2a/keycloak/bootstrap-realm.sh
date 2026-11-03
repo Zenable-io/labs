@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build the a2a-workshop realm with kcadm.sh.
+# Copyright (c) 2026 Zenable, Inc. Build the a2a-workshop realm with kcadm.sh.
 #
 # Deliberately a script rather than a realm-export JSON: every object that
 # matters (client scope, audience mapper, client, grant) is one readable line

@@ -1,4 +1,4 @@
-"""Verify an SD-JWT presentation. The verifier half of the credential story."""
+"""Copyright (c) 2026 Zenable, Inc. Verify an SD-JWT presentation. The verifier half of the credential story."""
 
 import base64
 import json

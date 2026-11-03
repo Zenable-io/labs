@@ -1,0 +1,14 @@
+scoring with openrouter/anthropic/claude-haiku-5.5
+
+Common ancestor: seed
+  definitions changed the definitions component
+  rules changed the rules component
+
+Same training minibatch:
+  definitions   66.7%
+  rules         66.7%
+  merged        66.7%
+
+No improvement on the minibatch; GEPA would discard this merge.
+
+9 model calls

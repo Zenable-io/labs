@@ -1,0 +1,18 @@
+# Copyright (c) 2026 Zenable, Inc.
+[project]
+name = "refactoring-for-change-lab"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+  "pydantic>=2.12,<3",
+  "lizard>=1.17,<2",
+  "pytest>=8,<10",
+]
+
+[tool.uv]
+package = false
+exclude-newer = "7 days"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["unit: isolated domain behaviour", "integration: complete language implementations"]

@@ -1,0 +1,5 @@
+Tool list after step-up
+  initial list                   production_audit absent
+  scope upgrade                  deploy:read + deploy:prod
+  cached list                    production_audit absent
+  refresh                        production_audit present

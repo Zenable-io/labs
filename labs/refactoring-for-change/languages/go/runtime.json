@@ -1,0 +1,6 @@
+{
+  "build": ["go", "build", "-o", "{build}/expenses", "./cmd/expenses"],
+  "run": ["{build}/expenses"],
+  "checks": ["go", "test", "./internal/expenses"],
+  "metrics": ["internal/expenses/history.go", "internal/expenses/service.go", "internal/expenses/policies.go"]
+}

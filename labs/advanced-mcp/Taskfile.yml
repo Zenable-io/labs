@@ -1,0 +1,12 @@
+# Copyright (c) 2026 Zenable, Inc.
+version: "3"
+
+tasks:
+  test:
+    vars:
+      CLI_ARGS: '{{.CLI_ARGS | default ""}}'
+    cmds:
+      - uv run --locked python -m pytest -q {{.CLI_ARGS}}
+  unit-test:
+    cmds:
+      - uv run --locked python -m pytest -q -m unit
