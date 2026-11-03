@@ -1,0 +1,12 @@
+scoring with openrouter/anthropic/claude-haiku-5.5
+
+candidate:
+  Classify this log line as page, ticket, or ignore.
+score: 0
+
+line: CRITICAL staging db-primary replication halted, replica lag 1840s and climbing
+expected: ignore
+answered: page
+feedback: Expected ignore, answered page. Staging never reaches on-call; the staging owners watch their own dashboard.
+
+1 model calls

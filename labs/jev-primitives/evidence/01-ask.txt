@@ -1,0 +1,10 @@
+{
+  "changes_an_amount": {
+    "noul": 0.95,
+    "type": "noul"
+  },
+  "is_python": {
+    "noul": 0.99,
+    "type": "noul"
+  }
+}

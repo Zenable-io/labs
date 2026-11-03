@@ -1,0 +1,49 @@
+# Copyright (c) 2026 Zenable, Inc.
+# Runtime settings for the ledger service. Every section is required and is
+# validated each time it's read, so a typo here fails fast.
+database:
+  path: ledger.db
+  journal_mode: delete
+catalogue:
+  seed: 20261012
+  size: 40000
+  currency: GBP
+prices:
+  base_url: http://127.0.0.1
+  timeout_seconds: 2
+  attempts: 3
+  backoff_seconds: 0.01
+pagination:
+  page_size: 50
+seed:
+  orders: 800
+  items_per_order: 20
+logging:
+  level: INFO
+  format: "%(asctime)s %(levelname)s %(name)s %(message)s"
+  destinations:
+    - stderr
+  redact:
+    - authorization
+    - cookie
+    - x-api-key
+limits:
+  max_items_per_order: 200
+  max_orders_per_page: 500
+  max_request_bytes: 1048576
+  request_timeout_seconds: 30
+features:
+  type_ahead_search: true
+  supplier_index: true
+  price_cache: false
+  strict_validation: true
+http:
+  user_agent: ledger/0.0.0
+  headers:
+    accept: application/json
+    accept-encoding: gzip
+    x-ledger-client: ledger
+  allowed_hosts:
+    - 127.0.0.1
+    - localhost
+    - prices.internal

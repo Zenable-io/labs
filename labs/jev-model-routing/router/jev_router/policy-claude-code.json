@@ -1,0 +1,14 @@
+{
+  "question": "Which model should answer `request.newest_message`? Judge only the newest message; `request.prior_turns` is context for what it refers to, never the thing being routed.",
+  "focus": "Decide on how much has to be worked out before the answer can start, not on the topic, the tone, or the length of `request.newest_message`. A request that names the exact change to make needs no deliberation even when the change is large. A request that states a goal and leaves the approach open needs deliberation even when it is one sentence.",
+  "models": [
+    {
+      "name": "sonnet",
+      "criterion": "The newest user message is well specified or straightforward: it names the files, the change, or the output it wants, and a competent engineer could carry it out without first choosing between approaches. Edits with a clear target, small features whose shape the message already gives, explanations of code that is in front of us, and questions with one checkable answer all belong here. Length alone does not disqualify a request from this option; a long but well-specified request still belongs here."
+    },
+    {
+      "name": "opus",
+      "criterion": "The newest user message leaves the approach open or needs something worked out before any change can start: designing a component or a migration, diagnosing a fault from symptoms that do not name the cause, weighing trade-offs between approaches, reviewing code for problems nobody has pointed at yet, or a change whose correct shape depends on parts of the codebase the message does not describe. Shortness does not disqualify a request from this option; a one-line goal can still need deliberation."
+    }
+  ]
+}

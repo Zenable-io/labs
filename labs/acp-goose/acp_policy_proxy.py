@@ -1,4 +1,4 @@
-"""An ACP proxy that audits every frame and can refuse the agent's callbacks.
+"""Copyright (c) 2026 Zenable, Inc. An ACP proxy that audits every frame and can refuse the agent's callbacks.
 
 ACP is bidirectional: after the handshake the agent calls BACK into the client
 to read files, write files, and run terminal commands. Those inbound calls are

@@ -1,0 +1,13 @@
+scoring with openrouter/anthropic/claude-haiku-5.5
+
+Validation scores for three prepared candidates:
+  seed          66.7%  dominated
+  definitions   75.0%  available for sampling
+  rules         83.3%  available for sampling
+
+Sampled parent: definitions
+
+A line definitions gets right and rules misses:
+  ERROR mailer SMTP timeout sending receipt 8821; resent on attempt 2, delivered
+
+36 model calls

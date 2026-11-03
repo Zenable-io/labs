@@ -1,0 +1,2214 @@
+{
+  "model": "jev-latest",
+  "base_url": "https://openrouter.ai/api",
+  "recordings": [
+    {
+      "request": {
+        "provider": "typesafe",
+        "model": "jev-latest",
+        "base_url": "https://openrouter.ai/api",
+        "state": {
+          "instructions": "Give the Conventional Commits type of a git commit subject line.",
+          "input_fields": "1. `subject` (str): the subject line of one commit",
+          "inputs": {
+            "subject": "allow an admin to revoke a session from the users page"
+          }
+        },
+        "questions": {
+          "commit_type": {
+            "instructions": "the type this commit belongs to",
+            "type": "choice",
+            "criteria": {
+              "feat": null,
+              "fix": null,
+              "docs": null,
+              "refactor": null,
+              "test": null,
+              "chore": null,
+              "perf": null,
+              "build": null
+            }
+          }
+        }
+      },
+      "answers": {
+        "commit_type": {
+          "choice": "feat",
+          "confidence": 0.99,
+          "probabilities": {
+            "feat": 0.99,
+            "docs": 0.0,
+            "build": 0.0,
+            "fix": 0.01,
+            "chore": 0.0,
+            "perf": 0.0,
+            "refactor": 0.0,
+            "test": 0.0
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "provider": "typesafe",
+        "model": "jev-latest",
+        "base_url": "https://openrouter.ai/api",
+        "state": {
+          "instructions": "Give the Conventional Commits type of a git commit subject line.",
+          "input_fields": "1. `subject` (str): the subject line of one commit",
+          "inputs": {
+            "subject": "send a Slack message when a scan finishes"
+          }
+        },
+        "questions": {
+          "commit_type": {
+            "instructions": "the type this commit belongs to",
+            "type": "choice",
+            "criteria": {
+              "feat": null,
+              "fix": null,
+              "docs": null,
+              "refactor": null,
+              "test": null,
+              "chore": null,
+              "perf": null,
+              "build": null
+            }
+          }
+        }
+      },
+      "answers": {
+        "commit_type": {
+          "choice": "feat",
+          "confidence": 0.94,
+          "probabilities": {
+            "test": 0.0,
+            "feat": 0.95,
+            "chore": 0.04,
+            "perf": 0.0,
+            "build": 0.0,
+            "docs": 0.0,
+            "fix": 0.01,
+            "refactor": 0.0
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "provider": "typesafe",
+        "model": "jev-latest",
+        "base_url": "https://openrouter.ai/api",
+        "state": {
+          "instructions": "Give the Conventional Commits type of a git commit subject line.",
+          "input_fields": "1. `subject` (str): the subject line of one commit",
+          "inputs": {
+            "subject": "handle a null tenant on the onboarding callback"
+          }
+        },
+        "questions": {
+          "commit_type": {
+            "instructions": "the type this commit belongs to",
+            "type": "choice",
+            "criteria": {
+              "feat": null,
+              "fix": null,
+              "docs": null,
+              "refactor": null,
+              "test": null,
+              "chore": null,
+              "perf": null,
+              "build": null
+            }
+          }
+        }
+      },
+      "answers": {
+        "commit_type": {
+          "choice": "fix",
+          "confidence": 0.97,
+          "probabilities": {
+            "docs": 0.0,
+            "fix": 0.98,
+            "build": 0.0,
+            "chore": 0.0,
+            "perf": 0.0,
+            "feat": 0.02,
+            "test": 0.0,
+            "refactor": 0.0
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "provider": "typesafe",
+        "model": "jev-latest",
+        "base_url": "https://openrouter.ai/api",
+        "state": {
+          "instructions": "Give the Conventional Commits type of a git commit subject line.",
+          "input_fields": "1. `subject` (str): the subject line of one commit",
+          "inputs": {
+            "subject": "escape the regex before compiling the user filter"
+          }
+        },
+        "questions": {
+          "commit_type": {
+            "instructions": "the type this commit belongs to",
+            "type": "choice",
+            "criteria": {
+              "feat": null,
+              "fix": null,
+              "docs": null,
+              "refactor": null,
+              "test": null,
+              "chore": null,
+              "perf": null,
+              "build": null
+            }
+          }
+        }
+      },
+      "answers": {
+        "commit_type": {
+          "choice": "fix",
+          "confidence": 0.99,
+          "probabilities": {
+            "feat": 0.01,
+            "chore": 0.0,
+            "build": 0.0,
+            "perf": 0.0,
+            "test": 0.0,
+            "fix": 0.99,
+            "refactor": 0.0,
+            "docs": 0.0
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "provider": "typesafe",
+        "model": "jev-latest",
+        "base_url": "https://openrouter.ai/api",
+        "state": {
+          "instructions": "Give the Conventional Commits type of a git commit subject line.",
+          "input_fields": "1. `subject` (str): the subject line of one commit",
+          "inputs": {
+            "subject": "explain why the cache key includes the tenant"
+          }
+        },
+        "questions": {
+          "commit_type": {
+            "instructions": "the type this commit belongs to",
+            "type": "choice",
+            "criteria": {
+              "feat": null,
+              "fix": null,
+              "docs": null,
+              "refactor": null,
+              "test": null,
+              "chore": null,
+              "perf": null,
+              "build": null
+            }
+          }
+        }
+      },
+      "answers": {
+        "commit_type": {
+          "choice": "docs",
+          "confidence": 0.93,
+          "probabilities": {
+            "fix": 0.01,
+            "refactor": 0.0,
+            "chore": 0.02,
+            "perf": 0.0,
+            "test": 0.0,
+            "build": 0.0,
+            "feat": 0.03,
+            "docs": 0.94
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "provider": "typesafe",
+        "model": "jev-latest",
+        "base_url": "https://openrouter.ai/api",
+        "state": {
+          "instructions": "Give the Conventional Commits type of a git commit subject line.",
+          "input_fields": "1. `subject` (str): the subject line of one commit",
+          "inputs": {
+            "subject": "add an architecture diagram to the design notes"
+          }
+        },
+        "questions": {
+          "commit_type": {
+            "instructions": "the type this commit belongs to",
+            "type": "choice",
+            "criteria": {
+              "feat": null,
+              "fix": null,
+              "docs": null,
+              "refactor": null,
+              "test": null,
+              "chore": null,
+              "perf": null,
+              "build": null
+            }
+          }
+        }
+      },
+      "answers": {
+        "commit_type": {
+          "choice": "docs",
+          "confidence": 0.89,
+          "probabilities": {
+            "build": 0.0,
+            "docs": 0.9,
+            "perf": 0.0,
+            "test": 0.0,
+            "chore": 0.01,
+            "feat": 0.09,
+            "refactor": 0.0,
+            "fix": 0.0
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "provider": "typesafe",
+        "model": "jev-latest",
+        "base_url": "https://openrouter.ai/api",
+        "state": {
+          "instructions": "Give the Conventional Commits type of a git commit subject line.",
+          "input_fields": "1. `subject` (str): the subject line of one commit",
+          "inputs": {
+            "subject": "replace the hand-rolled parser with the shared one"
+          }
+        },
+        "questions": {
+          "commit_type": {
+            "instructions": "the type this commit belongs to",
+            "type": "choice",
+            "criteria": {
+              "feat": null,
+              "fix": null,
+              "docs": null,
+              "refactor": null,
+              "test": null,
+              "chore": null,
+              "perf": null,
+              "build": null
+            }
+          }
+        }
+      },
+      "answers": {
+        "commit_type": {
+          "choice": "refactor",
+          "confidence": 0.93,
+          "probabilities": {
+            "build": 0.0,
+            "test": 0.0,
+            "chore": 0.0,
+            "perf": 0.0,
+            "docs": 0.0,
+            "feat": 0.04,
+            "refactor": 0.94,
+            "fix": 0.02
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "provider": "typesafe",
+        "model": "jev-latest",
+        "base_url": "https://openrouter.ai/api",
+        "state": {
+          "instructions": "Give the Conventional Commits type of a git commit subject line.",
+          "input_fields": "1. `subject` (str): the subject line of one commit",
+          "inputs": {
+            "subject": "rename tenant_uid to customer_uid across the repository"
+          }
+        },
+        "questions": {
+          "commit_type": {
+            "instructions": "the type this commit belongs to",
+            "type": "choice",
+            "criteria": {
+              "feat": null,
+              "fix": null,
+              "docs": null,
+              "refactor": null,
+              "test": null,
+              "chore": null,
+              "perf": null,
+              "build": null
+            }
+          }
+        }
+      },
+      "answers": {
+        "commit_type": {
+          "choice": "refactor",
+          "confidence": 0.86,
+          "probabilities": {
+            "chore": 0.1,
+            "fix": 0.01,
+            "perf": 0.0,
+            "build": 0.0,
+            "docs": 0.0,
+            "refactor": 0.88,
+            "feat": 0.01,
+            "test": 0.0
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "provider": "typesafe",
+        "model": "jev-latest",
+        "base_url": "https://openrouter.ai/api",
+        "state": {
+          "instructions": "Give the Conventional Commits type of a git commit subject line.",
+          "input_fields": "1. `subject` (str): the subject line of one commit",
+          "inputs": {
+            "subject": "assert the migration is idempotent when re-run"
+          }
+        },
+        "questions": {
+          "commit_type": {
+            "instructions": "the type this commit belongs to",
+            "type": "choice",
+            "criteria": {
+              "feat": null,
+              "fix": null,
+              "docs": null,
+              "refactor": null,
+              "test": null,
+              "chore": null,
+              "perf": null,
+              "build": null
+            }
+          }
+        }
+      },
+      "answers": {
+        "commit_type": {
+          "choice": "fix",
+          "confidence": 0.43,
+          "probabilities": {
+            "refactor": 0.01,
+            "docs": 0.01,
+            "build": 0.0,
+            "perf": 0.0,
+            "feat": 0.07,
+            "fix": 0.5,
+            "chore": 0.05,
+            "test": 0.36
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "provider": "typesafe",
+        "model": "jev-latest",
+        "base_url": "https://openrouter.ai/api",
+        "state": {
+          "instructions": "Give the Conventional Commits type of a git commit subject line.",
+          "input_fields": "1. `subject` (str): the subject line of one commit",
+          "inputs": {
+            "subject": "check that audit rows survive a failed transaction"
+          }
+        },
+        "questions": {
+          "commit_type": {
+            "instructions": "the type this commit belongs to",
+            "type": "choice",
+            "criteria": {
+              "feat": null,
+              "fix": null,
+              "docs": null,
+              "refactor": null,
+              "test": null,
+              "chore": null,
+              "perf": null,
+              "build": null
+            }
+          }
+        }
+      },
+      "answers": {
+        "commit_type": {
+          "choice": "test",
+          "confidence": 0.75,
+          "probabilities": {
+            "perf": 0.0,
+            "refactor": 0.0,
+            "feat": 0.02,
+            "docs": 0.0,
+            "fix": 0.17,
+            "test": 0.79,
+            "chore": 0.02,
+            "build": 0.0
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "provider": "typesafe",
+        "model": "jev-latest",
+        "base_url": "https://openrouter.ai/api",
+        "state": {
+          "instructions": "Give the Conventional Commits type of a git commit subject line.",
+          "input_fields": "1. `subject` (str): the subject line of one commit",
+          "inputs": {
+            "subject": "publish the CLI for windows/arm64 as well"
+          }
+        },
+        "questions": {
+          "commit_type": {
+            "instructions": "the type this commit belongs to",
+            "type": "choice",
+            "criteria": {
+              "feat": null,
+              "fix": null,
+              "docs": null,
+              "refactor": null,
+              "test": null,
+              "chore": null,
+              "perf": null,
+              "build": null
+            }
+          }
+        }
+      },
+      "answers": {
+        "commit_type": {
+          "choice": "feat",
+          "confidence": 0.33,
+          "probabilities": {
+            "perf": 0.0,
+            "feat": 0.42,
+            "chore": 0.18,
+            "docs": 0.0,
+            "fix": 0.01,
+            "build": 0.39,
+            "refactor": 0.0,
+            "test": 0.0
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "provider": "typesafe",
+        "model": "jev-latest",
+        "base_url": "https://openrouter.ai/api",
+        "state": {
+          "instructions": "Give the Conventional Commits type of a git commit subject line.",
+          "input_fields": "1. `subject` (str): the subject line of one commit",
+          "inputs": {
+            "subject": "sign the release archives with the new certificate"
+          }
+        },
+        "questions": {
+          "commit_type": {
+            "instructions": "the type this commit belongs to",
+            "type": "choice",
+            "criteria": {
+              "feat": null,
+              "fix": null,
+              "docs": null,
+              "refactor": null,
+              "test": null,
+              "chore": null,
+              "perf": null,
+              "build": null
+            }
+          }
+        }
+      },
+      "answers": {
+        "commit_type": {
+          "choice": "chore",
+          "confidence": 0.55,
+          "probabilities": {
+            "test": 0.0,
+            "chore": 0.61,
+            "refactor": 0.01,
+            "feat": 0.04,
+            "build": 0.3,
+            "docs": 0.0,
+            "perf": 0.0,
+            "fix": 0.04
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "provider": "typesafe",
+        "model": "jev-latest",
+        "base_url": "https://openrouter.ai/api",
+        "state": {
+          "instructions": "Give the Conventional Commits type of a git commit subject line.",
+          "input_fields": "1. `subject` (str): the subject line of one commit",
+          "inputs": {
+            "subject": "reuse the HTTPS client rather than rebuilding it per request"
+          }
+        },
+        "questions": {
+          "commit_type": {
+            "instructions": "the type this commit belongs to",
+            "type": "choice",
+            "criteria": {
+              "feat": null,
+              "fix": null,
+              "docs": null,
+              "refactor": null,
+              "test": null,
+              "chore": null,
+              "perf": null,
+              "build": null
+            }
+          }
+        }
+      },
+      "answers": {
+        "commit_type": {
+          "choice": "refactor",
+          "confidence": 0.67,
+          "probabilities": {
+            "fix": 0.06,
+            "build": 0.0,
+            "test": 0.0,
+            "perf": 0.13,
+            "feat": 0.08,
+            "chore": 0.02,
+            "docs": 0.0,
+            "refactor": 0.71
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "provider": "typesafe",
+        "model": "jev-latest",
+        "base_url": "https://openrouter.ai/api",
+        "state": {
+          "instructions": "Give the Conventional Commits type of a git commit subject line.",
+          "input_fields": "1. `subject` (str): the subject line of one commit",
+          "inputs": {
+            "subject": "memoise the scope lookup inside one request"
+          }
+        },
+        "questions": {
+          "commit_type": {
+            "instructions": "the type this commit belongs to",
+            "type": "choice",
+            "criteria": {
+              "feat": null,
+              "fix": null,
+              "docs": null,
+              "refactor": null,
+              "test": null,
+              "chore": null,
+              "perf": null,
+              "build": null
+            }
+          }
+        }
+      },
+      "answers": {
+        "commit_type": {
+          "choice": "perf",
+          "confidence": 0.57,
+          "probabilities": {
+            "perf": 0.62,
+            "refactor": 0.25,
+            "feat": 0.09,
+            "docs": 0.0,
+            "fix": 0.03,
+            "test": 0.0,
+            "build": 0.0,
+            "chore": 0.01
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "provider": "typesafe",
+        "model": "jev-latest",
+        "base_url": "https://openrouter.ai/api",
+        "state": {
+          "instructions": "Give the Conventional Commits type of a git commit subject line.",
+          "input_fields": "1. `subject` (str): the subject line of one commit",
+          "inputs": {
+            "subject": "add the new team to CODEOWNERS"
+          }
+        },
+        "questions": {
+          "commit_type": {
+            "instructions": "the type this commit belongs to",
+            "type": "choice",
+            "criteria": {
+              "feat": null,
+              "fix": null,
+              "docs": null,
+              "refactor": null,
+              "test": null,
+              "chore": null,
+              "perf": null,
+              "build": null
+            }
+          }
+        }
+      },
+      "answers": {
+        "commit_type": {
+          "choice": "chore",
+          "confidence": 0.45,
+          "probabilities": {
+            "chore": 0.52,
+            "fix": 0.0,
+            "perf": 0.0,
+            "build": 0.03,
+            "docs": 0.05,
+            "refactor": 0.0,
+            "feat": 0.4,
+            "test": 0.0
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "provider": "typesafe",
+        "model": "jev-latest",
+        "base_url": "https://openrouter.ai/api",
+        "state": {
+          "instructions": "Give the Conventional Commits type of a git commit subject line.",
+          "input_fields": "1. `subject` (str): the subject line of one commit",
+          "inputs": {
+            "subject": "archive last quarter's evidence bundle"
+          }
+        },
+        "questions": {
+          "commit_type": {
+            "instructions": "the type this commit belongs to",
+            "type": "choice",
+            "criteria": {
+              "feat": null,
+              "fix": null,
+              "docs": null,
+              "refactor": null,
+              "test": null,
+              "chore": null,
+              "perf": null,
+              "build": null
+            }
+          }
+        }
+      },
+      "answers": {
+        "commit_type": {
+          "choice": "chore",
+          "confidence": 0.91,
+          "probabilities": {
+            "feat": 0.06,
+            "fix": 0.0,
+            "docs": 0.0,
+            "build": 0.0,
+            "chore": 0.93,
+            "refactor": 0.01,
+            "perf": 0.0,
+            "test": 0.0
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "provider": "typesafe",
+        "model": "jev-latest",
+        "base_url": "https://openrouter.ai/api",
+        "state": {
+          "instructions": "Give the Conventional Commits type of a git commit subject line.",
+          "input_fields": "1. `subject` (str): the subject line of one commit",
+          "inputs": {
+            "subject": "add a retry budget to the payment client"
+          }
+        },
+        "questions": {
+          "commit_type": {
+            "instructions": "the type this commit belongs to",
+            "type": "choice",
+            "criteria": {
+              "feat": null,
+              "fix": null,
+              "docs": null,
+              "refactor": null,
+              "test": null,
+              "chore": null,
+              "perf": null,
+              "build": null
+            }
+          }
+        }
+      },
+      "answers": {
+        "commit_type": {
+          "choice": "feat",
+          "confidence": 0.99,
+          "probabilities": {
+            "refactor": 0.0,
+            "fix": 0.01,
+            "chore": 0.0,
+            "docs": 0.0,
+            "build": 0.0,
+            "test": 0.0,
+            "feat": 0.99,
+            "perf": 0.0
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "provider": "typesafe",
+        "model": "jev-latest",
+        "base_url": "https://openrouter.ai/api",
+        "state": {
+          "instructions": "Give the Conventional Commits type of a git commit subject line.",
+          "input_fields": "1. `subject` (str): the subject line of one commit",
+          "inputs": {
+            "subject": "accept a webhook signature header on the import endpoint"
+          }
+        },
+        "questions": {
+          "commit_type": {
+            "instructions": "the type this commit belongs to",
+            "type": "choice",
+            "criteria": {
+              "feat": null,
+              "fix": null,
+              "docs": null,
+              "refactor": null,
+              "test": null,
+              "chore": null,
+              "perf": null,
+              "build": null
+            }
+          }
+        }
+      },
+      "answers": {
+        "commit_type": {
+          "choice": "feat",
+          "confidence": 0.86,
+          "probabilities": {
+            "build": 0.0,
+            "refactor": 0.0,
+            "fix": 0.12,
+            "test": 0.0,
+            "docs": 0.0,
+            "chore": 0.0,
+            "feat": 0.88,
+            "perf": 0.0
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "provider": "typesafe",
+        "model": "jev-latest",
+        "base_url": "https://openrouter.ai/api",
+        "state": {
+          "instructions": "Give the Conventional Commits type of a git commit subject line.",
+          "input_fields": "1. `subject` (str): the subject line of one commit",
+          "inputs": {
+            "subject": "correct an off-by-one in the pagination cursor"
+          }
+        },
+        "questions": {
+          "commit_type": {
+            "instructions": "the type this commit belongs to",
+            "type": "choice",
+            "criteria": {
+              "feat": null,
+              "fix": null,
+              "docs": null,
+              "refactor": null,
+              "test": null,
+              "chore": null,
+              "perf": null,
+              "build": null
+            }
+          }
+        }
+      },
+      "answers": {
+        "commit_type": {
+          "choice": "fix",
+          "confidence": 1.0,
+          "probabilities": {
+            "build": 0.0,
+            "test": 0.0,
+            "fix": 1.0,
+            "refactor": 0.0,
+            "docs": 0.0,
+            "chore": 0.0,
+            "feat": 0.0,
+            "perf": 0.0
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "provider": "typesafe",
+        "model": "jev-latest",
+        "base_url": "https://openrouter.ai/api",
+        "state": {
+          "instructions": "Give the Conventional Commits type of a git commit subject line.",
+          "input_fields": "1. `subject` (str): the subject line of one commit",
+          "inputs": {
+            "subject": "close the file handle when the upload is rejected"
+          }
+        },
+        "questions": {
+          "commit_type": {
+            "instructions": "the type this commit belongs to",
+            "type": "choice",
+            "criteria": {
+              "feat": null,
+              "fix": null,
+              "docs": null,
+              "refactor": null,
+              "test": null,
+              "chore": null,
+              "perf": null,
+              "build": null
+            }
+          }
+        }
+      },
+      "answers": {
+        "commit_type": {
+          "choice": "fix",
+          "confidence": 1.0,
+          "probabilities": {
+            "docs": 0.0,
+            "feat": 0.0,
+            "refactor": 0.0,
+            "chore": 0.0,
+            "test": 0.0,
+            "build": 0.0,
+            "fix": 1.0,
+            "perf": 0.0
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "provider": "typesafe",
+        "model": "jev-latest",
+        "base_url": "https://openrouter.ai/api",
+        "state": {
+          "instructions": "Give the Conventional Commits type of a git commit subject line.",
+          "input_fields": "1. `subject` (str): the subject line of one commit",
+          "inputs": {
+            "subject": "note the new environment variable in the README"
+          }
+        },
+        "questions": {
+          "commit_type": {
+            "instructions": "the type this commit belongs to",
+            "type": "choice",
+            "criteria": {
+              "feat": null,
+              "fix": null,
+              "docs": null,
+              "refactor": null,
+              "test": null,
+              "chore": null,
+              "perf": null,
+              "build": null
+            }
+          }
+        }
+      },
+      "answers": {
+        "commit_type": {
+          "choice": "docs",
+          "confidence": 0.98,
+          "probabilities": {
+            "refactor": 0.0,
+            "fix": 0.0,
+            "perf": 0.0,
+            "test": 0.0,
+            "docs": 0.98,
+            "build": 0.0,
+            "feat": 0.0,
+            "chore": 0.02
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "provider": "typesafe",
+        "model": "jev-latest",
+        "base_url": "https://openrouter.ai/api",
+        "state": {
+          "instructions": "Give the Conventional Commits type of a git commit subject line.",
+          "input_fields": "1. `subject` (str): the subject line of one commit",
+          "inputs": {
+            "subject": "fix the broken link in the contributing guide"
+          }
+        },
+        "questions": {
+          "commit_type": {
+            "instructions": "the type this commit belongs to",
+            "type": "choice",
+            "criteria": {
+              "feat": null,
+              "fix": null,
+              "docs": null,
+              "refactor": null,
+              "test": null,
+              "chore": null,
+              "perf": null,
+              "build": null
+            }
+          }
+        }
+      },
+      "answers": {
+        "commit_type": {
+          "choice": "fix",
+          "confidence": 0.91,
+          "probabilities": {
+            "refactor": 0.0,
+            "fix": 0.93,
+            "perf": 0.0,
+            "test": 0.0,
+            "build": 0.0,
+            "docs": 0.07,
+            "feat": 0.0,
+            "chore": 0.0
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "provider": "typesafe",
+        "model": "jev-latest",
+        "base_url": "https://openrouter.ai/api",
+        "state": {
+          "instructions": "Give the Conventional Commits type of a git commit subject line.",
+          "input_fields": "1. `subject` (str): the subject line of one commit",
+          "inputs": {
+            "subject": "extract the retry helper into its own module"
+          }
+        },
+        "questions": {
+          "commit_type": {
+            "instructions": "the type this commit belongs to",
+            "type": "choice",
+            "criteria": {
+              "feat": null,
+              "fix": null,
+              "docs": null,
+              "refactor": null,
+              "test": null,
+              "chore": null,
+              "perf": null,
+              "build": null
+            }
+          }
+        }
+      },
+      "answers": {
+        "commit_type": {
+          "choice": "refactor",
+          "confidence": 0.97,
+          "probabilities": {
+            "fix": 0.0,
+            "refactor": 0.98,
+            "docs": 0.0,
+            "perf": 0.0,
+            "build": 0.0,
+            "test": 0.0,
+            "feat": 0.01,
+            "chore": 0.01
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "provider": "typesafe",
+        "model": "jev-latest",
+        "base_url": "https://openrouter.ai/api",
+        "state": {
+          "instructions": "Give the Conventional Commits type of a git commit subject line.",
+          "input_fields": "1. `subject` (str): the subject line of one commit",
+          "inputs": {
+            "subject": "move the scope resolver next to its only caller"
+          }
+        },
+        "questions": {
+          "commit_type": {
+            "instructions": "the type this commit belongs to",
+            "type": "choice",
+            "criteria": {
+              "feat": null,
+              "fix": null,
+              "docs": null,
+              "refactor": null,
+              "test": null,
+              "chore": null,
+              "perf": null,
+              "build": null
+            }
+          }
+        }
+      },
+      "answers": {
+        "commit_type": {
+          "choice": "refactor",
+          "confidence": 0.96,
+          "probabilities": {
+            "chore": 0.03,
+            "fix": 0.0,
+            "build": 0.0,
+            "perf": 0.0,
+            "docs": 0.0,
+            "refactor": 0.97,
+            "feat": 0.0,
+            "test": 0.0
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "provider": "typesafe",
+        "model": "jev-latest",
+        "base_url": "https://openrouter.ai/api",
+        "state": {
+          "instructions": "Give the Conventional Commits type of a git commit subject line.",
+          "input_fields": "1. `subject` (str): the subject line of one commit",
+          "inputs": {
+            "subject": "add a regression test for the partial refund path"
+          }
+        },
+        "questions": {
+          "commit_type": {
+            "instructions": "the type this commit belongs to",
+            "type": "choice",
+            "criteria": {
+              "feat": null,
+              "fix": null,
+              "docs": null,
+              "refactor": null,
+              "test": null,
+              "chore": null,
+              "perf": null,
+              "build": null
+            }
+          }
+        }
+      },
+      "answers": {
+        "commit_type": {
+          "choice": "test",
+          "confidence": 0.96,
+          "probabilities": {
+            "chore": 0.0,
+            "test": 0.96,
+            "refactor": 0.0,
+            "feat": 0.03,
+            "perf": 0.0,
+            "build": 0.0,
+            "docs": 0.0,
+            "fix": 0.01
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "provider": "typesafe",
+        "model": "jev-latest",
+        "base_url": "https://openrouter.ai/api",
+        "state": {
+          "instructions": "Give the Conventional Commits type of a git commit subject line.",
+          "input_fields": "1. `subject` (str): the subject line of one commit",
+          "inputs": {
+            "subject": "add fixtures for a tenant with no integrations"
+          }
+        },
+        "questions": {
+          "commit_type": {
+            "instructions": "the type this commit belongs to",
+            "type": "choice",
+            "criteria": {
+              "feat": null,
+              "fix": null,
+              "docs": null,
+              "refactor": null,
+              "test": null,
+              "chore": null,
+              "perf": null,
+              "build": null
+            }
+          }
+        }
+      },
+      "answers": {
+        "commit_type": {
+          "choice": "test",
+          "confidence": 0.65,
+          "probabilities": {
+            "fix": 0.01,
+            "chore": 0.07,
+            "perf": 0.0,
+            "docs": 0.0,
+            "refactor": 0.0,
+            "feat": 0.21,
+            "build": 0.0,
+            "test": 0.71
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "provider": "typesafe",
+        "model": "jev-latest",
+        "base_url": "https://openrouter.ai/api",
+        "state": {
+          "instructions": "Give the Conventional Commits type of a git commit subject line.",
+          "input_fields": "1. `subject` (str): the subject line of one commit",
+          "inputs": {
+            "subject": "bump actions/checkout to v5"
+          }
+        },
+        "questions": {
+          "commit_type": {
+            "instructions": "the type this commit belongs to",
+            "type": "choice",
+            "criteria": {
+              "feat": null,
+              "fix": null,
+              "docs": null,
+              "refactor": null,
+              "test": null,
+              "chore": null,
+              "perf": null,
+              "build": null
+            }
+          }
+        }
+      },
+      "answers": {
+        "commit_type": {
+          "choice": "chore",
+          "confidence": 0.71,
+          "probabilities": {
+            "feat": 0.0,
+            "docs": 0.0,
+            "build": 0.25,
+            "chore": 0.75,
+            "fix": 0.0,
+            "perf": 0.0,
+            "refactor": 0.0,
+            "test": 0.0
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "provider": "typesafe",
+        "model": "jev-latest",
+        "base_url": "https://openrouter.ai/api",
+        "state": {
+          "instructions": "Give the Conventional Commits type of a git commit subject line.",
+          "input_fields": "1. `subject` (str): the subject line of one commit",
+          "inputs": {
+            "subject": "cache the uv download between workflow jobs"
+          }
+        },
+        "questions": {
+          "commit_type": {
+            "instructions": "the type this commit belongs to",
+            "type": "choice",
+            "criteria": {
+              "feat": null,
+              "fix": null,
+              "docs": null,
+              "refactor": null,
+              "test": null,
+              "chore": null,
+              "perf": null,
+              "build": null
+            }
+          }
+        }
+      },
+      "answers": {
+        "commit_type": {
+          "choice": "feat",
+          "confidence": 0.17,
+          "probabilities": {
+            "fix": 0.04,
+            "docs": 0.0,
+            "build": 0.2,
+            "feat": 0.27,
+            "chore": 0.24,
+            "test": 0.0,
+            "refactor": 0.05,
+            "perf": 0.2
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "provider": "typesafe",
+        "model": "jev-latest",
+        "base_url": "https://openrouter.ai/api",
+        "state": {
+          "instructions": "Give the Conventional Commits type of a git commit subject line.",
+          "input_fields": "1. `subject` (str): the subject line of one commit",
+          "inputs": {
+            "subject": "index findings on (tenant_uid, created_at) to cut the scan"
+          }
+        },
+        "questions": {
+          "commit_type": {
+            "instructions": "the type this commit belongs to",
+            "type": "choice",
+            "criteria": {
+              "feat": null,
+              "fix": null,
+              "docs": null,
+              "refactor": null,
+              "test": null,
+              "chore": null,
+              "perf": null,
+              "build": null
+            }
+          }
+        }
+      },
+      "answers": {
+        "commit_type": {
+          "choice": "perf",
+          "confidence": 0.81,
+          "probabilities": {
+            "feat": 0.05,
+            "fix": 0.07,
+            "docs": 0.0,
+            "build": 0.0,
+            "chore": 0.01,
+            "refactor": 0.03,
+            "perf": 0.84,
+            "test": 0.0
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "provider": "typesafe",
+        "model": "jev-latest",
+        "base_url": "https://openrouter.ai/api",
+        "state": {
+          "instructions": "Give the Conventional Commits type of a git commit subject line.",
+          "input_fields": "1. `subject` (str): the subject line of one commit",
+          "inputs": {
+            "subject": "stream the export instead of buffering the whole file"
+          }
+        },
+        "questions": {
+          "commit_type": {
+            "instructions": "the type this commit belongs to",
+            "type": "choice",
+            "criteria": {
+              "feat": null,
+              "fix": null,
+              "docs": null,
+              "refactor": null,
+              "test": null,
+              "chore": null,
+              "perf": null,
+              "build": null
+            }
+          }
+        }
+      },
+      "answers": {
+        "commit_type": {
+          "choice": "feat",
+          "confidence": 0.48,
+          "probabilities": {
+            "refactor": 0.15,
+            "docs": 0.0,
+            "build": 0.0,
+            "perf": 0.25,
+            "feat": 0.55,
+            "fix": 0.05,
+            "chore": 0.0,
+            "test": 0.0
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "provider": "typesafe",
+        "model": "jev-latest",
+        "base_url": "https://openrouter.ai/api",
+        "state": {
+          "instructions": "Give the Conventional Commits type of a git commit subject line.",
+          "input_fields": "1. `subject` (str): the subject line of one commit",
+          "inputs": {
+            "subject": "delete the unused staging bucket module"
+          }
+        },
+        "questions": {
+          "commit_type": {
+            "instructions": "the type this commit belongs to",
+            "type": "choice",
+            "criteria": {
+              "feat": null,
+              "fix": null,
+              "docs": null,
+              "refactor": null,
+              "test": null,
+              "chore": null,
+              "perf": null,
+              "build": null
+            }
+          }
+        }
+      },
+      "answers": {
+        "commit_type": {
+          "choice": "chore",
+          "confidence": 0.49,
+          "probabilities": {
+            "fix": 0.06,
+            "chore": 0.55,
+            "perf": 0.0,
+            "docs": 0.0,
+            "refactor": 0.38,
+            "feat": 0.01,
+            "build": 0.0,
+            "test": 0.0
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "provider": "typesafe",
+        "model": "jev-latest",
+        "base_url": "https://openrouter.ai/api",
+        "state": {
+          "instructions": "Give the Conventional Commits type of a git commit subject line.",
+          "input_fields": "1. `subject` (str): the subject line of one commit",
+          "inputs": {
+            "subject": "raise the log level of the reaper to INFO"
+          }
+        },
+        "questions": {
+          "commit_type": {
+            "instructions": "the type this commit belongs to",
+            "type": "choice",
+            "criteria": {
+              "feat": null,
+              "fix": null,
+              "docs": null,
+              "refactor": null,
+              "test": null,
+              "chore": null,
+              "perf": null,
+              "build": null
+            }
+          }
+        }
+      },
+      "answers": {
+        "commit_type": {
+          "choice": "chore",
+          "confidence": 0.51,
+          "probabilities": {
+            "chore": 0.58,
+            "docs": 0.0,
+            "feat": 0.16,
+            "fix": 0.21000000000000002,
+            "perf": 0.0,
+            "build": 0.0,
+            "test": 0.0,
+            "refactor": 0.05
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "provider": "typesafe",
+        "model": "jev-latest",
+        "base_url": "https://openrouter.ai/api",
+        "state": {
+          "instructions": "Give the Conventional Commits type of a git commit subject line.",
+          "input_fields": "1. `subject` (str): the subject line of one commit",
+          "inputs": {
+            "subject": "support filtering findings by severity"
+          }
+        },
+        "questions": {
+          "commit_type": {
+            "instructions": "the type this commit belongs to",
+            "type": "choice",
+            "criteria": {
+              "feat": null,
+              "fix": null,
+              "docs": null,
+              "refactor": null,
+              "test": null,
+              "chore": null,
+              "perf": null,
+              "build": null
+            }
+          }
+        }
+      },
+      "answers": {
+        "commit_type": {
+          "choice": "feat",
+          "confidence": 0.95,
+          "probabilities": {
+            "fix": 0.01,
+            "chore": 0.03,
+            "test": 0.0,
+            "build": 0.0,
+            "perf": 0.0,
+            "refactor": 0.0,
+            "feat": 0.96,
+            "docs": 0.0
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "provider": "typesafe",
+        "model": "jev-latest",
+        "base_url": "https://openrouter.ai/api",
+        "state": {
+          "instructions": "Give the Conventional Commits type of a git commit subject line.",
+          "input_fields": "1. `subject` (str): the subject line of one commit",
+          "inputs": {
+            "subject": "add a --dry-run flag to the migration runner"
+          }
+        },
+        "questions": {
+          "commit_type": {
+            "instructions": "the type this commit belongs to",
+            "type": "choice",
+            "criteria": {
+              "feat": null,
+              "fix": null,
+              "docs": null,
+              "refactor": null,
+              "test": null,
+              "chore": null,
+              "perf": null,
+              "build": null
+            }
+          }
+        }
+      },
+      "answers": {
+        "commit_type": {
+          "choice": "feat",
+          "confidence": 1.0,
+          "probabilities": {
+            "fix": 0.0,
+            "docs": 0.0,
+            "build": 0.0,
+            "feat": 1.0,
+            "chore": 0.0,
+            "test": 0.0,
+            "refactor": 0.0,
+            "perf": 0.0
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "provider": "typesafe",
+        "model": "jev-latest",
+        "base_url": "https://openrouter.ai/api",
+        "state": {
+          "instructions": "Give the Conventional Commits type of a git commit subject line.",
+          "input_fields": "1. `subject` (str): the subject line of one commit",
+          "inputs": {
+            "subject": "stop the reaper deleting fleets it does not own"
+          }
+        },
+        "questions": {
+          "commit_type": {
+            "instructions": "the type this commit belongs to",
+            "type": "choice",
+            "criteria": {
+              "feat": null,
+              "fix": null,
+              "docs": null,
+              "refactor": null,
+              "test": null,
+              "chore": null,
+              "perf": null,
+              "build": null
+            }
+          }
+        }
+      },
+      "answers": {
+        "commit_type": {
+          "choice": "fix",
+          "confidence": 0.99,
+          "probabilities": {
+            "chore": 0.0,
+            "perf": 0.0,
+            "feat": 0.0,
+            "fix": 1.0,
+            "build": 0.0,
+            "refactor": 0.0,
+            "docs": 0.0,
+            "test": 0.0
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "provider": "typesafe",
+        "model": "jev-latest",
+        "base_url": "https://openrouter.ai/api",
+        "state": {
+          "instructions": "Give the Conventional Commits type of a git commit subject line.",
+          "input_fields": "1. `subject` (str): the subject line of one commit",
+          "inputs": {
+            "subject": "return 404 rather than 500 for a deleted requirement"
+          }
+        },
+        "questions": {
+          "commit_type": {
+            "instructions": "the type this commit belongs to",
+            "type": "choice",
+            "criteria": {
+              "feat": null,
+              "fix": null,
+              "docs": null,
+              "refactor": null,
+              "test": null,
+              "chore": null,
+              "perf": null,
+              "build": null
+            }
+          }
+        }
+      },
+      "answers": {
+        "commit_type": {
+          "choice": "fix",
+          "confidence": 0.99,
+          "probabilities": {
+            "build": 0.0,
+            "test": 0.0,
+            "chore": 0.0,
+            "perf": 0.0,
+            "docs": 0.0,
+            "feat": 0.01,
+            "refactor": 0.0,
+            "fix": 0.99
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "provider": "typesafe",
+        "model": "jev-latest",
+        "base_url": "https://openrouter.ai/api",
+        "state": {
+          "instructions": "Give the Conventional Commits type of a git commit subject line.",
+          "input_fields": "1. `subject` (str): the subject line of one commit",
+          "inputs": {
+            "subject": "write up the on-call runbook for queue backlogs"
+          }
+        },
+        "questions": {
+          "commit_type": {
+            "instructions": "the type this commit belongs to",
+            "type": "choice",
+            "criteria": {
+              "feat": null,
+              "fix": null,
+              "docs": null,
+              "refactor": null,
+              "test": null,
+              "chore": null,
+              "perf": null,
+              "build": null
+            }
+          }
+        }
+      },
+      "answers": {
+        "commit_type": {
+          "choice": "docs",
+          "confidence": 0.93,
+          "probabilities": {
+            "perf": 0.0,
+            "fix": 0.0,
+            "refactor": 0.0,
+            "test": 0.0,
+            "build": 0.0,
+            "chore": 0.04,
+            "docs": 0.94,
+            "feat": 0.02
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "provider": "typesafe",
+        "model": "jev-latest",
+        "base_url": "https://openrouter.ai/api",
+        "state": {
+          "instructions": "Give the Conventional Commits type of a git commit subject line.",
+          "input_fields": "1. `subject` (str): the subject line of one commit",
+          "inputs": {
+            "subject": "document the rate limits on the public API"
+          }
+        },
+        "questions": {
+          "commit_type": {
+            "instructions": "the type this commit belongs to",
+            "type": "choice",
+            "criteria": {
+              "feat": null,
+              "fix": null,
+              "docs": null,
+              "refactor": null,
+              "test": null,
+              "chore": null,
+              "perf": null,
+              "build": null
+            }
+          }
+        }
+      },
+      "answers": {
+        "commit_type": {
+          "choice": "docs",
+          "confidence": 1.0,
+          "probabilities": {
+            "chore": 0.0,
+            "fix": 0.0,
+            "perf": 0.0,
+            "test": 0.0,
+            "docs": 1.0,
+            "build": 0.0,
+            "feat": 0.0,
+            "refactor": 0.0
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "provider": "typesafe",
+        "model": "jev-latest",
+        "base_url": "https://openrouter.ai/api",
+        "state": {
+          "instructions": "Give the Conventional Commits type of a git commit subject line.",
+          "input_fields": "1. `subject` (str): the subject line of one commit",
+          "inputs": {
+            "subject": "split the settings page into three components"
+          }
+        },
+        "questions": {
+          "commit_type": {
+            "instructions": "the type this commit belongs to",
+            "type": "choice",
+            "criteria": {
+              "feat": null,
+              "fix": null,
+              "docs": null,
+              "refactor": null,
+              "test": null,
+              "chore": null,
+              "perf": null,
+              "build": null
+            }
+          }
+        }
+      },
+      "answers": {
+        "commit_type": {
+          "choice": "refactor",
+          "confidence": 0.84,
+          "probabilities": {
+            "build": 0.0,
+            "perf": 0.0,
+            "feat": 0.13,
+            "fix": 0.0,
+            "chore": 0.0,
+            "refactor": 0.87,
+            "docs": 0.0,
+            "test": 0.0
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "provider": "typesafe",
+        "model": "jev-latest",
+        "base_url": "https://openrouter.ai/api",
+        "state": {
+          "instructions": "Give the Conventional Commits type of a git commit subject line.",
+          "input_fields": "1. `subject` (str): the subject line of one commit",
+          "inputs": {
+            "subject": "collapse the two nearly identical serialisers"
+          }
+        },
+        "questions": {
+          "commit_type": {
+            "instructions": "the type this commit belongs to",
+            "type": "choice",
+            "criteria": {
+              "feat": null,
+              "fix": null,
+              "docs": null,
+              "refactor": null,
+              "test": null,
+              "chore": null,
+              "perf": null,
+              "build": null
+            }
+          }
+        }
+      },
+      "answers": {
+        "commit_type": {
+          "choice": "refactor",
+          "confidence": 0.99,
+          "probabilities": {
+            "chore": 0.0,
+            "refactor": 1.0,
+            "fix": 0.0,
+            "perf": 0.0,
+            "test": 0.0,
+            "build": 0.0,
+            "feat": 0.0,
+            "docs": 0.0
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "provider": "typesafe",
+        "model": "jev-latest",
+        "base_url": "https://openrouter.ai/api",
+        "state": {
+          "instructions": "Give the Conventional Commits type of a git commit subject line.",
+          "input_fields": "1. `subject` (str): the subject line of one commit",
+          "inputs": {
+            "subject": "cover the expired-token branch of the authoriser"
+          }
+        },
+        "questions": {
+          "commit_type": {
+            "instructions": "the type this commit belongs to",
+            "type": "choice",
+            "criteria": {
+              "feat": null,
+              "fix": null,
+              "docs": null,
+              "refactor": null,
+              "test": null,
+              "chore": null,
+              "perf": null,
+              "build": null
+            }
+          }
+        }
+      },
+      "answers": {
+        "commit_type": {
+          "choice": "feat",
+          "confidence": 0.39,
+          "probabilities": {
+            "chore": 0.06,
+            "fix": 0.42,
+            "perf": 0.0,
+            "test": 0.01,
+            "docs": 0.02,
+            "build": 0.0,
+            "feat": 0.45999999999999996,
+            "refactor": 0.03
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "provider": "typesafe",
+        "model": "jev-latest",
+        "base_url": "https://openrouter.ai/api",
+        "state": {
+          "instructions": "Give the Conventional Commits type of a git commit subject line.",
+          "input_fields": "1. `subject` (str): the subject line of one commit",
+          "inputs": {
+            "subject": "stop the flaky clock assertion in the scheduler suite"
+          }
+        },
+        "questions": {
+          "commit_type": {
+            "instructions": "the type this commit belongs to",
+            "type": "choice",
+            "criteria": {
+              "feat": null,
+              "fix": null,
+              "docs": null,
+              "refactor": null,
+              "test": null,
+              "chore": null,
+              "perf": null,
+              "build": null
+            }
+          }
+        }
+      },
+      "answers": {
+        "commit_type": {
+          "choice": "fix",
+          "confidence": 0.85,
+          "probabilities": {
+            "feat": 0.01,
+            "refactor": 0.0,
+            "perf": 0.0,
+            "fix": 0.86,
+            "chore": 0.01,
+            "docs": 0.0,
+            "test": 0.12,
+            "build": 0.0
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "provider": "typesafe",
+        "model": "jev-latest",
+        "base_url": "https://openrouter.ai/api",
+        "state": {
+          "instructions": "Give the Conventional Commits type of a git commit subject line.",
+          "input_fields": "1. `subject` (str): the subject line of one commit",
+          "inputs": {
+            "subject": "pin the Node version in the Dockerfile"
+          }
+        },
+        "questions": {
+          "commit_type": {
+            "instructions": "the type this commit belongs to",
+            "type": "choice",
+            "criteria": {
+              "feat": null,
+              "fix": null,
+              "docs": null,
+              "refactor": null,
+              "test": null,
+              "chore": null,
+              "perf": null,
+              "build": null
+            }
+          }
+        }
+      },
+      "answers": {
+        "commit_type": {
+          "choice": "build",
+          "confidence": 0.42,
+          "probabilities": {
+            "chore": 0.44,
+            "docs": 0.0,
+            "feat": 0.02,
+            "fix": 0.05,
+            "perf": 0.0,
+            "build": 0.48,
+            "test": 0.0,
+            "refactor": 0.01
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "provider": "typesafe",
+        "model": "jev-latest",
+        "base_url": "https://openrouter.ai/api",
+        "state": {
+          "instructions": "Give the Conventional Commits type of a git commit subject line.",
+          "input_fields": "1. `subject` (str): the subject line of one commit",
+          "inputs": {
+            "subject": "drop Python 3.10 from the test matrix"
+          }
+        },
+        "questions": {
+          "commit_type": {
+            "instructions": "the type this commit belongs to",
+            "type": "choice",
+            "criteria": {
+              "feat": null,
+              "fix": null,
+              "docs": null,
+              "refactor": null,
+              "test": null,
+              "chore": null,
+              "perf": null,
+              "build": null
+            }
+          }
+        }
+      },
+      "answers": {
+        "commit_type": {
+          "choice": "chore",
+          "confidence": 0.55,
+          "probabilities": {
+            "fix": 0.01,
+            "chore": 0.61,
+            "test": 0.12,
+            "build": 0.24,
+            "perf": 0.0,
+            "refactor": 0.01,
+            "feat": 0.01,
+            "docs": 0.0
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "provider": "typesafe",
+        "model": "jev-latest",
+        "base_url": "https://openrouter.ai/api",
+        "state": {
+          "instructions": "Give the Conventional Commits type of a git commit subject line.",
+          "input_fields": "1. `subject` (str): the subject line of one commit",
+          "inputs": {
+            "subject": "batch the embedding calls instead of one per finding"
+          }
+        },
+        "questions": {
+          "commit_type": {
+            "instructions": "the type this commit belongs to",
+            "type": "choice",
+            "criteria": {
+              "feat": null,
+              "fix": null,
+              "docs": null,
+              "refactor": null,
+              "test": null,
+              "chore": null,
+              "perf": null,
+              "build": null
+            }
+          }
+        }
+      },
+      "answers": {
+        "commit_type": {
+          "choice": "refactor",
+          "confidence": 0.33,
+          "probabilities": {
+            "fix": 0.02,
+            "test": 0.0,
+            "refactor": 0.42,
+            "feat": 0.23,
+            "chore": 0.04,
+            "docs": 0.0,
+            "build": 0.0,
+            "perf": 0.29
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "provider": "typesafe",
+        "model": "jev-latest",
+        "base_url": "https://openrouter.ai/api",
+        "state": {
+          "instructions": "Give the Conventional Commits type of a git commit subject line.",
+          "input_fields": "1. `subject` (str): the subject line of one commit",
+          "inputs": {
+            "subject": "skip the LLM call when the gate selects nothing"
+          }
+        },
+        "questions": {
+          "commit_type": {
+            "instructions": "the type this commit belongs to",
+            "type": "choice",
+            "criteria": {
+              "feat": null,
+              "fix": null,
+              "docs": null,
+              "refactor": null,
+              "test": null,
+              "chore": null,
+              "perf": null,
+              "build": null
+            }
+          }
+        }
+      },
+      "answers": {
+        "commit_type": {
+          "choice": "fix",
+          "confidence": 0.76,
+          "probabilities": {
+            "fix": 0.8,
+            "chore": 0.02,
+            "build": 0.0,
+            "test": 0.0,
+            "perf": 0.02,
+            "refactor": 0.01,
+            "feat": 0.14,
+            "docs": 0.0
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "provider": "typesafe",
+        "model": "jev-latest",
+        "base_url": "https://openrouter.ai/api",
+        "state": {
+          "instructions": "Give the Conventional Commits type of a git commit subject line.",
+          "input_fields": "1. `subject` (str): the subject line of one commit",
+          "inputs": {
+            "subject": "rotate the expired signing key"
+          }
+        },
+        "questions": {
+          "commit_type": {
+            "instructions": "the type this commit belongs to",
+            "type": "choice",
+            "criteria": {
+              "feat": null,
+              "fix": null,
+              "docs": null,
+              "refactor": null,
+              "test": null,
+              "chore": null,
+              "perf": null,
+              "build": null
+            }
+          }
+        }
+      },
+      "answers": {
+        "commit_type": {
+          "choice": "chore",
+          "confidence": 0.5,
+          "probabilities": {
+            "perf": 0.0,
+            "refactor": 0.04,
+            "feat": 0.04,
+            "docs": 0.0,
+            "fix": 0.35,
+            "chore": 0.5700000000000001,
+            "test": 0.0,
+            "build": 0.0
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "provider": "typesafe",
+        "model": "jev-latest",
+        "base_url": "https://openrouter.ai/api",
+        "state": {
+          "instructions": "Give the Conventional Commits type of a git commit subject line.",
+          "input_fields": "1. `subject` (str): the subject line of one commit",
+          "inputs": {
+            "subject": "remove the feature flag for credit transitions"
+          }
+        },
+        "questions": {
+          "commit_type": {
+            "instructions": "the type this commit belongs to",
+            "type": "choice",
+            "criteria": {
+              "feat": null,
+              "fix": null,
+              "docs": null,
+              "refactor": null,
+              "test": null,
+              "chore": null,
+              "perf": null,
+              "build": null
+            }
+          }
+        }
+      },
+      "answers": {
+        "commit_type": {
+          "choice": "chore",
+          "confidence": 0.22,
+          "probabilities": {
+            "build": 0.0,
+            "test": 0.0,
+            "chore": 0.33,
+            "perf": 0.0,
+            "docs": 0.0,
+            "feat": 0.3,
+            "refactor": 0.23,
+            "fix": 0.14
+          }
+        }
+      }
+    }
+  ]
+}

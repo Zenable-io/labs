@@ -1,0 +1,11 @@
+anchor: patch
+rank  requirement                   governs  breaks
+   1* retries-carry-idempotency        0.96    0.94
+   2* money-as-minor-units             0.95    0.70
+   3* structured-logs                  0.94    0.55
+   4  jsonb-not-json                   0.13    0.04
+   5  no-literal-credentials           0.09    0.04
+   6  docs-links-carry-utm             0.03    0.04
+
+top 3 by rank: retries-carry-idempotency, money-as-minor-units, structured-logs
+a 0.50 floor on `governs` would have kept 3 of 6

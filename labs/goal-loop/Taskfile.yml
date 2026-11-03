@@ -1,0 +1,18 @@
+# Copyright (c) 2026 Zenable, Inc.
+version: "3"
+
+tasks:
+  test:
+    desc: Run the service's tests
+    cmds:
+      - uv run --locked pytest -q -m "not goal" tests
+
+  bench:
+    desc: Time the test suite and print the wall-clock seconds
+    cmds:
+      - uv run --locked python -m ledger.bench
+
+  check:
+    desc: Is the bench under the lab's target yet?
+    cmds:
+      - uv run --locked pytest -q -m goal tests

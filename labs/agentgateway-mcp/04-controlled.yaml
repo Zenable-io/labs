@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Zenable, Inc.
 # yaml-language-server: $schema=https://agentgateway.dev/schema/config
 # Step 4: the gateway starts refusing things. mcpAuthorization is an allow
 # list -- a tool no rule names is filtered out of tools/list, and refused if

@@ -1,0 +1,4 @@
+$ curl -sS http://127.0.0.1:4000/v1/chat/completions -H "Content-Type: application/json" -d @mechanical.json | jq -r .model
+qwen3:0.6b
+$ curl -sS http://127.0.0.1:4000/v1/chat/completions -H "Content-Type: application/json" -d @deliberative.json | jq -r .model
+qwen3:0.6b

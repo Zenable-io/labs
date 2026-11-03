@@ -1,0 +1,3 @@
+15:03:12 INFO    jev_router.server route -> qwen-small  src=jev      conf=0.99 {'qwen-small': 0.99, 'qwen-large': 0.01}
+15:03:13 INFO    jev_router.server route -> qwen-large  src=jev      conf=1.00 {'qwen-small': 0.0, 'qwen-large': 1.0}
+15:03:13 INFO    jev_router.server route -> qwen-large  src=exact    conf=1.00 {'qwen-small': 0.0, 'qwen-large': 1.0}

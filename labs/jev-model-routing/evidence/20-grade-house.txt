@@ -1,0 +1,21 @@
+house rule: Anything touching money goes to the larger model, however mechanical it looks.
+policy 6ecdbc563f806f13, 24 messages graded by hand
+
+reads as        agrees   of      rate
+deliberative        12   12   100.0%
+mechanical           1   12     8.3%
+overall             13   24    54.2%
+
+11 disagreements, the first 6:
+  rename-charge-field  label qwen-large  jev qwen-small (0.98)
+    Rename `chargeAmount` to `amount_cents` across billing/ and update the callers.
+  rename-charge-field  label qwen-large  jev qwen-small (0.96)
+    In billing/, `chargeAmount` should be `amount_cents` everywhere it appears.
+  price-list-format    label qwen-large  jev qwen-small (0.85)
+    Convert this price list from JSON to YAML, keeping the key order.
+  price-list-format    label qwen-large  jev qwen-small (0.98)
+    Turn the attached tariff JSON into equivalent YAML.
+  refund-type-hints    label qwen-large  jev qwen-small (0.81)
+    Add type hints to every function in billing/refunds.py, including return types.
+  refund-type-hints    label qwen-large  jev qwen-small (0.42)
+    billing/refunds.py has no annotations. Add them.
