@@ -1,0 +1,86 @@
+# Copyright (c) 2026 Zenable, Inc.
+# Step 2: the three-party flow on both resources. An identified agent is
+# challenged with a resource token; only a request carrying an auth token
+# from the pinned Person Server gets through. The relay, challenged by echo,
+# chains the token it was called with.
+listen:
+  grpc: ":7070"
+  http: ":8090"
+
+jwks_cache:
+  # Short, so a re-registered agent is verifiable without waiting out a cache.
+  success_ttl: 5s
+  error_ttl: 5s
+  max_entries: 100
+
+resources:
+  - id: relay
+    issuer: "http://127.0.0.1:3000"
+    client_name: Relay
+    hosts:
+      - 127.0.0.1:3000
+      - localhost:3000
+    signing_key:
+      kid: rsk-relay
+      alg: EdDSA
+      private_key_file: /app/resource_key.pem
+    signature_window: 60s
+    allow_pseudonymous: false
+    supported_scopes:
+      - relay:read
+    scope_descriptions:
+      relay:read: Read from relay
+    default_resource_token_scopes:
+      - relay:read
+    access:
+      require: auth-token
+    person_server:
+      issuer: "http://127.0.0.1:8765"
+      jwks_uri: "http://127.0.0.1:8765/.well-known/jwks.json"
+    agent_servers:
+      - issuer: "http://127.0.0.1:8765"
+        jwks_uri: "http://127.0.0.1:8765/.well-known/jwks.json"
+    allowed_signature_key_schemes:
+      - jwt
+    allowed_jwt_types:
+      - aa-agent+jwt
+      - aa-auth+jwt
+    # Everything here is plain http on one machine. Production keeps this false.
+    allow_insecure_jwt_issuer: true
+    policy:
+      name: default
+  - id: echo
+    issuer: "http://127.0.0.1:3001"
+    client_name: Echo
+    hosts:
+      - 127.0.0.1:3001
+      - localhost:3001
+    signing_key:
+      kid: rsk-echo
+      alg: EdDSA
+      private_key_file: /app/resource_key.pem
+    signature_window: 60s
+    allow_pseudonymous: false
+    supported_scopes:
+      - echo:read
+    scope_descriptions:
+      echo:read: Read from echo
+    default_resource_token_scopes:
+      - echo:read
+    access:
+      require: auth-token
+    person_server:
+      issuer: "http://127.0.0.1:8765"
+      jwks_uri: "http://127.0.0.1:8765/.well-known/jwks.json"
+    agent_servers:
+      - issuer: "http://127.0.0.1:8765"
+        jwks_uri: "http://127.0.0.1:8765/.well-known/jwks.json"
+    allowed_signature_key_schemes:
+      - jwt
+    allowed_jwt_types:
+      - aa-agent+jwt
+      - aa-auth+jwt
+    # Everything here is plain http on one machine. Production keeps this false.
+    allow_insecure_jwt_issuer: true
+    policy:
+      name: default

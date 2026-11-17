@@ -1,0 +1,52 @@
+run reflection, scored with recorded answers (no API calls)
+32 evaluations, 2 candidates kept
+
+seed
+  train        70.0%  (20 lines)
+  validation   66.7%  (12 lines)
+  held-out     50.0%  (8 lines)
+
+best candidate
+  train        75.0%  (20 lines)
+  validation   91.7%  (12 lines)
+  held-out     62.5%  (8 lines)
+
+seed:
+  Classify this log line as page, ticket, or ignore.
+
+best candidate:
+  You are triaging a single production log line for an on-call rotation. Reply with exactly one word: page, ticket, or ignore.
+
+  Definitions:
+  - page: someone must be woken now. Use this for anything that threatens customer data exposure or privacy, payments or money integrity (including any unreconciled or mismatched charge, however small), security posture changes, data loss, or a user-facing outage that is ongoing or unrecovered.
+  - ticket: a person should look at it on the next working day, but nobody needs waking. Use this for degraded performance, slow jobs, recoverable or non-urgent errors that still warrant follow-up, and capacity or trend warnings.
+  - ignore: no human action is needed. Use this for transient failures that self-recovered or were retried successfully, routine informational noise, and events already resolved.
+
+  Rules:
+  - Judge by business impact, not log level. An INFO line can require a page (for example, a storage policy exposing customer data). An ERROR line can be ignore (for example, a timeout that was retried and confirmed successful).
+  - Anything involving money, payments, ledgers, or reconciliation discrepancies is at least page unless the line explicitly states it was resolved.
+  - Anything involving customer data access, exposure, or permissions is page.
+  - When a line indicates the problem is resolved, lean toward ignore unless the resolved issue was a payments or data-exposure event.
+  - Use ticket for slow or degraded behavior that does not affect customers right now.
+
+  Output only the single word: page, ticket, or ignore. No punctuation, no explanation.
+
+what the search kept, in the order it found them:
+  0. [66.7%]
+     Classify this log line as page, ticket, or ignore.
+  1. [91.7%]
+     You are triaging a single production log line for an on-call rotation. Reply with exactly one word: page, ticket, or ignore.
+
+     Definitions:
+     - page: someone must be woken now. Use this for anything that threatens customer data exposure or privacy, payments or money integrity (including any unreconciled or mismatched charge, however small), security posture changes, data loss, or a user-facing outage that is ongoing or unrecovered.
+     - ticket: a person should look at it on the next working day, but nobody needs waking. Use this for degraded performance, slow jobs, recoverable or non-urgent errors that still warrant follow-up, and capacity or trend warnings.
+     - ignore: no human action is needed. Use this for transient failures that self-recovered or were retried successfully, routine informational noise, and events already resolved.
+
+     Rules:
+     - Judge by business impact, not log level. An INFO line can require a page (for example, a storage policy exposing customer data). An ERROR line can be ignore (for example, a timeout that was retried and confirmed successful).
+     - Anything involving money, payments, ledgers, or reconciliation discrepancies is at least page unless the line explicitly states it was resolved.
+     - Anything involving customer data access, exposure, or permissions is page.
+     - When a line indicates the problem is resolved, lean toward ignore unless the resolved issue was a payments or data-exposure event.
+     - Use ticket for slow or degraded behavior that does not affect customers right now.
+
+     Output only the single word: page, ticket, or ignore. No punctuation, no explanation.

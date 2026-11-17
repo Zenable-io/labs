@@ -1,0 +1,584 @@
+[
+  {
+    "name": "three-changes",
+    "purpose": "A new entrypoint must preserve tenant isolation and authorisation",
+    "requests": [
+      "web\talpha\talice\tapprover\talpha\tshared\t1000\tstandard\tr1",
+      "web\talpha\talice\tapprover\talpha\tshared\t1000\ttravel\tr2",
+      "batch\talpha\talice\tviewer\tbeta\tshared\t2000\tstandard\tr3"
+    ],
+    "expected": [
+      {
+        "status": "accepted",
+        "alpha": 9000,
+        "beta": 20000,
+        "events": 1
+      },
+      {
+        "status": "accepted",
+        "alpha": 8200,
+        "beta": 20000,
+        "events": 2
+      },
+      {
+        "status": "forbidden",
+        "alpha": 8200,
+        "beta": 20000,
+        "events": 2
+      }
+    ]
+  },
+  {
+    "name": "retry",
+    "purpose": "A retry through another entrypoint changes neither balance nor audit history",
+    "requests": [
+      "web\talpha\talice\tapprover\talpha\tshared\t1000\tstandard\tr1",
+      "batch\talpha\talice\tapprover\talpha\tshared\t1000\tstandard\tr1"
+    ],
+    "expected": [
+      {
+        "status": "accepted",
+        "alpha": 9000,
+        "beta": 20000,
+        "events": 1
+      },
+      {
+        "status": "replayed",
+        "alpha": 9000,
+        "beta": 20000,
+        "events": 1
+      }
+    ]
+  },
+  {
+    "name": "tenant-request-ids",
+    "purpose": "Request identifiers and their replays stay scoped to the submitting tenant",
+    "requests": [
+      "web\talpha\talice\tapprover\talpha\tshared\t1000\tstandard\tr1",
+      "batch\tbeta\talice\tapprover\tbeta\tshared\t1000\tstandard\tr1",
+      "web\tbeta\talice\tapprover\tbeta\tshared\t1000\tstandard\tr1"
+    ],
+    "expected": [
+      {
+        "status": "accepted",
+        "alpha": 9000,
+        "beta": 20000,
+        "events": 1
+      },
+      {
+        "status": "accepted",
+        "alpha": 9000,
+        "beta": 19000,
+        "events": 2
+      },
+      {
+        "status": "replayed",
+        "alpha": 9000,
+        "beta": 19000,
+        "events": 2
+      }
+    ]
+  },
+  {
+    "name": "web-viewer",
+    "purpose": "Refusal must leave both balances and audit history unchanged",
+    "requests": [
+      "web\talpha\talice\tviewer\talpha\tshared\t1000\tstandard\tr1"
+    ],
+    "expected": [
+      {
+        "status": "forbidden",
+        "alpha": 10000,
+        "beta": 20000,
+        "events": 0
+      }
+    ]
+  },
+  {
+    "name": "web-foreign-tenant",
+    "purpose": "Refusal must leave both balances and audit history unchanged",
+    "requests": [
+      "web\talpha\talice\tapprover\tbeta\tshared\t1000\tstandard\tr1"
+    ],
+    "expected": [
+      {
+        "status": "forbidden",
+        "alpha": 10000,
+        "beta": 20000,
+        "events": 0
+      }
+    ]
+  },
+  {
+    "name": "web-missing-account",
+    "purpose": "Refusal must leave both balances and audit history unchanged",
+    "requests": [
+      "web\talpha\talice\tapprover\talpha\tmissing\t1000\tstandard\tr1"
+    ],
+    "expected": [
+      {
+        "status": "not_found",
+        "alpha": 10000,
+        "beta": 20000,
+        "events": 0
+      }
+    ]
+  },
+  {
+    "name": "web-unknown-policy",
+    "purpose": "Refusal must leave both balances and audit history unchanged",
+    "requests": [
+      "web\talpha\talice\tapprover\talpha\tshared\t1000\tmissing\tr1"
+    ],
+    "expected": [
+      {
+        "status": "unknown_policy",
+        "alpha": 10000,
+        "beta": 20000,
+        "events": 0
+      }
+    ]
+  },
+  {
+    "name": "web-standard-limit",
+    "purpose": "Refusal must leave both balances and audit history unchanged",
+    "requests": [
+      "web\talpha\talice\tapprover\talpha\tshared\t5001\tstandard\tr1"
+    ],
+    "expected": [
+      {
+        "status": "policy_limit",
+        "alpha": 10000,
+        "beta": 20000,
+        "events": 0
+      }
+    ]
+  },
+  {
+    "name": "web-travel-limit",
+    "purpose": "Refusal must leave both balances and audit history unchanged",
+    "requests": [
+      "web\talpha\talice\tapprover\talpha\tshared\t10001\ttravel\tr1"
+    ],
+    "expected": [
+      {
+        "status": "policy_limit",
+        "alpha": 10000,
+        "beta": 20000,
+        "events": 0
+      }
+    ]
+  },
+  {
+    "name": "web-zero-payment",
+    "purpose": "Refusal must leave both balances and audit history unchanged",
+    "requests": [
+      "web\talpha\talice\tapprover\talpha\tshared\t1\ttravel\tr1"
+    ],
+    "expected": [
+      {
+        "status": "invalid_policy_result",
+        "alpha": 10000,
+        "beta": 20000,
+        "events": 0
+      }
+    ]
+  },
+  {
+    "name": "web-travel",
+    "purpose": "Travel pays 80 percent, with integer cents rounded down",
+    "requests": [
+      "web\talpha\talice\tapprover\talpha\tshared\t1001\ttravel\tr1"
+    ],
+    "expected": [
+      {
+        "status": "accepted",
+        "alpha": 9200,
+        "beta": 20000,
+        "events": 1
+      }
+    ]
+  },
+  {
+    "name": "web-budget",
+    "purpose": "The budget never goes negative; a rejected debit adds no audit record",
+    "requests": [
+      "web\talpha\talice\tapprover\talpha\tshared\t5000\tstandard\tr1",
+      "web\talpha\talice\tapprover\talpha\tshared\t5000\tstandard\tr2",
+      "web\talpha\talice\tapprover\talpha\tshared\t1000\tstandard\tr3"
+    ],
+    "expected": [
+      {
+        "status": "accepted",
+        "alpha": 5000,
+        "beta": 20000,
+        "events": 1
+      },
+      {
+        "status": "accepted",
+        "alpha": 0,
+        "beta": 20000,
+        "events": 2
+      },
+      {
+        "status": "insufficient_budget",
+        "alpha": 0,
+        "beta": 20000,
+        "events": 2
+      }
+    ]
+  },
+  {
+    "name": "web-changed-retry",
+    "purpose": "Reusing an identifier for a different amount is a conflict",
+    "requests": [
+      "web\talpha\talice\tapprover\talpha\tshared\t1000\tstandard\tr1",
+      "web\talpha\talice\tapprover\talpha\tshared\t2000\tstandard\tr1"
+    ],
+    "expected": [
+      {
+        "status": "accepted",
+        "alpha": 9000,
+        "beta": 20000,
+        "events": 1
+      },
+      {
+        "status": "idempotency_conflict",
+        "alpha": 9000,
+        "beta": 20000,
+        "events": 1
+      }
+    ]
+  },
+  {
+    "name": "web-actor-retry",
+    "purpose": "Another actor cannot reuse a completed request",
+    "requests": [
+      "web\talpha\talice\tapprover\talpha\tshared\t1000\tstandard\tr1",
+      "web\talpha\tbob\tapprover\talpha\tshared\t1000\tstandard\tr1"
+    ],
+    "expected": [
+      {
+        "status": "accepted",
+        "alpha": 9000,
+        "beta": 20000,
+        "events": 1
+      },
+      {
+        "status": "idempotency_conflict",
+        "alpha": 9000,
+        "beta": 20000,
+        "events": 1
+      }
+    ]
+  },
+  {
+    "name": "web-revoked-retry",
+    "purpose": "Authorisation is checked again before returning a previous result",
+    "requests": [
+      "web\talpha\talice\tapprover\talpha\tshared\t1000\tstandard\tr1",
+      "web\talpha\talice\tviewer\talpha\tshared\t1000\tstandard\tr1"
+    ],
+    "expected": [
+      {
+        "status": "accepted",
+        "alpha": 9000,
+        "beta": 20000,
+        "events": 1
+      },
+      {
+        "status": "forbidden",
+        "alpha": 9000,
+        "beta": 20000,
+        "events": 1
+      }
+    ]
+  },
+  {
+    "name": "batch-viewer",
+    "purpose": "Refusal must leave both balances and audit history unchanged",
+    "requests": [
+      "batch\talpha\talice\tviewer\talpha\tshared\t1000\tstandard\tr1"
+    ],
+    "expected": [
+      {
+        "status": "forbidden",
+        "alpha": 10000,
+        "beta": 20000,
+        "events": 0
+      }
+    ]
+  },
+  {
+    "name": "batch-foreign-tenant",
+    "purpose": "Refusal must leave both balances and audit history unchanged",
+    "requests": [
+      "batch\talpha\talice\tapprover\tbeta\tshared\t1000\tstandard\tr1"
+    ],
+    "expected": [
+      {
+        "status": "forbidden",
+        "alpha": 10000,
+        "beta": 20000,
+        "events": 0
+      }
+    ]
+  },
+  {
+    "name": "batch-missing-account",
+    "purpose": "Refusal must leave both balances and audit history unchanged",
+    "requests": [
+      "batch\talpha\talice\tapprover\talpha\tmissing\t1000\tstandard\tr1"
+    ],
+    "expected": [
+      {
+        "status": "not_found",
+        "alpha": 10000,
+        "beta": 20000,
+        "events": 0
+      }
+    ]
+  },
+  {
+    "name": "batch-unknown-policy",
+    "purpose": "Refusal must leave both balances and audit history unchanged",
+    "requests": [
+      "batch\talpha\talice\tapprover\talpha\tshared\t1000\tmissing\tr1"
+    ],
+    "expected": [
+      {
+        "status": "unknown_policy",
+        "alpha": 10000,
+        "beta": 20000,
+        "events": 0
+      }
+    ]
+  },
+  {
+    "name": "batch-standard-limit",
+    "purpose": "Refusal must leave both balances and audit history unchanged",
+    "requests": [
+      "batch\talpha\talice\tapprover\talpha\tshared\t5001\tstandard\tr1"
+    ],
+    "expected": [
+      {
+        "status": "policy_limit",
+        "alpha": 10000,
+        "beta": 20000,
+        "events": 0
+      }
+    ]
+  },
+  {
+    "name": "batch-travel-limit",
+    "purpose": "Refusal must leave both balances and audit history unchanged",
+    "requests": [
+      "batch\talpha\talice\tapprover\talpha\tshared\t10001\ttravel\tr1"
+    ],
+    "expected": [
+      {
+        "status": "policy_limit",
+        "alpha": 10000,
+        "beta": 20000,
+        "events": 0
+      }
+    ]
+  },
+  {
+    "name": "batch-zero-payment",
+    "purpose": "Refusal must leave both balances and audit history unchanged",
+    "requests": [
+      "batch\talpha\talice\tapprover\talpha\tshared\t1\ttravel\tr1"
+    ],
+    "expected": [
+      {
+        "status": "invalid_policy_result",
+        "alpha": 10000,
+        "beta": 20000,
+        "events": 0
+      }
+    ]
+  },
+  {
+    "name": "batch-travel",
+    "purpose": "Travel pays 80 percent, with integer cents rounded down",
+    "requests": [
+      "batch\talpha\talice\tapprover\talpha\tshared\t1001\ttravel\tr1"
+    ],
+    "expected": [
+      {
+        "status": "accepted",
+        "alpha": 9200,
+        "beta": 20000,
+        "events": 1
+      }
+    ]
+  },
+  {
+    "name": "batch-budget",
+    "purpose": "The budget never goes negative; a rejected debit adds no audit record",
+    "requests": [
+      "batch\talpha\talice\tapprover\talpha\tshared\t5000\tstandard\tr1",
+      "batch\talpha\talice\tapprover\talpha\tshared\t5000\tstandard\tr2",
+      "batch\talpha\talice\tapprover\talpha\tshared\t1000\tstandard\tr3"
+    ],
+    "expected": [
+      {
+        "status": "accepted",
+        "alpha": 5000,
+        "beta": 20000,
+        "events": 1
+      },
+      {
+        "status": "accepted",
+        "alpha": 0,
+        "beta": 20000,
+        "events": 2
+      },
+      {
+        "status": "insufficient_budget",
+        "alpha": 0,
+        "beta": 20000,
+        "events": 2
+      }
+    ]
+  },
+  {
+    "name": "batch-changed-retry",
+    "purpose": "Reusing an identifier for a different amount is a conflict",
+    "requests": [
+      "batch\talpha\talice\tapprover\talpha\tshared\t1000\tstandard\tr1",
+      "batch\talpha\talice\tapprover\talpha\tshared\t2000\tstandard\tr1"
+    ],
+    "expected": [
+      {
+        "status": "accepted",
+        "alpha": 9000,
+        "beta": 20000,
+        "events": 1
+      },
+      {
+        "status": "idempotency_conflict",
+        "alpha": 9000,
+        "beta": 20000,
+        "events": 1
+      }
+    ]
+  },
+  {
+    "name": "batch-actor-retry",
+    "purpose": "Another actor cannot reuse a completed request",
+    "requests": [
+      "batch\talpha\talice\tapprover\talpha\tshared\t1000\tstandard\tr1",
+      "batch\talpha\tbob\tapprover\talpha\tshared\t1000\tstandard\tr1"
+    ],
+    "expected": [
+      {
+        "status": "accepted",
+        "alpha": 9000,
+        "beta": 20000,
+        "events": 1
+      },
+      {
+        "status": "idempotency_conflict",
+        "alpha": 9000,
+        "beta": 20000,
+        "events": 1
+      }
+    ]
+  },
+  {
+    "name": "batch-revoked-retry",
+    "purpose": "Authorisation is checked again before returning a previous result",
+    "requests": [
+      "batch\talpha\talice\tapprover\talpha\tshared\t1000\tstandard\tr1",
+      "batch\talpha\talice\tviewer\talpha\tshared\t1000\tstandard\tr1"
+    ],
+    "expected": [
+      {
+        "status": "accepted",
+        "alpha": 9000,
+        "beta": 20000,
+        "events": 1
+      },
+      {
+        "status": "forbidden",
+        "alpha": 9000,
+        "beta": 20000,
+        "events": 1
+      }
+    ]
+  },
+  {
+    "name": "web-retry-unknown-policy",
+    "purpose": "A reused request identifier conflicts before evaluating a changed policy",
+    "requests": [
+      "web\talpha\talice\tapprover\talpha\tshared\t1000\tstandard\tr1",
+      "web\talpha\talice\tapprover\talpha\tshared\t1000\tmissing\tr1"
+    ],
+    "expected": [
+      {"status": "accepted", "alpha": 9000, "beta": 20000, "events": 1},
+      {"status": "idempotency_conflict", "alpha": 9000, "beta": 20000, "events": 1}
+    ]
+  },
+  {
+    "name": "batch-retry-unknown-policy",
+    "purpose": "A reused request identifier conflicts before evaluating a changed policy",
+    "requests": [
+      "web\talpha\talice\tapprover\talpha\tshared\t1000\tstandard\tr1",
+      "batch\talpha\talice\tapprover\talpha\tshared\t1000\tmissing\tr1"
+    ],
+    "expected": [
+      {"status": "accepted", "alpha": 9000, "beta": 20000, "events": 1},
+      {"status": "idempotency_conflict", "alpha": 9000, "beta": 20000, "events": 1}
+    ]
+  },
+  {
+    "name": "web-retry-missing-account",
+    "purpose": "A reused request identifier conflicts before looking up a changed account",
+    "requests": [
+      "web\talpha\talice\tapprover\talpha\tshared\t1000\tstandard\tr1",
+      "web\talpha\talice\tapprover\talpha\tmissing\t1000\tstandard\tr1"
+    ],
+    "expected": [
+      {"status": "accepted", "alpha": 9000, "beta": 20000, "events": 1},
+      {"status": "idempotency_conflict", "alpha": 9000, "beta": 20000, "events": 1}
+    ]
+  },
+  {
+    "name": "batch-retry-missing-account",
+    "purpose": "A reused request identifier conflicts before looking up a changed account",
+    "requests": [
+      "web\talpha\talice\tapprover\talpha\tshared\t1000\tstandard\tr1",
+      "batch\talpha\talice\tapprover\talpha\tmissing\t1000\tstandard\tr1"
+    ],
+    "expected": [
+      {"status": "accepted", "alpha": 9000, "beta": 20000, "events": 1},
+      {"status": "idempotency_conflict", "alpha": 9000, "beta": 20000, "events": 1}
+    ]
+  },
+  {
+    "name": "web-retry-policy-limit",
+    "purpose": "A reused request identifier conflicts before checking a changed amount's limit",
+    "requests": [
+      "web\talpha\talice\tapprover\talpha\tshared\t1000\tstandard\tr1",
+      "web\talpha\talice\tapprover\talpha\tshared\t5001\tstandard\tr1"
+    ],
+    "expected": [
+      {"status": "accepted", "alpha": 9000, "beta": 20000, "events": 1},
+      {"status": "idempotency_conflict", "alpha": 9000, "beta": 20000, "events": 1}
+    ]
+  },
+  {
+    "name": "batch-retry-policy-limit",
+    "purpose": "A reused request identifier conflicts before checking a changed amount's limit",
+    "requests": [
+      "web\talpha\talice\tapprover\talpha\tshared\t1000\tstandard\tr1",
+      "batch\talpha\talice\tapprover\talpha\tshared\t5001\tstandard\tr1"
+    ],
+    "expected": [
+      {"status": "accepted", "alpha": 9000, "beta": 20000, "events": 1},
+      {"status": "idempotency_conflict", "alpha": 9000, "beta": 20000, "events": 1}
+    ]
+  }
+]

@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Copyright (c) 2026 Zenable, Inc.
 #
 # Two-realm EMA topology in one Keycloak:
 #
@@ -32,9 +33,7 @@ kc() { $KC "$@"; }
 echo "== admin login =="
 kc config credentials --server "$SERVER" --realm master --user admin --password admin
 
-############################################################
 # REALM 1: enterprise IdP  (the ID-JAG issuer)
-############################################################
 echo "== realm: $ENT (enterprise IdP) =="
 kc delete "realms/$ENT" 2>/dev/null || true
 kc create realms -s realm="$ENT" -s enabled=true
@@ -65,9 +64,7 @@ kc create clients -r "$ENT" \
   -s "attributes.\"idjag.clientid.at.vendor-as-stub\"=$AS_CLIENT" \
   -s 'attributes."idjag.permitted.scopes.at.vendor-as-stub"=findings.read findings.write'
 
-############################################################
 # REALM 2: vendor Resource AS  (the ID-JAG consumer)
-############################################################
 echo "== realm: $VEN (vendor Resource AS) =="
 kc delete "realms/$VEN" 2>/dev/null || true
 kc create realms -s realm="$VEN" -s enabled=true

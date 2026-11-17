@@ -1,0 +1,97 @@
+scoring with openrouter/anthropic/claude-haiku-5.5
+
+limits: 3 refinements, 96 evaluations, 1024 output tokens per reflection
+writing runs/live
+
+  validation: 66.7% on 12 examples
+
+Refinement 1: select candidate 0
+  validation: 66.7%
+  collect feedback on 4 training examples
+  proposed prompt:
+    You triage single log lines from one company's production systems for on-call. Assign exactly one label: page, ticket, or ignore. Reply with only that one word.
+
+    Definitions:
+    - page: someone must be woken now. Use this when the line signals customer-facing outage, data exposure or unintended public access, security compromise, or any money-movement or payments problem (including unreconciled or mismatched charges, even at small amounts), or data loss or corruption in progress.
+    - ticket: a person should handle it on the next working day. Use this for degraded but functioning performance, slow or late batch jobs, recurring non-critical failures, and anomalies worth investigating that nobody needs to act on overnight.
+    - ignore: nobody needs to act. Use this for transient errors that self-recovered or were successfully retried and confirmed, routine informational events, and expected noise.
+
+    Rules:
+    - Do not decide from the log level alone. An INFO line can require a page (e.g., a bucket policy changed to public), and an ERROR line can be ignore (e.g., a timeout that was retried and confirmed successful).
+    - Judge by the impact on customers, money, security, and data, and by whether the issue is still ongoing.
+    - If a problem is still unresolved and affects customers, money, or security, lean toward page. If it is real but not urgent, use ticket. If it is resolved or harmless, use ignore.
+
+    Output only one word: page, ticket, or ignore.
+  validation: 75.0% on 12 examples
+
+Refinement 2: select candidate 1
+  validation: 75.0%
+  collect feedback on 4 training examples
+  proposed prompt:
+    You triage single log lines from one company's production systems for on-call. Assign exactly one label: page, ticket, or ignore. Reply with only that one word.
+
+    Definitions:
+    - page: someone must be woken now. Use this when the line shows a customer-facing outage or severe degradation that is still ongoing, data exposure or unintended public access, a security compromise, a payments or money-movement problem (including unreconciled or mismatched charges, even small ones), or data loss or corruption in progress.
+    - ticket: a person should handle it on the next working day. Use this for degraded but functioning performance (including persistent latency or error-rate trends that are not an outage), slow or late batch jobs, recurring non-critical failures in production, and real anomalies worth investigating that nobody needs to act on overnight.
+    - ignore: nobody needs to act. Use this for transient errors that self-recovered or were successfully retried and confirmed, routine informational events, expected noise, and any problem confined to staging, test, or development environments (staging and test failures never reach on-call, regardless of severity words like CRITICAL or ERROR).
+
+    Rules:
+    - Do not decide from the log level alone. An INFO line can require a page (e.g., a bucket policy changed to public), and a CRITICAL or ERROR line can be ignore (e.g., a timeout that was retried and confirmed successful, or a severe failure in staging).
+    - First check the environment. If the line is clearly from staging, test, or dev, the answer is ignore unless it reveals a security exposure or data exposure that could affect production.
+    - Judge by the impact on customers, money, security, and data in production, and by whether the issue is still ongoing.
+    - If a production problem is still unresolved and affects customers, money, or security, lean toward page. If it is real but not urgent, use ticket. If it is resolved, harmless, or non-production, use ignore.
+
+    Output only one word: page, ticket, or ignore.
+  validation: 83.3% on 12 examples
+
+Refinement 3: select candidate 2
+  validation: 83.3%
+  collect feedback on 4 training examples
+  proposed prompt:
+    You triage single log lines from one company's production systems for on-call. Assign exactly one label: page, ticket, or ignore. Reply with only that one word.
+
+    Definitions:
+    - page: someone must be woken now. Use this when the line shows a customer-facing outage or severe degradation that is still ongoing, data exposure or unintended public access, a security compromise, a payments or money-movement problem (including unreconciled or mismatched charges, even small ones), or data loss or corruption in progress. Also use page when a shared resource is about to exhaust in a way that will halt or stall dependent services (for example, a queue or buffer near its limit that will block producers).
+    - ticket: a person should handle it on the next working day. Use this for degraded but functioning performance (including persistent latency or error-rate trends that are not an outage), slow or late batch jobs, recurring non-critical failures in production, real anomalies worth investigating that nobody needs to act on overnight, and planned or future-dated changes that need action before a deadline (such as deprecations with a future cutoff date).
+    - ignore: nobody needs to act. Use this for transient errors that self-recovered or were successfully retried and confirmed, routine informational events, expected noise, and any problem confined to staging, test, or development environments (staging and test failures never reach on-call, regardless of severity words like CRITICAL or ERROR). Expected, planned operational states are also ignore: for example, instances being taken out of a load balancer during a rolling deploy that are still within the safe healthy capacity.
+
+    Rules:
+    - Do not decide from the log level alone. An INFO line can require a page (e.g., a bucket policy changed to public), and a CRITICAL or ERROR line can be ignore (e.g., a timeout that was retried and confirmed successful, a severe failure in staging, or a health-check failure during an expected rolling deploy).
+    - First check the environment. If the line is clearly from staging, test, or dev, the answer is ignore unless it reveals a security exposure or data exposure that could affect production.
+    - Check whether the event is expected or self-correcting. Retried-and-succeeded operations and planned maintenance states are ignore; an unexplained or worsening state is not.
+    - Judge by the impact on customers, money, security, and data in production, and by whether the issue is still ongoing.
+    - If a production problem is still unresolved and affects customers, money, or security, or is about to halt dependent services, lean toward page. If it is real but not urgent, or is a future-dated action item, use ticket. If it is resolved, harmless, expected, or non-production, use ignore.
+
+    Output only one word: page, ticket, or ignore.
+  validation: 83.3% on 12 examples
+
+seed
+  train        70.0%  (20 lines)
+  validation   66.7%  (12 lines)
+  held-out     50.0%  (8 lines)
+
+best candidate
+  train        85.0%  (20 lines)
+  validation   83.3%  (12 lines)
+  held-out     75.0%  (8 lines)
+
+best candidate:
+  You triage single log lines from one company's production systems for on-call. Assign exactly one label: page, ticket, or ignore. Reply with only that one word.
+
+  Definitions:
+  - page: someone must be woken now. Use this when the line shows a customer-facing outage or severe degradation that is still ongoing, data exposure or unintended public access, a security compromise, a payments or money-movement problem (including unreconciled or mismatched charges, even small ones), or data loss or corruption in progress.
+  - ticket: a person should handle it on the next working day. Use this for degraded but functioning performance (including persistent latency or error-rate trends that are not an outage), slow or late batch jobs, recurring non-critical failures in production, and real anomalies worth investigating that nobody needs to act on overnight.
+  - ignore: nobody needs to act. Use this for transient errors that self-recovered or were successfully retried and confirmed, routine informational events, expected noise, and any problem confined to staging, test, or development environments (staging and test failures never reach on-call, regardless of severity words like CRITICAL or ERROR).
+
+  Rules:
+  - Do not decide from the log level alone. An INFO line can require a page (e.g., a bucket policy changed to public), and a CRITICAL or ERROR line can be ignore (e.g., a timeout that was retried and confirmed successful, or a severe failure in staging).
+  - First check the environment. If the line is clearly from staging, test, or dev, the answer is ignore unless it reveals a security exposure or data exposure that could affect production.
+  - Judge by the impact on customers, money, security, and data in production, and by whether the issue is still ongoing.
+  - If a production problem is still unresolved and affects customers, money, or security, lean toward page. If it is real but not urgent, use ticket. If it is resolved, harmless, or non-production, use ignore.
+
+  Output only one word: page, ticket, or ignore.
+
+saved runs/live/run.json
+3 reflection calls
+
+116 model calls

@@ -1,4 +1,4 @@
-"""MCP client performing the full Enterprise-Managed Authorization flow.
+"""Copyright (c) 2026 Zenable, Inc. MCP client performing the full Enterprise-Managed Authorization flow.
 
 Nothing about the authorization server is hardcoded: the client starts with only the MCP
 server URL and its own enterprise IdP, and discovers the rest per RFC 9728 / RFC 8414.

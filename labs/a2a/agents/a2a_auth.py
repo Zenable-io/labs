@@ -1,4 +1,4 @@
-"""Keycloak-backed authentication for A2A agents.
+"""Copyright (c) 2026 Zenable, Inc. Keycloak-backed authentication for A2A agents.
 
 A2A does not define its own authentication. It defines how an agent
 *advertises* what it requires (the card's security schemes) and leaves the

@@ -1,0 +1,9 @@
+Step-up authorization
+  protocol                       2026-07-28
+  initial grant                  deploy:read
+  staging                        200
+  production challenge           403 insufficient_scope deploy:prod
+  new grant                      deploy:prod deploy:read
+  retry body                     identical
+  production effects             1
+  read after upgrade             200

@@ -1,4 +1,4 @@
-"""The resource server: a toy ledger that pays invoices.
+"""Copyright (c) 2026 Zenable, Inc. The resource server: a toy ledger that pays invoices.
 
 Two endpoints, deliberately. `/invoices` accepts whatever the token says it
 is, the way most services do today. `/invoices/strict` demands a DPoP-bound

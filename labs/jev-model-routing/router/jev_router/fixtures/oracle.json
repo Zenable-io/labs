@@ -1,0 +1,534 @@
+{
+  "answers": {
+    "A test only fails when the whole suite runs. What are the usual causes and how would you narrow it down?": {
+      "confidence": 0.98,
+      "model": "qwen-large",
+      "probabilities": {
+        "qwen-large": 0.99,
+        "qwen-small": 0.01
+      }
+    },
+    "Add a docstring to this function. Arguments and return value.": {
+      "confidence": 0.58,
+      "model": "qwen-small",
+      "probabilities": {
+        "qwen-large": 0.21,
+        "qwen-small": 0.79
+      }
+    },
+    "Add retries to the payment client.": {
+      "confidence": 0.84,
+      "model": "qwen-large",
+      "probabilities": {
+        "qwen-large": 0.92,
+        "qwen-small": 0.08
+      }
+    },
+    "Add type hints to every function in billing/refunds.py, including the return types, and use the built-in generics rather than the ones from typing.": {
+      "confidence": 0.81,
+      "model": "qwen-small",
+      "probabilities": {
+        "qwen-large": 0.09,
+        "qwen-small": 0.91
+      }
+    },
+    "Annotate the parameters and return types in billing/refunds.py.": {
+      "confidence": 0.69,
+      "model": "qwen-small",
+      "probabilities": {
+        "qwen-large": 0.16,
+        "qwen-small": 0.84
+      }
+    },
+    "Convert the build script below into make targets.": {
+      "confidence": 0.57,
+      "model": "qwen-small",
+      "probabilities": {
+        "qwen-large": 0.21,
+        "qwen-small": 0.79
+      }
+    },
+    "Convert this JSON block to YAML, keeping the key order.": {
+      "confidence": 0.94,
+      "model": "qwen-small",
+      "probabilities": {
+        "qwen-large": 0.03,
+        "qwen-small": 0.97
+      }
+    },
+    "Cron or a work queue for nightly invoices, given retries have to be per-invoice rather than per-run?": {
+      "confidence": 0.99,
+      "model": "qwen-large",
+      "probabilities": {
+        "qwen-large": 0.99,
+        "qwen-small": 0.01
+      }
+    },
+    "Designing a cache key for a paged, filtered, tenant-scoped endpoint. What belongs in it and what does not?": {
+      "confidence": 0.99,
+      "model": "qwen-large",
+      "probabilities": {
+        "qwen-large": 1.0,
+        "qwen-small": 0.0
+      }
+    },
+    "Designing retries for a payment API that may charge twice. What is safe here?": {
+      "confidence": 1.0,
+      "model": "qwen-large",
+      "probabilities": {
+        "qwen-large": 1.0,
+        "qwen-small": 0.0
+      }
+    },
+    "Escape this string so it can be used as a literal in a Python regex.": {
+      "confidence": 0.85,
+      "model": "qwen-small",
+      "probabilities": {
+        "qwen-large": 0.07,
+        "qwen-small": 0.93
+      }
+    },
+    "Give me French versions of these three messages.": {
+      "confidence": 0.8,
+      "model": "qwen-small",
+      "probabilities": {
+        "qwen-large": 0.1,
+        "qwen-small": 0.9
+      }
+    },
+    "Given this refund function, which cases actually need a test?": {
+      "confidence": 0.97,
+      "model": "qwen-large",
+      "probabilities": {
+        "qwen-large": 0.99,
+        "qwen-small": 0.01
+      }
+    },
+    "Group and alphabetise the import block below.": {
+      "confidence": 0.92,
+      "model": "qwen-small",
+      "probabilities": {
+        "qwen-large": 0.04,
+        "qwen-small": 0.96
+      }
+    },
+    "Help me decide the test cases for a partial-refund path with retries.": {
+      "confidence": 1.0,
+      "model": "qwen-large",
+      "probabilities": {
+        "qwen-large": 1.0,
+        "qwen-small": 0.0
+      }
+    },
+    "How do we cache this endpoint without serving one tenant another tenant's page?": {
+      "confidence": 1.0,
+      "model": "qwen-large",
+      "probabilities": {
+        "qwen-large": 1.0,
+        "qwen-small": 0.0
+      }
+    },
+    "How should we think about a couple of seconds of read lag in a counter people watch?": {
+      "confidence": 0.98,
+      "model": "qwen-large",
+      "probabilities": {
+        "qwen-large": 0.99,
+        "qwen-small": 0.01
+      }
+    },
+    "How would you split a very large table in two while writes continue?": {
+      "confidence": 1.0,
+      "model": "qwen-large",
+      "probabilities": {
+        "qwen-large": 1.0,
+        "qwen-small": 0.0
+      }
+    },
+    "I need the error messages below in French, same tone.": {
+      "confidence": 0.9,
+      "model": "qwen-small",
+      "probabilities": {
+        "qwen-large": 0.05,
+        "qwen-small": 0.95
+      }
+    },
+    "I need the same settings as YAML instead of JSON. Key order matters.": {
+      "confidence": 0.65,
+      "model": "qwen-small",
+      "probabilities": {
+        "qwen-large": 0.17,
+        "qwen-small": 0.83
+      }
+    },
+    "Implement email validation for signup. Decide what counts as valid.": {
+      "confidence": 1.0,
+      "model": "qwen-large",
+      "probabilities": {
+        "qwen-large": 1.0,
+        "qwen-small": 0.0
+      }
+    },
+    "In src/app.py, `cfg` should be called `config`. Change it everywhere it appears.": {
+      "confidence": 1.0,
+      "model": "qwen-small",
+      "probabilities": {
+        "qwen-large": 0.0,
+        "qwen-small": 1.0
+      }
+    },
+    "Index for tenant_id plus a created_at range, sorted by created_at?": {
+      "confidence": 0.15,
+      "model": "qwen-large",
+      "probabilities": {
+        "qwen-large": 0.58,
+        "qwen-small": 0.42
+      }
+    },
+    "Intermittent checkout timeouts, roughly hourly, clean logs. What is the most likely cause and how would you confirm it?": {
+      "confidence": 1.0,
+      "model": "qwen-large",
+      "probabilities": {
+        "qwen-large": 1.0,
+        "qwen-small": 0.0
+      }
+    },
+    "List every route path declared in this router file.": {
+      "confidence": 0.72,
+      "model": "qwen-small",
+      "probabilities": {
+        "qwen-large": 0.14,
+        "qwen-small": 0.86
+      }
+    },
+    "Make the text below safe to drop into re.compile as a literal.": {
+      "confidence": 0.79,
+      "model": "qwen-small",
+      "probabilities": {
+        "qwen-large": 0.1,
+        "qwen-small": 0.9
+      }
+    },
+    "Once an hour checkout hangs and recovers by itself. Nothing in the logs. Where would you start looking?": {
+      "confidence": 1.0,
+      "model": "qwen-large",
+      "probabilities": {
+        "qwen-large": 1.0,
+        "qwen-small": 0.0
+      }
+    },
+    "Our checkout service times out under load about once an hour and the logs show no errors. How should we work out what is going wrong?": {
+      "confidence": 1.0,
+      "model": "qwen-large",
+      "probabilities": {
+        "qwen-large": 1.0,
+        "qwen-small": 0.0
+      }
+    },
+    "Our read model lags the write by a second or two. How do we work out whether that matters to anyone?": {
+      "confidence": 1.0,
+      "model": "qwen-large",
+      "probabilities": {
+        "qwen-large": 1.0,
+        "qwen-small": 0.0
+      }
+    },
+    "Passes alone, fails in the suite. Why?": {
+      "confidence": 1.0,
+      "model": "qwen-large",
+      "probabilities": {
+        "qwen-large": 1.0,
+        "qwen-small": 0.0
+      }
+    },
+    "Permissions on users or on groups?": {
+      "confidence": 0.35,
+      "model": "qwen-large",
+      "probabilities": {
+        "qwen-large": 0.67,
+        "qwen-small": 0.33
+      }
+    },
+    "Plan a zero-downtime split of a 400M row table into two, with active writers.": {
+      "confidence": 1.0,
+      "model": "qwen-large",
+      "probabilities": {
+        "qwen-large": 1.0,
+        "qwen-small": 0.0
+      }
+    },
+    "Please rename cfg -> config across src/app.py, including the callers in main().": {
+      "confidence": 0.99,
+      "model": "qwen-small",
+      "probabilities": {
+        "qwen-large": 0.01,
+        "qwen-small": 0.99
+      }
+    },
+    "Pull out the URL paths from the decorators below.": {
+      "confidence": 0.89,
+      "model": "qwen-small",
+      "probabilities": {
+        "qwen-large": 0.05,
+        "qwen-small": 0.95
+      }
+    },
+    "Put retries around the capture call in the payment client, and pick the backoff and the stopping rule.": {
+      "confidence": 0.95,
+      "model": "qwen-large",
+      "probabilities": {
+        "qwen-large": 0.98,
+        "qwen-small": 0.02
+      }
+    },
+    "Queue or cron for nightly invoices?": {
+      "confidence": 0.96,
+      "model": "qwen-large",
+      "probabilities": {
+        "qwen-large": 0.98,
+        "qwen-small": 0.02
+      }
+    },
+    "Read the header row off this CSV and list the fields.": {
+      "confidence": 0.82,
+      "model": "qwen-small",
+      "probabilities": {
+        "qwen-large": 0.09,
+        "qwen-small": 0.91
+      }
+    },
+    "Regex-escape this pattern, it has dots and brackets in it.": {
+      "confidence": 0.84,
+      "model": "qwen-small",
+      "probabilities": {
+        "qwen-large": 0.08,
+        "qwen-small": 0.92
+      }
+    },
+    "Rename the variable `cfg` to `config` in src/app.py and update the two call sites.": {
+      "confidence": 0.97,
+      "model": "qwen-small",
+      "probabilities": {
+        "qwen-large": 0.01,
+        "qwen-small": 0.99
+      }
+    },
+    "Reorder these imports the way isort would.": {
+      "confidence": 0.9,
+      "model": "qwen-small",
+      "probabilities": {
+        "qwen-large": 0.05,
+        "qwen-small": 0.95
+      }
+    },
+    "Rewrite this shell script as a Makefile with one target per step.": {
+      "confidence": 0.56,
+      "model": "qwen-small",
+      "probabilities": {
+        "qwen-large": 0.22,
+        "qwen-small": 0.78
+      }
+    },
+    "Same steps, but as a Makefile instead of a bash script.": {
+      "confidence": 0.58,
+      "model": "qwen-small",
+      "probabilities": {
+        "qwen-large": 0.21,
+        "qwen-small": 0.79
+      }
+    },
+    "Sort the imports in this file into standard library, third party and local groups, alphabetise inside each group, and leave one blank line between the groups.": {
+      "confidence": 0.81,
+      "model": "qwen-small",
+      "probabilities": {
+        "qwen-large": 0.09,
+        "qwen-small": 0.91
+      }
+    },
+    "Suite-only failure, passes in isolation. Where do I look first?": {
+      "confidence": 0.99,
+      "model": "qwen-large",
+      "probabilities": {
+        "qwen-large": 1.0,
+        "qwen-small": 0.0
+      }
+    },
+    "The payment client has no retries. Add them, and decide what is safe to retry and what is not.": {
+      "confidence": 1.0,
+      "model": "qwen-large",
+      "probabilities": {
+        "qwen-large": 1.0,
+        "qwen-small": 0.0
+      }
+    },
+    "This function has no docstring. Write one from what it does.": {
+      "confidence": 0.04,
+      "model": "qwen-small",
+      "probabilities": {
+        "qwen-large": 0.48,
+        "qwen-small": 0.52
+      }
+    },
+    "Translate these three user-facing error strings into French.": {
+      "confidence": 0.9,
+      "model": "qwen-small",
+      "probabilities": {
+        "qwen-large": 0.05,
+        "qwen-small": 0.95
+      }
+    },
+    "Turn the attached JSON config into equivalent YAML.": {
+      "confidence": 0.98,
+      "model": "qwen-small",
+      "probabilities": {
+        "qwen-large": 0.01,
+        "qwen-small": 0.99
+      }
+    },
+    "Users see a stale count for a few seconds after they act. Is that worth fixing, and how would we decide?": {
+      "confidence": 1.0,
+      "model": "qwen-large",
+      "probabilities": {
+        "qwen-large": 1.0,
+        "qwen-small": 0.0
+      }
+    },
+    "Users, groups or both for permissions in a small admin tool?": {
+      "confidence": 0.99,
+      "model": "qwen-large",
+      "probabilities": {
+        "qwen-large": 0.99,
+        "qwen-small": 0.01
+      }
+    },
+    "We are designing roles for an admin console. Per user or per group, and what does each choice cost us later?": {
+      "confidence": 1.0,
+      "model": "qwen-large",
+      "probabilities": {
+        "qwen-large": 1.0,
+        "qwen-small": 0.0
+      }
+    },
+    "We filter on tenant and a created_at window, then sort by created_at. What is the right index here?": {
+      "confidence": 0.59,
+      "model": "qwen-large",
+      "probabilities": {
+        "qwen-large": 0.8,
+        "qwen-small": 0.2
+      }
+    },
+    "We generate invoices nightly. Queue or scheduled job, and what does that decide about retries?": {
+      "confidence": 0.9,
+      "model": "qwen-large",
+      "probabilities": {
+        "qwen-large": 0.95,
+        "qwen-small": 0.05
+      }
+    },
+    "We need an email validator that accepts what our signup form should accept and rejects the rest. Write it.": {
+      "confidence": 0.98,
+      "model": "qwen-large",
+      "probabilities": {
+        "qwen-large": 0.99,
+        "qwen-small": 0.01
+      }
+    },
+    "We need to move half the columns of a huge table into a new one without a maintenance window. What is the order of operations?": {
+      "confidence": 0.99,
+      "model": "qwen-large",
+      "probabilities": {
+        "qwen-large": 1.0,
+        "qwen-small": 0.0
+      }
+    },
+    "What are the column names in the first line of this CSV?": {
+      "confidence": 0.45,
+      "model": "qwen-small",
+      "probabilities": {
+        "qwen-large": 0.28,
+        "qwen-small": 0.72
+      }
+    },
+    "What retry policy for a payment capture?": {
+      "confidence": 0.82,
+      "model": "qwen-large",
+      "probabilities": {
+        "qwen-large": 0.91,
+        "qwen-small": 0.09
+      }
+    },
+    "What retry policy would you write for a call that moves money?": {
+      "confidence": 1.0,
+      "model": "qwen-large",
+      "probabilities": {
+        "qwen-large": 1.0,
+        "qwen-small": 0.0
+      }
+    },
+    "What should we key a response cache on for an endpoint that takes a tenant, a filter set and a page number?": {
+      "confidence": 0.78,
+      "model": "qwen-large",
+      "probabilities": {
+        "qwen-large": 0.89,
+        "qwen-small": 0.11
+      }
+    },
+    "What tests would you write for the refund path below, and which ones are worth the maintenance?": {
+      "confidence": 1.0,
+      "model": "qwen-large",
+      "probabilities": {
+        "qwen-large": 1.0,
+        "qwen-small": 0.0
+      }
+    },
+    "Which columns does this export have? The header is on line one.": {
+      "confidence": 0.43,
+      "model": "qwen-small",
+      "probabilities": {
+        "qwen-large": 0.28,
+        "qwen-small": 0.72
+      }
+    },
+    "Which composite index suits a query that filters tenant_id plus a date range and orders by the date?": {
+      "confidence": 0.08,
+      "model": "qwen-large",
+      "probabilities": {
+        "qwen-large": 0.54,
+        "qwen-small": 0.46
+      }
+    },
+    "Which endpoints does this file register? Just the paths.": {
+      "confidence": 0.56,
+      "model": "qwen-small",
+      "probabilities": {
+        "qwen-large": 0.22,
+        "qwen-small": 0.78
+      }
+    },
+    "Write a docstring for the function below describing its arguments, its return value and the exception it raises, in the same style as the other functions in the file.": {
+      "confidence": 0.31,
+      "model": "qwen-small",
+      "probabilities": {
+        "qwen-large": 0.34,
+        "qwen-small": 0.66
+      }
+    },
+    "Write an email validator for the signup form.": {
+      "confidence": 0.71,
+      "model": "qwen-large",
+      "probabilities": {
+        "qwen-large": 0.86,
+        "qwen-small": 0.14
+      }
+    },
+    "billing/refunds.py has no annotations. Add them.": {
+      "confidence": 0.39,
+      "model": "qwen-small",
+      "probabilities": {
+        "qwen-large": 0.3,
+        "qwen-small": 0.7
+      }
+    }
+  },
+  "jev_model": "jev-latest",
+  "policy": "6ecdbc563f806f13"
+}

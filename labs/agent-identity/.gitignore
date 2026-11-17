@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Zenable, Inc.
 agent/.venv/
 agent/issuer-public-key.json
 __pycache__/

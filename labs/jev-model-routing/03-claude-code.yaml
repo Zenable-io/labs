@@ -1,0 +1,77 @@
+# Copyright (c) 2026 Zenable, Inc.
+# yaml-language-server: $schema=https://agentgateway.dev/schema/config
+# The same router in front of Claude Code. Claude Code speaks the Anthropic
+# Messages API, which the gateway serves at /v1/messages on the same port and
+# runs through the same `llm.policies.extProc` before a model is selected. The
+# two targets are hosted Claude models behind OpenRouter's Anthropic-compatible
+# endpoint, reached with the OpenRouter key from the environment.
+config:
+  modelCatalog:
+  - inline:
+      providers:
+        typesafe:
+          models:
+            # USD per million tokens: https://docs.typesafe.ai/models
+            jev-latest:
+              rates: { input: "0.042", output: "0" }
+gateways:
+  default:
+    port: 4000
+llm:
+  policies:
+    extProc:
+      host: jev-router:9090
+      failureMode: failOpen
+      processingOptions:
+        requestHeaderMode: send
+        responseHeaderMode: skip
+        requestBodyMode: buffered
+        responseBodyMode: none
+        requestTrailerMode: skip
+        responseTrailerMode: skip
+  models:
+  # The names are what the router rewrites `auto` to.
+  - name: sonnet
+    provider: anthropic
+    params:
+      model: anthropic/claude-sonnet-5.5
+      baseUrl: https://openrouter.ai/api/v1
+      apiKey: $OPENROUTER_API_KEY
+  - name: opus
+    provider: anthropic
+    params:
+      model: anthropic/claude-opus-5.5
+      baseUrl: https://openrouter.ai/api/v1
+      apiKey: $OPENROUTER_API_KEY
+  - name: jev-latest
+    provider:
+      custom:
+        providerOverride: typesafe
+        # `formats: []` is what upstream's examples/llm-guardrail-jev ships and
+        # every released image rejects it: "custom provider for model jev-latest
+        # must specify at least one format". Jev has no format of its own in the
+        # enum, so declare the one it is closest to and point it at the real
+        # path; `passthrough: detect` means nothing is converted either way.
+        formats:
+        - type: completions
+          path: /v1/systemone
+    # Jev speaks its own /v1/systemone API, not a chat completion API.
+    passthrough: detect
+    params:
+      baseUrl: https://api.typesafe.ai
+      apiKey: $TYPESAFE_API_KEY
+  # Everything Claude Code asks for by name: the Haiku model its background
+  # calls and subagents are pinned to. None of it says `auto`, so the router
+  # passes it through and the gateway sends the id on unchanged. Virtual
+  # models resolve before this entry, so `auto` never lands here.
+  - name: "*"
+    provider: anthropic
+    params:
+      baseUrl: https://openrouter.ai/api/v1
+      apiKey: $OPENROUTER_API_KEY
+  virtualModels:
+  - name: auto
+    routing:
+      conditional:
+        targets:
+        - model: sonnet

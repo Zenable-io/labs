@@ -1,4 +1,4 @@
-"""An ACP client that grants every callback the agent asks for.
+"""Copyright (c) 2026 Zenable, Inc. An ACP client that grants every callback the agent asks for.
 
 This is the "before" half of the experiment. It does what an editor does --
 initialize, open a session, then serve the agent's inbound requests -- with no
