@@ -1,4 +1,4 @@
-"""The whole MCP server. Transport is chosen at launch, never in here."""
+"""Copyright (c) 2026 Zenable, Inc. The whole MCP server. Transport is chosen at launch, never in here."""
 
 import asyncio
 

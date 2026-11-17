@@ -1,4 +1,4 @@
-"""Issue one agent credential, present two different subsets of it."""
+"""Copyright (c) 2026 Zenable, Inc. Issue one agent credential, present two different subsets of it."""
 
 import json
 import secrets

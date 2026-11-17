@@ -1,0 +1,7 @@
+Client cache partitions
+  broken alice                   tenant=blue release=v1
+  broken bob                     tenant=blue release=v1
+  broken wire reads              1
+  fixed alice                    tenant=blue release=v1
+  fixed bob                      tenant=red release=v9
+  fixed wire reads               2

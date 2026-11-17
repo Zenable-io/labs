@@ -1,0 +1,39 @@
+2026/09/27 16:36:53 INFO dspy.teleprompt.reanchor.reanchor: answering 16 training examples
+
+  0%|          | 0/16 [00:00<?, ?it/s]
+Processed 1 / 16 examples:   0%|          | 0/16 [00:00<?, ?it/s]
+Processed 1 / 16 examples:   6%|▋         | 1/16 [00:00<00:05,  2.68it/s]
+Processed 2 / 16 examples:   6%|▋         | 1/16 [00:00<00:05,  2.68it/s]
+Processed 3 / 16 examples:  12%|█▎        | 2/16 [00:00<00:05,  2.68it/s]
+Processed 4 / 16 examples:  19%|█▉        | 3/16 [00:00<00:04,  2.68it/s]
+Processed 5 / 16 examples:  25%|██▌       | 4/16 [00:00<00:04,  2.68it/s]
+Processed 5 / 16 examples:  31%|███▏      | 5/16 [00:00<00:01,  7.87it/s]
+Processed 6 / 16 examples:  31%|███▏      | 5/16 [00:00<00:01,  7.87it/s]
+Processed 7 / 16 examples:  38%|███▊      | 6/16 [00:00<00:01,  7.87it/s]
+Processed 8 / 16 examples:  44%|████▍     | 7/16 [00:00<00:01,  7.87it/s]
+Processed 9 / 16 examples:  50%|█████     | 8/16 [00:01<00:01,  7.87it/s]
+Processed 9 / 16 examples:  56%|█████▋    | 9/16 [00:01<00:00, 10.14it/s]
+Processed 10 / 16 examples:  56%|█████▋    | 9/16 [00:01<00:00, 10.14it/s]
+Processed 11 / 16 examples:  62%|██████▎   | 10/16 [00:01<00:00, 10.14it/s]
+Processed 12 / 16 examples:  69%|██████▉   | 11/16 [00:01<00:00, 10.14it/s]
+Processed 12 / 16 examples:  75%|███████▌  | 12/16 [00:01<00:00, 12.13it/s]
+Processed 13 / 16 examples:  75%|███████▌  | 12/16 [00:01<00:00, 12.13it/s]
+Processed 14 / 16 examples:  81%|████████▏ | 13/16 [00:01<00:00, 12.13it/s]
+Processed 14 / 16 examples:  88%|████████▊ | 14/16 [00:01<00:00, 11.97it/s]
+Processed 15 / 16 examples:  88%|████████▊ | 14/16 [00:01<00:00, 11.97it/s]
+Processed 16 / 16 examples:  94%|█████████▍| 15/16 [00:01<00:00, 11.97it/s]
+Processed 16 / 16 examples: 100%|██████████| 16/16 [00:01<00:00, 10.98it/s]
+Processed 16 / 16 examples: 100%|██████████| 16/16 [00:01<00:00, 10.19it/s]2026/09/27 16:36:55 INFO dspy.teleprompt.reanchor.reanchor: fitting thresholds, cuts, and weights
+2026/09/27 16:36:55 INFO dspy.teleprompt.reanchor.reanchor: calibrated: train 0.75 -> 0.875
+2026/09/27 16:36:55 INFO dspy.teleprompt.reanchor.reanchor: validation: 0.75 -> 0.875
+
+
+train:       75.0% -> 87.5%
+development: 75.0% -> 87.5%
+
+commit_type weights, fold check 1 passed / 5 failed
+weights: build 5.9
+
+saved jev-compiled.json
+
+16 answers from Jev, 1152 from the cache

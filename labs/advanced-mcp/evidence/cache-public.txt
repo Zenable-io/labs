@@ -1,0 +1,5 @@
+Server cacheScope and shared clients
+  public alice                   tenant=blue
+  public bob                     tenant=blue
+  private alice                  tenant=blue
+  private bob                    tenant=red

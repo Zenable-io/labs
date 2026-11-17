@@ -1,0 +1,40 @@
+
+held-out: 12.5% exact match over 16 lines
+
+type          right   of
+build             0    2
+chore             0    2
+docs              0    2
+feat              2    2
+fix               0    2
+perf              0    2
+refactor          0    2
+test              0    2
+
+14 wrong, the first 6:
+  fix       answered feat      stop the reaper deleting fleets it does not own
+  fix       answered feat      return 404 rather than 500 for a deleted requirement
+  docs      answered build     write up the on-call runbook for queue backlogs
+  docs      answered build     document the rate limits on the public API
+  refactor  answered chore     split the settings page into three components
+  refactor  answered feat      collapse the two nearly identical serialisers
+
+held-out: 37.5% exact match over 16 lines
+
+type          right   of
+build             0    2
+chore             1    2
+docs              2    2
+feat              0    2
+fix               1    2
+perf              0    2
+refactor          0    2
+test              2    2
+
+10 wrong, the first 6:
+  feat      answered fix       support filtering findings by severity
+  feat      answered docs      add a --dry-run flag to the migration runner
+  fix       answered build     stop the reaper deleting fleets it does not own
+  refactor  answered chore     split the settings page into three components
+  refactor  answered fix       collapse the two nearly identical serialisers
+  build     answered fix       pin the Node version in the Dockerfile

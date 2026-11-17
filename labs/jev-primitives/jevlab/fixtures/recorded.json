@@ -1,0 +1,559 @@
+[
+  {
+    "answers": {
+      "changes_an_amount": {
+        "noul": 0.94,
+        "type": "noul"
+      },
+      "is_python": {
+        "noul": 0.99,
+        "type": "noul"
+      }
+    },
+    "fingerprint": "abf7ffd8b6b9",
+    "model": "jev-latest",
+    "scenario": "ask#1"
+  },
+  {
+    "answers": {
+      "checkov": {
+        "choice": "none",
+        "confidence": 0.95,
+        "probabilities": {
+          "full": 0.0,
+          "none": 0.97,
+          "partial": 0.03
+        },
+        "type": "choice"
+      },
+      "eslint": {
+        "choice": "partial",
+        "confidence": 0.96,
+        "probabilities": {
+          "full": 0.02,
+          "none": 0.01,
+          "partial": 0.97
+        },
+        "type": "choice"
+      },
+      "gitleaks": {
+        "choice": "none",
+        "confidence": 0.97,
+        "probabilities": {
+          "full": 0.0,
+          "none": 0.98,
+          "partial": 0.02
+        },
+        "type": "choice"
+      },
+      "semgrep": {
+        "choice": "partial",
+        "confidence": 0.98,
+        "probabilities": {
+          "full": 0.01,
+          "none": 0.0,
+          "partial": 0.99
+        },
+        "type": "choice"
+      },
+      "sqlfluff": {
+        "choice": "partial",
+        "confidence": 0.57,
+        "probabilities": {
+          "full": 0.01,
+          "none": 0.28,
+          "partial": 0.71
+        },
+        "type": "choice"
+      }
+    },
+    "fingerprint": "1dcf5e628ad1",
+    "model": "jev-latest",
+    "scenario": "engines:choice#1"
+  },
+  {
+    "answers": {
+      "checkov": {
+        "noul": 0.04,
+        "type": "noul"
+      },
+      "eslint": {
+        "noul": 0.75,
+        "type": "noul"
+      },
+      "gitleaks": {
+        "noul": 0.03,
+        "type": "noul"
+      },
+      "semgrep": {
+        "noul": 0.73,
+        "type": "noul"
+      },
+      "sqlfluff": {
+        "noul": 0.16,
+        "type": "noul"
+      }
+    },
+    "fingerprint": "1b471051686b",
+    "model": "jev-latest",
+    "scenario": "engines:noul#1"
+  },
+  {
+    "answers": {
+      "scope": {
+        "confidence": 0.59,
+        "legend": {
+          "0": "Absent. The subject shows nothing of this dimension.",
+          "1": "Weak. Traces of it, not enough for a reviewer to rely on.",
+          "2": "Adequate. Present and usable, with gaps a reviewer would note.",
+          "3": "Strong. Clearly present, and a reviewer would need no clarification.",
+          "4": "Exemplary. The best form of this a reviewer could reasonably see."
+        },
+        "probabilities": {
+          "0": 0.62,
+          "1": 0.32,
+          "2": 0.03,
+          "3": 0.03,
+          "4": 0.0
+        },
+        "score": 0.49,
+        "type": "score"
+      },
+      "specificity": {
+        "confidence": 0.64,
+        "legend": {
+          "0": "Absent. The subject shows nothing of this dimension.",
+          "1": "Weak. Traces of it, not enough for a reviewer to rely on.",
+          "2": "Adequate. Present and usable, with gaps a reviewer would note.",
+          "3": "Strong. Clearly present, and a reviewer would need no clarification.",
+          "4": "Exemplary. The best form of this a reviewer could reasonably see."
+        },
+        "probabilities": {
+          "0": 0.43,
+          "1": 0.57,
+          "2": 0.0,
+          "3": 0.0,
+          "4": 0.0
+        },
+        "score": 0.57,
+        "type": "score"
+      },
+      "testability": {
+        "confidence": 0.82,
+        "legend": {
+          "0": "Absent. The subject shows nothing of this dimension.",
+          "1": "Weak. Traces of it, not enough for a reviewer to rely on.",
+          "2": "Adequate. Present and usable, with gaps a reviewer would note.",
+          "3": "Strong. Clearly present, and a reviewer would need no clarification.",
+          "4": "Exemplary. The best form of this a reviewer could reasonably see."
+        },
+        "probabilities": {
+          "0": 0.79,
+          "1": 0.21,
+          "2": 0.0,
+          "3": 0.0,
+          "4": 0.0
+        },
+        "score": 0.21,
+        "type": "score"
+      }
+    },
+    "fingerprint": "cef369f54270",
+    "model": "jev-latest",
+    "scenario": "grade:quality#1"
+  },
+  {
+    "answers": {
+      "scope": {
+        "confidence": 0.52,
+        "legend": {
+          "0": "None. Nothing here would concern a reviewer.",
+          "1": "Low. A reviewer would mention it and move on.",
+          "2": "Moderate. A reviewer would ask for a change before approving.",
+          "3": "High. A reviewer would block the change on it.",
+          "4": "Severe. The most serious form of this a reviewer could see."
+        },
+        "probabilities": {
+          "0": 0.3,
+          "1": 0.52,
+          "2": 0.11,
+          "3": 0.04,
+          "4": 0.03
+        },
+        "score": 0.97,
+        "type": "score"
+      },
+      "specificity": {
+        "confidence": 0.75,
+        "legend": {
+          "0": "None. Nothing here would concern a reviewer.",
+          "1": "Low. A reviewer would mention it and move on.",
+          "2": "Moderate. A reviewer would ask for a change before approving.",
+          "3": "High. A reviewer would block the change on it.",
+          "4": "Severe. The most serious form of this a reviewer could see."
+        },
+        "probabilities": {
+          "0": 0.2,
+          "1": 0.71,
+          "2": 0.07,
+          "3": 0.01,
+          "4": 0.01
+        },
+        "score": 0.91,
+        "type": "score"
+      },
+      "testability": {
+        "confidence": 0.47,
+        "legend": {
+          "0": "None. Nothing here would concern a reviewer.",
+          "1": "Low. A reviewer would mention it and move on.",
+          "2": "Moderate. A reviewer would ask for a change before approving.",
+          "3": "High. A reviewer would block the change on it.",
+          "4": "Severe. The most serious form of this a reviewer could see."
+        },
+        "probabilities": {
+          "0": 0.49,
+          "1": 0.42,
+          "2": 0.08,
+          "3": 0.01,
+          "4": 0.0
+        },
+        "score": 0.63,
+        "type": "score"
+      }
+    },
+    "fingerprint": "c02df5926929",
+    "model": "jev-latest",
+    "scenario": "grade:risk#1"
+  },
+  {
+    "answers": {
+      "breaks::docs-links-carry-utm": {
+        "noul": 0.03,
+        "type": "noul"
+      },
+      "breaks::jsonb-not-json": {
+        "noul": 0.04,
+        "type": "noul"
+      },
+      "breaks::money-as-minor-units": {
+        "noul": 0.72,
+        "type": "noul"
+      },
+      "breaks::no-literal-credentials": {
+        "noul": 0.04,
+        "type": "noul"
+      },
+      "breaks::retries-carry-idempotency": {
+        "noul": 0.94,
+        "type": "noul"
+      },
+      "breaks::structured-logs": {
+        "noul": 0.54,
+        "type": "noul"
+      },
+      "governs::docs-links-carry-utm": {
+        "noul": 0.03,
+        "type": "noul"
+      },
+      "governs::jsonb-not-json": {
+        "noul": 0.13,
+        "type": "noul"
+      },
+      "governs::money-as-minor-units": {
+        "noul": 0.95,
+        "type": "noul"
+      },
+      "governs::no-literal-credentials": {
+        "noul": 0.09,
+        "type": "noul"
+      },
+      "governs::retries-carry-idempotency": {
+        "noul": 0.96,
+        "type": "noul"
+      },
+      "governs::structured-logs": {
+        "noul": 0.93,
+        "type": "noul"
+      }
+    },
+    "fingerprint": "1213946dd571",
+    "model": "jev-latest",
+    "scenario": "rank:patch#1"
+  },
+  {
+    "answers": {
+      "breaks::docs-links-carry-utm": {
+        "noul": 0.04,
+        "type": "noul"
+      },
+      "breaks::jsonb-not-json": {
+        "noul": 0.04,
+        "type": "noul"
+      },
+      "breaks::money-as-minor-units": {
+        "noul": 0.73,
+        "type": "noul"
+      },
+      "breaks::no-literal-credentials": {
+        "noul": 0.04,
+        "type": "noul"
+      },
+      "breaks::retries-carry-idempotency": {
+        "noul": 0.94,
+        "type": "noul"
+      },
+      "breaks::structured-logs": {
+        "noul": 0.55,
+        "type": "noul"
+      },
+      "governs::docs-links-carry-utm": {
+        "noul": 0.03,
+        "type": "noul"
+      },
+      "governs::jsonb-not-json": {
+        "noul": 0.13,
+        "type": "noul"
+      },
+      "governs::money-as-minor-units": {
+        "noul": 0.95,
+        "type": "noul"
+      },
+      "governs::no-literal-credentials": {
+        "noul": 0.08,
+        "type": "noul"
+      },
+      "governs::retries-carry-idempotency": {
+        "noul": 0.96,
+        "type": "noul"
+      },
+      "governs::structured-logs": {
+        "noul": 0.92,
+        "type": "noul"
+      }
+    },
+    "fingerprint": "1213946dd571",
+    "model": "jev-latest",
+    "scenario": "rank:patch#2"
+  },
+  {
+    "answers": {
+      "breaks::docs-links-carry-utm": {
+        "noul": 0.04,
+        "type": "noul"
+      },
+      "breaks::jsonb-not-json": {
+        "noul": 0.04,
+        "type": "noul"
+      },
+      "breaks::money-as-minor-units": {
+        "noul": 0.74,
+        "type": "noul"
+      },
+      "breaks::no-literal-credentials": {
+        "noul": 0.04,
+        "type": "noul"
+      },
+      "breaks::retries-carry-idempotency": {
+        "noul": 0.94,
+        "type": "noul"
+      },
+      "breaks::structured-logs": {
+        "noul": 0.6,
+        "type": "noul"
+      },
+      "governs::docs-links-carry-utm": {
+        "noul": 0.03,
+        "type": "noul"
+      },
+      "governs::jsonb-not-json": {
+        "noul": 0.1,
+        "type": "noul"
+      },
+      "governs::money-as-minor-units": {
+        "noul": 0.95,
+        "type": "noul"
+      },
+      "governs::no-literal-credentials": {
+        "noul": 0.09,
+        "type": "noul"
+      },
+      "governs::retries-carry-idempotency": {
+        "noul": 0.96,
+        "type": "noul"
+      },
+      "governs::structured-logs": {
+        "noul": 0.92,
+        "type": "noul"
+      }
+    },
+    "fingerprint": "1213946dd571",
+    "model": "jev-latest",
+    "scenario": "rank:patch#3"
+  },
+  {
+    "answers": {
+      "breaks::docs-links-carry-utm": {
+        "noul": 0.04,
+        "type": "noul"
+      },
+      "breaks::jsonb-not-json": {
+        "noul": 0.04,
+        "type": "noul"
+      },
+      "breaks::money-as-minor-units": {
+        "noul": 0.73,
+        "type": "noul"
+      },
+      "breaks::no-literal-credentials": {
+        "noul": 0.04,
+        "type": "noul"
+      },
+      "breaks::retries-carry-idempotency": {
+        "noul": 0.94,
+        "type": "noul"
+      },
+      "breaks::structured-logs": {
+        "noul": 0.58,
+        "type": "noul"
+      },
+      "governs::docs-links-carry-utm": {
+        "noul": 0.03,
+        "type": "noul"
+      },
+      "governs::jsonb-not-json": {
+        "noul": 0.15,
+        "type": "noul"
+      },
+      "governs::money-as-minor-units": {
+        "noul": 0.94,
+        "type": "noul"
+      },
+      "governs::no-literal-credentials": {
+        "noul": 0.33,
+        "type": "noul"
+      },
+      "governs::retries-carry-idempotency": {
+        "noul": 0.91,
+        "type": "noul"
+      },
+      "governs::structured-logs": {
+        "noul": 0.92,
+        "type": "noul"
+      }
+    },
+    "fingerprint": "89edf3525d8a",
+    "model": "jev-latest",
+    "scenario": "rank:file#1"
+  },
+  {
+    "answers": {
+      "breaks::docs-links-carry-utm": {
+        "noul": 0.04,
+        "type": "noul"
+      },
+      "breaks::jsonb-not-json": {
+        "noul": 0.04,
+        "type": "noul"
+      },
+      "breaks::money-as-minor-units": {
+        "noul": 0.7,
+        "type": "noul"
+      },
+      "breaks::no-literal-credentials": {
+        "noul": 0.04,
+        "type": "noul"
+      },
+      "breaks::retries-carry-idempotency": {
+        "noul": 0.94,
+        "type": "noul"
+      },
+      "breaks::structured-logs": {
+        "noul": 0.59,
+        "type": "noul"
+      },
+      "governs::docs-links-carry-utm": {
+        "noul": 0.03,
+        "type": "noul"
+      },
+      "governs::jsonb-not-json": {
+        "noul": 0.14,
+        "type": "noul"
+      },
+      "governs::money-as-minor-units": {
+        "noul": 0.94,
+        "type": "noul"
+      },
+      "governs::no-literal-credentials": {
+        "noul": 0.24,
+        "type": "noul"
+      },
+      "governs::retries-carry-idempotency": {
+        "noul": 0.89,
+        "type": "noul"
+      },
+      "governs::structured-logs": {
+        "noul": 0.91,
+        "type": "noul"
+      }
+    },
+    "fingerprint": "89edf3525d8a",
+    "model": "jev-latest",
+    "scenario": "rank:file#2"
+  },
+  {
+    "answers": {
+      "breaks::docs-links-carry-utm": {
+        "noul": 0.04,
+        "type": "noul"
+      },
+      "breaks::jsonb-not-json": {
+        "noul": 0.04,
+        "type": "noul"
+      },
+      "breaks::money-as-minor-units": {
+        "noul": 0.74,
+        "type": "noul"
+      },
+      "breaks::no-literal-credentials": {
+        "noul": 0.04,
+        "type": "noul"
+      },
+      "breaks::retries-carry-idempotency": {
+        "noul": 0.94,
+        "type": "noul"
+      },
+      "breaks::structured-logs": {
+        "noul": 0.55,
+        "type": "noul"
+      },
+      "governs::docs-links-carry-utm": {
+        "noul": 0.03,
+        "type": "noul"
+      },
+      "governs::jsonb-not-json": {
+        "noul": 0.15,
+        "type": "noul"
+      },
+      "governs::money-as-minor-units": {
+        "noul": 0.94,
+        "type": "noul"
+      },
+      "governs::no-literal-credentials": {
+        "noul": 0.27,
+        "type": "noul"
+      },
+      "governs::retries-carry-idempotency": {
+        "noul": 0.9,
+        "type": "noul"
+      },
+      "governs::structured-logs": {
+        "noul": 0.92,
+        "type": "noul"
+      }
+    },
+    "fingerprint": "89edf3525d8a",
+    "model": "jev-latest",
+    "scenario": "rank:file#3"
+  }
+]

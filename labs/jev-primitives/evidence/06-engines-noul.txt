@@ -1,0 +1,11 @@
+requirement: money-as-minor-units   shape: one Noul per engine
+
+engine       p(can check)
+semgrep              0.70
+eslint               0.74
+checkov              0.05
+sqlfluff             0.19
+gitleaks             0.03
+
+a 0.30 floor keeps 2 of 5 engines
+one number per engine, so nothing here says which of them need help

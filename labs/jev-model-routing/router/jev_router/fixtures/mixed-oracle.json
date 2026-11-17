@@ -1,0 +1,326 @@
+{
+  "answers": {
+    "Add type hints to every function in billing/refunds.py, including return types.": {
+      "confidence": 0.78,
+      "model": "qwen-small",
+      "probabilities": {
+        "qwen-large": 0.11,
+        "qwen-small": 0.89
+      }
+    },
+    "Add type hints to every function in billing/refunds.py, including the return types, and use the built-in generics rather than the ones from typing.": {
+      "confidence": 0.8,
+      "model": "qwen-small",
+      "probabilities": {
+        "qwen-large": 0.1,
+        "qwen-small": 0.9
+      }
+    },
+    "Chargeback webhooks arrive twice and sometimes out of order. How do we make the handler safe?": {
+      "confidence": 1.0,
+      "model": "qwen-large",
+      "probabilities": {
+        "qwen-large": 1.0,
+        "qwen-small": 0.0
+      }
+    },
+    "Convert this JSON block to YAML, keeping the key order.": {
+      "confidence": 0.93,
+      "model": "qwen-small",
+      "probabilities": {
+        "qwen-large": 0.04,
+        "qwen-small": 0.96
+      }
+    },
+    "Convert this price list from JSON to YAML, keeping the key order.": {
+      "confidence": 0.87,
+      "model": "qwen-small",
+      "probabilities": {
+        "qwen-large": 0.07,
+        "qwen-small": 0.93
+      }
+    },
+    "Designing retries for a call that moves money. What is safe here?": {
+      "confidence": 1.0,
+      "model": "qwen-large",
+      "probabilities": {
+        "qwen-large": 1.0,
+        "qwen-small": 0.0
+      }
+    },
+    "Escape this string so it can be used as a literal in a Python regex.": {
+      "confidence": 0.87,
+      "model": "qwen-small",
+      "probabilities": {
+        "qwen-large": 0.06,
+        "qwen-small": 0.94
+      }
+    },
+    "How long may we cache an FX rate before a quote we show is a price we cannot honour?": {
+      "confidence": 0.51,
+      "model": "qwen-large",
+      "probabilities": {
+        "qwen-large": 0.75,
+        "qwen-small": 0.25
+      }
+    },
+    "How would you split the refunds table in two while writes continue?": {
+      "confidence": 1.0,
+      "model": "qwen-large",
+      "probabilities": {
+        "qwen-large": 1.0,
+        "qwen-small": 0.0
+      }
+    },
+    "I need the payment error strings below in German, same tone.": {
+      "confidence": 0.94,
+      "model": "qwen-small",
+      "probabilities": {
+        "qwen-large": 0.03,
+        "qwen-small": 0.97
+      }
+    },
+    "In billing/, `chargeAmount` should be `amount_cents` everywhere it appears.": {
+      "confidence": 0.97,
+      "model": "qwen-small",
+      "probabilities": {
+        "qwen-large": 0.02,
+        "qwen-small": 0.98
+      }
+    },
+    "Index for tenant_id plus a created_at range, sorted by created_at?": {
+      "confidence": 0.15,
+      "model": "qwen-large",
+      "probabilities": {
+        "qwen-large": 0.58,
+        "qwen-small": 0.42
+      }
+    },
+    "List every route path declared in this router file.": {
+      "confidence": 0.7,
+      "model": "qwen-small",
+      "probabilities": {
+        "qwen-large": 0.15,
+        "qwen-small": 0.85
+      }
+    },
+    "One failed payout stalls the nightly run. How should we break the batch up?": {
+      "confidence": 1.0,
+      "model": "qwen-large",
+      "probabilities": {
+        "qwen-large": 1.0,
+        "qwen-small": 0.0
+      }
+    },
+    "Our chargeback webhook is not idempotent. What is the right shape for it?": {
+      "confidence": 0.98,
+      "model": "qwen-large",
+      "probabilities": {
+        "qwen-large": 0.99,
+        "qwen-small": 0.01
+      }
+    },
+    "Our checkout service times out under load about once an hour and the logs show no errors. How should we work out what is going wrong?": {
+      "confidence": 1.0,
+      "model": "qwen-large",
+      "probabilities": {
+        "qwen-large": 1.0,
+        "qwen-small": 0.0
+      }
+    },
+    "Passes alone, fails in the suite. Why?": {
+      "confidence": 1.0,
+      "model": "qwen-large",
+      "probabilities": {
+        "qwen-large": 1.0,
+        "qwen-small": 0.0
+      }
+    },
+    "Payouts run nightly in one batch and a single failure holds the rest. Batch or per-payout?": {
+      "confidence": 0.99,
+      "model": "qwen-large",
+      "probabilities": {
+        "qwen-large": 1.0,
+        "qwen-small": 0.0
+      }
+    },
+    "Per-line rounding leaves our totals a cent off. Where does the rounding belong?": {
+      "confidence": 0.67,
+      "model": "qwen-large",
+      "probabilities": {
+        "qwen-large": 0.84,
+        "qwen-small": 0.16
+      }
+    },
+    "Permissions on users or on groups?": {
+      "confidence": 0.31,
+      "model": "qwen-large",
+      "probabilities": {
+        "qwen-large": 0.66,
+        "qwen-small": 0.34
+      }
+    },
+    "Plan a zero-downtime split of a 400M row table into two, with active writers.": {
+      "confidence": 1.0,
+      "model": "qwen-large",
+      "probabilities": {
+        "qwen-large": 1.0,
+        "qwen-small": 0.0
+      }
+    },
+    "Plan a zero-downtime split of the refunds table, with active writers.": {
+      "confidence": 1.0,
+      "model": "qwen-large",
+      "probabilities": {
+        "qwen-large": 1.0,
+        "qwen-small": 0.0
+      }
+    },
+    "Queue or cron for nightly invoices?": {
+      "confidence": 0.96,
+      "model": "qwen-large",
+      "probabilities": {
+        "qwen-large": 0.98,
+        "qwen-small": 0.02
+      }
+    },
+    "Read the header row off this settlement CSV and list the fields.": {
+      "confidence": 0.72,
+      "model": "qwen-small",
+      "probabilities": {
+        "qwen-large": 0.14,
+        "qwen-small": 0.86
+      }
+    },
+    "Rename `chargeAmount` to `amount_cents` across billing/ and update the callers.": {
+      "confidence": 0.99,
+      "model": "qwen-small",
+      "probabilities": {
+        "qwen-large": 0.01,
+        "qwen-small": 0.99
+      }
+    },
+    "Rename the variable `cfg` to `config` in src/app.py and update the two call sites.": {
+      "confidence": 0.98,
+      "model": "qwen-small",
+      "probabilities": {
+        "qwen-large": 0.01,
+        "qwen-small": 0.99
+      }
+    },
+    "Rewrite this shell script as a Makefile with one target per step.": {
+      "confidence": 0.49,
+      "model": "qwen-small",
+      "probabilities": {
+        "qwen-large": 0.25,
+        "qwen-small": 0.75
+      }
+    },
+    "This ledger function has no docstring. Write one from what it does.": {
+      "confidence": 0.34,
+      "model": "qwen-large",
+      "probabilities": {
+        "qwen-large": 0.67,
+        "qwen-small": 0.33
+      }
+    },
+    "Translate these four payment failure messages into German.": {
+      "confidence": 0.91,
+      "model": "qwen-small",
+      "probabilities": {
+        "qwen-large": 0.05,
+        "qwen-small": 0.95
+      }
+    },
+    "Turn the attached tariff JSON into equivalent YAML.": {
+      "confidence": 0.97,
+      "model": "qwen-small",
+      "probabilities": {
+        "qwen-large": 0.01,
+        "qwen-small": 0.99
+      }
+    },
+    "Users see a stale count for a few seconds after they act. Is that worth fixing, and how would we decide?": {
+      "confidence": 1.0,
+      "model": "qwen-large",
+      "probabilities": {
+        "qwen-large": 1.0,
+        "qwen-small": 0.0
+      }
+    },
+    "We cache FX rates for quotes. What decides the TTL here?": {
+      "confidence": 0.64,
+      "model": "qwen-large",
+      "probabilities": {
+        "qwen-large": 0.82,
+        "qwen-small": 0.18
+      }
+    },
+    "We round tax per line and the invoice total is a cent out. How should we decide where to round?": {
+      "confidence": 0.99,
+      "model": "qwen-large",
+      "probabilities": {
+        "qwen-large": 1.0,
+        "qwen-small": 0.0
+      }
+    },
+    "What are the column names in the first line of this CSV?": {
+      "confidence": 0.48,
+      "model": "qwen-small",
+      "probabilities": {
+        "qwen-large": 0.26,
+        "qwen-small": 0.74
+      }
+    },
+    "What are the column names in the first line of this invoice export?": {
+      "confidence": 0.38,
+      "model": "qwen-small",
+      "probabilities": {
+        "qwen-large": 0.31,
+        "qwen-small": 0.69
+      }
+    },
+    "What retry policy would you write for a payment capture that may charge twice?": {
+      "confidence": 1.0,
+      "model": "qwen-large",
+      "probabilities": {
+        "qwen-large": 1.0,
+        "qwen-small": 0.0
+      }
+    },
+    "What should we key a response cache on for an endpoint that takes a tenant, a filter set and a page number?": {
+      "confidence": 0.8,
+      "model": "qwen-large",
+      "probabilities": {
+        "qwen-large": 0.9,
+        "qwen-small": 0.1
+      }
+    },
+    "Write a docstring for the function below describing its arguments, its return value and the exception it raises, in the same style as the other functions in the file.": {
+      "confidence": 0.12,
+      "model": "qwen-small",
+      "probabilities": {
+        "qwen-large": 0.44,
+        "qwen-small": 0.56
+      }
+    },
+    "Write a docstring for the ledger posting function below, arguments and return value.": {
+      "confidence": 0.41,
+      "model": "qwen-small",
+      "probabilities": {
+        "qwen-large": 0.29,
+        "qwen-small": 0.71
+      }
+    },
+    "billing/refunds.py has no annotations. Add them.": {
+      "confidence": 0.51,
+      "model": "qwen-small",
+      "probabilities": {
+        "qwen-large": 0.24,
+        "qwen-small": 0.76
+      }
+    }
+  },
+  "jev_model": "jev-latest",
+  "policy": "6ecdbc563f806f13"
+}

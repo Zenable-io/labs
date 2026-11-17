@@ -1,4 +1,4 @@
-"""Agent B -- the trip planner.
+"""Copyright (c) 2026 Zenable, Inc. Agent B -- the trip planner.
 
 Calls Agent A for a forecast, then composes an itinerary. Also serves a
 `trip.replan` skill that Agent A calls back into, so traffic runs both ways
