@@ -1,0 +1,5 @@
+FastMCP 4.0.11 authorization responses
+  component                      200 Unknown tool: 'deploy'
+  middleware                     200 Authorization failed for tool 'deploy': insufficient scope (required: deploy:prod)
+  transport                      401 invalid_token
+  bridge                         403 insufficient_scope

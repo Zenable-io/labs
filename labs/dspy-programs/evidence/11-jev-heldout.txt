@@ -1,0 +1,45 @@
+2026/09/27 16:37:33 INFO dspy.evaluate.evaluate: Average Metric: 11.0 / 16 (68.8%)
+weights: every type at 1.0
+
+held-out: 68.8% exact match over 16 lines
+
+type          right   of
+build             1    2
+chore             2    2
+docs              2    2
+feat              2    2
+fix               2    2
+perf              0    2
+refactor          2    2
+test              0    2
+
+5 wrong, the first 5:
+  test      answered feat      cover the expired-token branch of the authoriser
+  test      answered fix       stop the flaky clock assertion in the scheduler suite
+  build     answered chore     drop Python 3.10 from the test matrix
+  perf      answered refactor  batch the embedding calls instead of one per finding
+  perf      answered fix       skip the LLM call when the gate selects nothing
+
+16 answers from Jev, 0 from the cache
+2026/09/27 16:37:34 INFO dspy.evaluate.evaluate: Average Metric: 12.0 / 16 (75.0%)
+weights: build 5.9
+
+held-out: 75.0% exact match over 16 lines
+
+type          right   of
+build             2    2
+chore             2    2
+docs              2    2
+feat              2    2
+fix               2    2
+perf              0    2
+refactor          2    2
+test              0    2
+
+4 wrong, the first 4:
+  test      answered feat      cover the expired-token branch of the authoriser
+  test      answered fix       stop the flaky clock assertion in the scheduler suite
+  perf      answered refactor  batch the embedding calls instead of one per finding
+  perf      answered fix       skip the LLM call when the gate selects nothing
+
+0 answers from Jev, 16 from the cache

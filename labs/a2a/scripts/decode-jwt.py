@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Decode a JWT's header and payload. Stdlib only, no verification.
+"""Copyright (c) 2026 Zenable, Inc. Decode a JWT's header and payload. Stdlib only, no verification.
 
 Reads the token from argv[1] or stdin. This prints what any holder of the
 token can read -- which is the point: a bearer token is not confidential to

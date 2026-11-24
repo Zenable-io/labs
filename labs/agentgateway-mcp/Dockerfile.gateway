@@ -1,4 +1,4 @@
-# The upstream agentgateway image is distroless: no shell, no curl, no probe of
+# Copyright (c) 2026 Zenable, Inc. The upstream agentgateway image is distroless: no shell, no curl, no probe of
 # any kind, so `docker compose up --wait` has nothing to health-check the gateway
 # with and a restart returns before the new config is actually serving. Copy one
 # static busybox in and point a HEALTHCHECK at the gateway's own admin API, so

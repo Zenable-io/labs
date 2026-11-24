@@ -1,0 +1,21 @@
+2026/09/27 16:36:30 INFO dspy.evaluate.evaluate: Average Metric: 13.0 / 16 (81.2%)
+weights: build 3
+
+development: 81.2% exact match over 16 lines
+
+type          right   of
+build             1    2
+chore             2    2
+docs              1    2
+feat              2    2
+fix               2    2
+perf              1    2
+refactor          2    2
+test              2    2
+
+3 wrong, the first 3:
+  docs      answered fix       fix the broken link in the contributing guide
+  build     answered chore     bump actions/checkout to v5
+  perf      answered feat      stream the export instead of buffering the whole file
+
+0 answers from Jev, 16 from the cache

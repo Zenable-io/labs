@@ -1,4 +1,4 @@
-"""Every attack this lab claims to mitigate, run against the running rig.
+"""Copyright (c) 2026 Zenable, Inc. Every attack this lab claims to mitigate, run against the running rig.
 
 Each case is one attack, stated as what the attacker has and what they try.
 A case that PASSES means the defence held. The bearer cases are here to fail

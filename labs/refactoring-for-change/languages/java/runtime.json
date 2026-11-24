@@ -1,0 +1,7 @@
+{
+  "build": ["javac", "-d", "{build}", "@sources"],
+  "sources": "src/**/*.java",
+  "run": ["java", "-cp", "{build}", "lab.expenses.Main"],
+  "checks": ["java", "-cp", "{build}", "lab.expenses.ExpenseServiceChecks"],
+  "metrics": ["src/main/java/lab/expenses/HistoricalExpenses.java", "src/main/java/lab/expenses/ExpenseService.java", "src/main/java/lab/expenses/StandardPolicy.java", "src/main/java/lab/expenses/TravelPolicy.java"]
+}

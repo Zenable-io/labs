@@ -1,0 +1,3 @@
+gen_ai.request.model=qwen3:0.6b
+gen_ai.request.model=qwen3:1.7b
+gen_ai.request.model=qwen3:1.7b

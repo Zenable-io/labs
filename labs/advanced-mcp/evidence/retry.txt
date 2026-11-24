@@ -1,0 +1,5 @@
+Retries and idempotency
+  same args, no key              effects=2
+  same key, concurrent retry     effects=1
+  same key, different args       rejected
+  new key, same args             new deployment

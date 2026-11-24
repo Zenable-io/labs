@@ -1,4 +1,4 @@
-"""Fetch access tokens from the local Keycloak, with and without DPoP."""
+"""Copyright (c) 2026 Zenable, Inc. Fetch access tokens from the local Keycloak, with and without DPoP."""
 
 import httpx
 from dpop import make_proof

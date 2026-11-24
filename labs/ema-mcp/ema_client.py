@@ -1,4 +1,4 @@
-"""MCP client performing the full Enterprise-Managed Authorization flow.
+"""Copyright (c) 2026 Zenable, Inc. MCP client performing the full Enterprise-Managed Authorization flow.
 
 Nothing about the authorization server is hardcoded: the client starts with only the MCP
 server URL and its own enterprise IdP, and discovers the rest per RFC 9728 / RFC 8414.
@@ -44,7 +44,8 @@ def fail(msg: str) -> None:
 
 
 def decode(token: str) -> tuple[dict, dict]:
-    h, p = token.split(".")[0], token.split(".")[1]
+    segments = token.split(".", maxsplit=2)
+    h, p = segments[0], segments[1]
     d = lambda s: json.loads(base64.urlsafe_b64decode(s + "=" * (-len(s) % 4)))  # noqa: E731
     return d(h), d(p)
 

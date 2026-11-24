@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Copyright (c) 2026 Zenable, Inc.
 #
 # One command: bring up the whole EMA topology from nothing and run the demo.
 #   ./run.sh          full demo (happy path + deny paths + security negatives)
@@ -8,7 +9,8 @@ set -euo pipefail
 DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$DIR"
 
-IMAGE="${KC_IMAGE:-ceposta/keycloak:id-jag}"
+# Digest-pinned: `id-jag` is a mutable tag on a personal Docker Hub account.
+IMAGE="${KC_IMAGE:-ceposta/keycloak:id-jag@sha256:5d945dc3e04fa616eae7ad883f158f32951503f465dfedd0ab866e0a38bb8934}"
 CONTAINER=kc-idjag
 
 down() {
