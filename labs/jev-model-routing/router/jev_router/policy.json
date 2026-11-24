@@ -1,0 +1,14 @@
+{
+  "question": "Which model should answer `request.newest_message`? Judge only the newest message; `request.prior_turns` is context for what it refers to, never the thing being routed.",
+  "focus": "Decide on the reasoning the answer needs, not on the topic, the tone, or the length of `request.newest_message`. A request that names the exact edit to make needs no deliberation even when the edit is large. A request that states a goal and leaves the approach open needs deliberation even when it is one sentence.",
+  "models": [
+    {
+      "name": "qwen-small",
+      "criterion": "The newest user message asks for a mechanical transformation that a competent engineer would finish without stopping to think: renaming or reformatting code, converting between two named formats, extracting values that are already written down in the message, translating prose, or answering a single factual question whose answer the message already contains. Length alone does not qualify a request for this option; a long but mechanical request still belongs here."
+    },
+    {
+      "name": "qwen-large",
+      "criterion": "The newest user message cannot be answered until something is worked out first: weighing a trade-off between two approaches, designing something that does not exist yet, diagnosing a fault from evidence that does not name the cause, reasoning about consequences the message does not state, or producing code whose correctness depends on a rule that has to be derived. Shortness does not disqualify a request from this option; a one-line question can still need deliberation."
+    }
+  ]
+}

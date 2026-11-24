@@ -1,4 +1,4 @@
-"""DPoP (RFC 9449) proof minting and verification, written out longhand.
+"""Copyright (c) 2026 Zenable, Inc. DPoP (RFC 9449) proof minting and verification, written out longhand.
 
 A library would hide the four fields that make DPoP work. Every rule the
 verifier enforces here is one line in RFC 9449 section 4.3, and the negative
@@ -98,7 +98,7 @@ def make_proof(
         "jti": jti or str(uuid.uuid4()),
         "htm": htm,
         # RFC 9449 s4.2: htu is the request URI *without* query or fragment.
-        "htu": htu.split("?")[0].split("#")[0],
+        "htu": htu.split("?", maxsplit=1)[0].split("#", maxsplit=1)[0],
         "iat": iat if iat is not None else int(time.time()),
     }
     if access_token is not None:

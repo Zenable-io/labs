@@ -1,4 +1,4 @@
-"""Agent card signing and verification.
+"""Copyright (c) 2026 Zenable, Inc. Agent card signing and verification.
 
 The card is the document that tells a caller where to send data and what
 credential to attach. Trusting an unsigned one means trusting whoever
@@ -58,9 +58,14 @@ def build_card_signer():
         protected_header=ProtectedHeader(alg="RS256", kid=SIGNING_KID),
     )
 
-    # The route expects an awaitable modifier; the SDK's signer is sync.
+    # The route expects an awaitable modifier; the SDK's signer is sync. The
+    # signer appends to the card it is given and the route hands us the one
+    # card it serves every request, so sign a copy or each fetch adds a
+    # signature.
     async def modifier(card: AgentCard) -> AgentCard:
-        return sign(card)
+        served = AgentCard()
+        served.CopyFrom(card)
+        return sign(served)
 
     return modifier
 

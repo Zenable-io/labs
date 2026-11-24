@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Regenerate everything in evidence/ from the running rig.
+# Copyright (c) 2026 Zenable, Inc. Regenerate everything in evidence/ from the running rig.
 #
 # The lab quotes these files verbatim. Regenerating them is how we find out
 # that a Keycloak upgrade changed a claim name before a reader does.

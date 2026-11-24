@@ -1,4 +1,4 @@
-"""Verify an SD-JWT presentation. The verifier half of the credential story."""
+"""Copyright (c) 2026 Zenable, Inc. Verify an SD-JWT presentation. The verifier half of the credential story."""
 
 import base64
 import json
@@ -60,7 +60,7 @@ def undisclosed_digest_count(presentation: str) -> int:
     Useful for showing that selective disclosure hides content, not the
     existence of further claims -- which is exactly what decoy digests blur.
     """
-    body = presentation.split("~")[0].split(".")[1]
+    body = presentation.split("~", maxsplit=1)[0].split(".")[1]
     payload = json.loads(base64.urlsafe_b64decode(body + "=" * (-len(body) % 4)))
     total = len(payload.get("_sd", []))
     disclosed = len([part for part in presentation.split("~")[1:] if part])

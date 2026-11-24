@@ -1,0 +1,10 @@
+# Copyright (c) 2026 Zenable, Inc.
+# The relay: a resource behind the gateway that is also an agent to the echo
+# resource. Its hops and the tokens it holds are what the act claim is about.
+FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim
+WORKDIR /app
+COPY relay/pyproject.toml relay/uv.lock ./
+RUN uv sync --locked --no-dev
+COPY relay/app.py ./
+ENV PATH="/app/.venv/bin:$PATH"
+CMD ["opentelemetry-instrument", "uvicorn", "app:app", "--host", "0.0.0.0", "--port", "9100"]

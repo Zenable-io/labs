@@ -1,10 +1,11 @@
+# Copyright (c) 2026 Zenable, Inc.
 ---
 # Keycloak in dev mode: in-memory H2, HTTP only, no TLS. Correct for a
 # workshop, wrong for anything else — dev mode disables the hostname and
 # TLS checks that make a production Keycloak safe to expose.
 services:
   keycloak:
-    image: quay.io/keycloak/keycloak:26.7.3
+    image: quay.io/keycloak/keycloak:26.8.0
     container_name: a2a-keycloak
     command: ["start-dev", "--http-port=8080"]
     environment:

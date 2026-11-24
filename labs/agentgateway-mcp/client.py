@@ -1,4 +1,4 @@
-"""Talk to whatever is on the other end of MCP_URL.
+"""Copyright (c) 2026 Zenable, Inc. Talk to whatever is on the other end of MCP_URL.
 
     uv run python client.py                     list the tools on offer
     uv run python client.py add '{"a":2,"b":3}' call one of them

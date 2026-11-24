@@ -1,0 +1,57 @@
+[
+  {
+    "confidence": 0.98,
+    "exact_key": "b0f63e488083c4e7090dee70",
+    "fingerprint": "6ecdbc563f806f13",
+    "message": "Rename the variable `cfg` to `config` in src/app.py and update the two call sites.",
+    "model": "qwen-small",
+    "probabilities": {
+      "qwen-large": 0.01,
+      "qwen-small": 0.99
+    }
+  },
+  {
+    "confidence": 1.0,
+    "exact_key": "83c2c9171aab3881cabc1af5",
+    "fingerprint": "6ecdbc563f806f13",
+    "message": "Our checkout service times out under load about once an hour and the logs show no errors. How should we work out what is going wrong?",
+    "model": "qwen-large",
+    "probabilities": {
+      "qwen-large": 1.0,
+      "qwen-small": 0.0
+    }
+  },
+  {
+    "confidence": 0.92,
+    "exact_key": "b64e53f36636c695e0294c4f",
+    "fingerprint": "6ecdbc563f806f13",
+    "message": "Convert this JSON block to YAML, keeping the key order.",
+    "model": "qwen-small",
+    "probabilities": {
+      "qwen-large": 0.04,
+      "qwen-small": 0.96
+    }
+  },
+  {
+    "confidence": 1.0,
+    "exact_key": "1e80e81defaadf65a286d222",
+    "fingerprint": "6ecdbc563f806f13",
+    "message": "Plan a zero-downtime split of a 400M row table into two, with active writers.",
+    "model": "qwen-large",
+    "probabilities": {
+      "qwen-large": 1.0,
+      "qwen-small": 0.0
+    }
+  },
+  {
+    "confidence": 0.56,
+    "exact_key": "021d1723bc624e64519a1b83",
+    "fingerprint": "6ecdbc563f806f13",
+    "message": "This query filters on tenant_id and created_at and sorts by created_at. What index should it have, and why that column order?",
+    "model": "qwen-large",
+    "probabilities": {
+      "qwen-large": 0.78,
+      "qwen-small": 0.22
+    }
+  }
+]

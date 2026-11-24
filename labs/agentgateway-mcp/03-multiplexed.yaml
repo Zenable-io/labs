@@ -1,3 +1,4 @@
+# Copyright (c) 2026 Zenable, Inc.
 # yaml-language-server: $schema=https://agentgateway.dev/schema/config
 # Step 3: two servers behind one endpoint. Tool names gain a target prefix so
 # they cannot collide.

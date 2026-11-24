@@ -1,0 +1,8 @@
+Client cache TTL
+  wire hints                     ttlMs=30000 cacheScope=private
+  t=0  use                       wire reads=1
+  t=1  use                       wire reads=1
+  t=31 use                       wire reads=2
+  refresh                        wire reads=3
+  bypass                         wire reads=4
+  use after bypass               wire reads=4

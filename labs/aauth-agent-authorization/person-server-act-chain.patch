@@ -1,0 +1,83 @@
+diff --git a/ps/impl/memory_consent.py b/ps/impl/memory_consent.py
+index e7ee0a9..e3e3e02 100644
+--- a/ps/impl/memory_consent.py
++++ b/ps/impl/memory_consent.py
+@@ -240,6 +240,7 @@ class MemoryUserConsent(UserConsent):
+                         mission=tr.mission,
+                         justification=tr.justification,
+                         issue_method="user_consent",
++                        upstream_token=tr.upstream_token,
+                     )
+                 else:
+                     logger.warning(
+diff --git a/ps/impl/memory_token.py b/ps/impl/memory_token.py
+index 3f8ccea..6b99187 100644
+--- a/ps/impl/memory_token.py
++++ b/ps/impl/memory_token.py
+@@ -117,6 +117,7 @@ class MemoryTokenBroker(TokenBroker):
+             mission=request.mission,
+             justification=request.justification,
+             issue_method="autonomous",
++            upstream_token=request.upstream_token,
+         )
+
+     def request_token(self, request: TokenRequest) -> TokenOutcome:
+diff --git a/ps/service/auth_issuer.py b/ps/service/auth_issuer.py
+index 25be09d..3e70071 100644
+--- a/ps/service/auth_issuer.py
++++ b/ps/service/auth_issuer.py
+@@ -7,6 +7,7 @@ from datetime import datetime, timezone
+ from typing import Any
+
+ import aauth
++import jwt as pyjwt
+
+ from ps.models import AuthTokenResponse, MissionRef
+ from ps.service.issued_token_store import IssuedTokenStore
+@@ -39,8 +40,37 @@ class AuthTokenIssuer:
+         mission: MissionRef | None,
+         justification: str | None = None,
+         issue_method: str = "autonomous",
++        upstream_token: str | None = None,
+     ) -> AuthTokenResponse:
+         resource_iss = str(resource_claims["iss"])
++        # Call chaining (SPEC §9.4.5): the requesting agent is a resource acting
++        # on an auth token it received. That token's act claim is nested inside
++        # the new one, so the downstream resource sees the whole delegation chain.
++        act: dict[str, Any] = {"sub": agent_id}
++        if upstream_token is not None:
++            # Upstream Token Verification (SPEC §9.4.5): an aa-auth+jwt this
++            # server issued, signature and lifetime checked, carrying the
++            # claims the chain is built from. Which resource the requesting
++            # agent fronts is not known here, so the aud binding of step 3 is
++            # left to that resource's own audience check.
++            if pyjwt.get_unverified_header(upstream_token).get("typ") != "aa-auth+jwt":
++                raise ValueError("upstream token is not an aa-auth+jwt")
++            upstream = pyjwt.decode(
++                upstream_token,
++                key=self._signing.private_key.public_key(),
++                algorithms=["EdDSA"],
++                options={
++                    "verify_aud": False,
++                    "verify_exp": True,
++                    "verify_iat": True,
++                    "require": ["iss", "aud", "exp", "iat", "agent", "act"],
++                },
++            )
++            if str(upstream.get("iss", "")).rstrip("/") != self._iss:
++                raise ValueError("upstream token was not issued by this Person Server")
++            if upstream["act"].get("sub") != upstream["agent"]:
++                raise ValueError("upstream token's act.sub does not name its agent")
++            act["act"] = dict(upstream["act"])
+         scope = str(resource_claims.get("scope", ""))
+         mission_obj: dict[str, Any] | None = None
+         if mission is not None:
+@@ -58,7 +88,7 @@ class AuthTokenIssuer:
+             cnf_jwk=agent_cnf_jwk,
+             private_key=self._signing.private_key,
+             kid=self._signing.kid,
+-            act={"sub": agent_id},
++            act=act,
+             scope=scope,
+             sub=self._user_sub,
+             exp=exp,
